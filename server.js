@@ -108,6 +108,23 @@ app.post('/api/resetResults', async function (req, res) {
     }
 });
 
+// POST 요청 처리 (모든 결과 초기화)
+app.post('/api/resetAllResults', async function (req, res) {
+    console.log("Received POST /api/resetAllResults");
+
+    try {
+        const conn = await pool.getConnection();
+        const query = "TRUNCATE TABLE results";
+        await conn.query(query);
+        conn.release();
+        console.log("All results have been reset");
+        res.status(200).json({ message: 'All results have been reset' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to reset all results' });
+    }
+});
+
 // 서버 시작
 app.listen(3000, function () {
     console.log('CORS-enabled web server listening on port 3000');
