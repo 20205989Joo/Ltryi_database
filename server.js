@@ -10,12 +10,12 @@ app.use(cors());
 // JSON 형식의 본문을 처리할 수 있게 설정
 app.use(express.json());
 
-// MariaDB 연결 설정
+// 환경 변수에서 MariaDB 연결 설정 가져오기
 const pool = mariadb.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: 'abcdepik15_', // MariaDB 비밀번호
-  database: 'ltryi_database',
+  host: process.env.DB_HOST, // 환경 변수에서 데이터베이스 호스트 가져오기
+  user: process.env.DB_USER, // 환경 변수에서 데이터베이스 사용자명 가져오기
+  password: process.env.DB_PASSWORD, // 환경 변수에서 데이터베이스 비밀번호 가져오기
+  database: process.env.DB_NAME, // 환경 변수에서 데이터베이스 이름 가져오기
   connectionLimit: 5
 });
 

@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const testCount = localStorage.getItem('testCount') || 0;
         console.log("Sending data:", { resultsHtml, testCount }); // 전송 데이터 로그 출력
 
-        axios.post('http://localhost:3000/api/saveResults', {
+        axios.post('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveResults', {
             resultsHtml,
             testCount
         }, {
