@@ -19,15 +19,21 @@ const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
-// POST 요청 처리
+// POST 요청 처리 (결과 저장)
 app.post('/api/saveResults', async function (req, res) {
     console.log("Received POST /api/saveResults");
     console.log("Request body:", req.body);
 
+    const { resultsHtml, testCount } = req.body;
+
+    if (!resultsHtml || !testCount) {
+        return res.status(400).json({ message: 'Invalid request body' });
+    }
+
     try {
         const conn = await pool.getConnection();
         const query = "INSERT INTO results (resultsHtml, testCount) VALUES (?, ?)";
-        const values = [req.body.resultsHtml, req.body.testCount];
+        const values = [resultsHtml, testCount];
         const result = await conn.query(query, values);
         conn.release();
         console.log("Insert result:", result);
@@ -35,6 +41,40 @@ app.post('/api/saveResults', async function (req, res) {
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).json({ message: 'Failed to save results' });
+    }
+});
+
+// GET 요청 처리 (결과 조회)
+app.get('/api/getResults', async function (req, res) {
+    console.log("Received GET /api/getResults");
+
+    try {
+        const conn = await pool.getConnection();
+        const query = "SELECT * FROM results";
+        const results = await conn.query(query);
+        conn.release();
+        console.log("Fetch result:", results);
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to fetch results' });
+    }
+});
+
+// POST 요청 처리 (결과 초기화)
+app.post('/api/resetResults', async function (req, res) {
+    console.log("Received POST /api/resetResults");
+
+    try {
+        const conn = await pool.getConnection();
+        const query = "TRUNCATE TABLE results";
+        await conn.query(query);
+        conn.release();
+        console.log("All results have been reset");
+        res.status(200).json({ message: 'All results have been reset' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to reset results' });
     }
 });
 
