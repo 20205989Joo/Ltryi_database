@@ -68,6 +68,23 @@ app.post('/api/getResults', async function (req, res) {
     }
 });
 
+// GET 요청 처리 (모든 결과 조회)
+app.get('/api/getAllResults', async function (req, res) {
+    console.log("Received GET /api/getAllResults");
+
+    try {
+        const conn = await pool.getConnection();
+        const query = "SELECT * FROM results";
+        const results = await conn.query(query);
+        conn.release();
+        console.log("Fetch all results:", results);
+        res.status(200).json(results);
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to fetch all results' });
+    }
+});
+
 // POST 요청 처리 (결과 초기화)
 app.post('/api/resetResults', async function (req, res) {
     console.log("Received POST /api/resetResults");
