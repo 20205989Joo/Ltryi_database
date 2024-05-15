@@ -24,17 +24,17 @@ app.post('/api/saveResults', async function (req, res) {
     console.log("Received POST /api/saveResults");
     console.log("Request body:", req.body);
 
-    const { resultsHtml, testCount } = req.body;
+    const { resultsHtml, testCount, userId } = req.body;
 
-    if (!resultsHtml || !testCount) {
+    if (!resultsHtml || !testCount || !userId) {
         return res.status(400).json({ message: 'Invalid request body' });
     }
 
     try {
         const conn = await pool.getConnection();
-        const query = "INSERT INTO results (resultsHtml, testCount, timestamp) VALUES (?, ?, ?)";
+        const query = "INSERT INTO results (resultsHtml, testCount, timestamp, userId) VALUES (?, ?, ?, ?)";
         const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); // 현재 시간 생성
-        const values = [resultsHtml, testCount, timestamp];
+        const values = [resultsHtml, testCount, timestamp, userId];
         const result = await conn.query(query, values);
         conn.release();
         console.log("Insert result:", result);
@@ -45,14 +45,20 @@ app.post('/api/saveResults', async function (req, res) {
     }
 });
 
-// GET 요청 처리 (결과 조회)
-app.get('/api/getResults', async function (req, res) {
-    console.log("Received GET /api/getResults");
+// POST 요청 처리 (결과 조회)
+app.post('/api/getResults', async function (req, res) {
+    console.log("Received POST /api/getResults");
+
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'Invalid request body' });
+    }
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT * FROM results";
-        const results = await conn.query(query);
+        const query = "SELECT * FROM results WHERE userId = ?";
+        const results = await conn.query(query, [userId]);
         conn.release();
         console.log("Fetch result:", results);
         res.status(200).json(results);
@@ -66,13 +72,19 @@ app.get('/api/getResults', async function (req, res) {
 app.post('/api/resetResults', async function (req, res) {
     console.log("Received POST /api/resetResults");
 
+    const { userId } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'Invalid request body' });
+    }
+
     try {
         const conn = await pool.getConnection();
-        const query = "TRUNCATE TABLE results";
-        await conn.query(query);
+        const query = "DELETE FROM results WHERE userId = ?";
+        await conn.query(query, [userId]);
         conn.release();
-        console.log("All results have been reset");
-        res.status(200).json({ message: 'All results have been reset' });
+        console.log("All results have been reset for user:", userId);
+        res.status(200).json({ message: `All results have been reset for user: ${userId}` });
     } catch (error) {
         console.error('Database error:', error);
         res.status(500).json({ message: 'Failed to reset results' });
