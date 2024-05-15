@@ -32,8 +32,9 @@ app.post('/api/saveResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "INSERT INTO results (resultsHtml, testCount) VALUES (?, ?)";
-        const values = [resultsHtml, testCount];
+        const query = "INSERT INTO results (resultsHtml, testCount, timestamp) VALUES (?, ?, ?)";
+        const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); // 현재 시간 생성
+        const values = [resultsHtml, testCount, timestamp];
         const result = await conn.query(query, values);
         conn.release();
         console.log("Insert result:", result);
