@@ -38,8 +38,8 @@ app.post('/api/saveResults', async function (req, res) {
             const [subcategory] = await conn.query(subcategoryQuery, [result.subcategoryName, subject.SubjectId]);
 
             // 결과 저장
-            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp, result.testCount];
+            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp];
             const insertResult = await conn.query(insertQuery, insertValues);
             console.log("Insert result:", insertResult);
         }
@@ -53,6 +53,8 @@ app.post('/api/saveResults', async function (req, res) {
     }
 });
 
+
+
 // POST 요청 처리 (결과 조회)
 app.post('/api/getResults', async function (req, res) {
     console.log("Received POST /api/getResults");
@@ -65,12 +67,7 @@ app.post('/api/getResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = `
-            SELECT r.UserId, s.SubjectName, sc.SubcategoryName, r.QuizNo, r.UserResponse, r.Correctness, r.Timestamp, r.TestCount 
-            FROM Results r
-            JOIN Subcategories sc ON r.SubcategoryId = sc.SubcategoryId
-            JOIN Subjects s ON sc.SubjectId = s.SubjectId
-            WHERE r.UserId = ?`;
+        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results WHERE userId = ?";
         const results = await conn.query(query, [userId]);
         conn.release();
         console.log("Fetch result:", results);
@@ -87,11 +84,7 @@ app.get('/api/getAllResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = `
-            SELECT r.UserId, s.SubjectName, sc.SubcategoryName, r.QuizNo, r.UserResponse, r.Correctness, r.Timestamp, r.TestCount 
-            FROM Results r
-            JOIN Subcategories sc ON r.SubcategoryId = sc.SubcategoryId
-            JOIN Subjects s ON sc.SubjectId = s.SubjectId`;
+        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results";
         const results = await conn.query(query);
         conn.release();
         console.log("Fetch all results:", results);
@@ -114,7 +107,7 @@ app.post('/api/resetResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "DELETE FROM Results WHERE UserId = ?";
+        const query = "DELETE FROM results WHERE userId = ?";
         await conn.query(query, [userId]);
         conn.release();
         console.log("All results have been reset for user:", userId);
@@ -131,7 +124,7 @@ app.post('/api/resetAllResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "TRUNCATE TABLE Results";
+        const query = "TRUNCATE TABLE results";
         await conn.query(query);
         conn.release();
         console.log("All results have been reset");
