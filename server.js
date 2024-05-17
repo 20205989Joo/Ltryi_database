@@ -24,17 +24,17 @@ app.post('/api/saveResults', async function (req, res) {
     console.log("Received POST /api/saveResults");
     console.log("Request body:", req.body);
 
-    const { resultsHtml, testCount, userId } = req.body;
+    const { userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount } = req.body;
 
-    if (!resultsHtml || !testCount || !userId) {
+    if (!userId || !subject || !subcategory || quizNo === undefined || !userResponse || correctness === undefined || !resultsHtml || !testCount) {
         return res.status(400).json({ message: 'Invalid request body' });
     }
 
     try {
         const conn = await pool.getConnection();
-        const query = "INSERT INTO results (resultsHtml, testCount, timestamp, userId) VALUES (?, ?, ?, ?)";
+        const query = "INSERT INTO results (userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); // 현재 시간 생성
-        const values = [resultsHtml, testCount, timestamp, userId];
+        const values = [userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp];
         const result = await conn.query(query, values);
         conn.release();
         console.log("Insert result:", result);
@@ -44,6 +44,7 @@ app.post('/api/saveResults', async function (req, res) {
         res.status(500).json({ message: 'Failed to save results' });
     }
 });
+
 
 // POST 요청 처리 (결과 조회)
 app.post('/api/getResults', async function (req, res) {
@@ -57,7 +58,7 @@ app.post('/api/getResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT * FROM results WHERE userId = ?";
+        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results WHERE userId = ?";
         const results = await conn.query(query, [userId]);
         conn.release();
         console.log("Fetch result:", results);
@@ -74,7 +75,7 @@ app.get('/api/getAllResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT * FROM results";
+        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results";
         const results = await conn.query(query);
         conn.release();
         console.log("Fetch all results:", results);
