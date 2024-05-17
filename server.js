@@ -16,11 +16,11 @@ app.use((req, res, next) => {
 
 // 환경 변수에서 MariaDB 연결 설정 가져오기
 const pool = mariadb.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  connectionLimit: 5
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    connectionLimit: 5
 });
 
 app.post('/api/saveResults', async function (req, res) {
@@ -29,18 +29,38 @@ app.post('/api/saveResults', async function (req, res) {
 
     const { userId, results } = req.body;
 
+    if (!userId || !Array.isArray(results)) {
+        return res.status(400).json({ message: 'Invalid request body' });
+    }
+
     try {
         const conn = await pool.getConnection();
 
         for (const result of results) {
+            // SubjectId를 조회하는 쿼리
             const subjectQuery = "SELECT SubjectId FROM Subjects WHERE SubjectName = ?";
             const [subject] = await conn.query(subjectQuery, [result.subjectName]);
 
-            const subcategoryQuery = "SELECT SubcategoryId FROM Subcategories WHERE SubcategoryName = ? AND SubjectId = ?";
-            const [subcategory] = await conn.query(subcategoryQuery, [result.subcategoryName, subject.SubjectId]);
+            // Subject가 존재하지 않을 경우 에러 처리
+            if (!subject || subject.length === 0) {
+                throw new Error(`Subject not found: ${result.subjectName}`);
+            }
 
-            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp) VALUES (?, ?, ?, ?, ?, ?)";
-            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp];
+            // SubcategoryId를 조회하는 쿼리
+            const subcategoryQuery = "SELECT SubcategoryId FROM Subcategories WHERE SubcategoryName = ? AND SubjectId = ?";
+            const [subcategory] = await conn.query(subcategoryQuery, [result.subcategoryName, subject[0].SubjectId]);
+
+            // Subcategory가 존재하지 않을 경우 에러 처리
+            if (!subcategory || subcategory.length === 0) {
+                throw new Error(`Subcategory not found: ${result.subcategoryName}`);
+            }
+
+            // userResponse가 null인 경우 빈 문자열로 대체
+            const userResponse = result.userResponse !== null ? result.userResponse : '';
+
+            // Results 테이블에 데이터를 삽입하는 쿼리
+            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            const insertValues = [userId, subcategory[0].SubcategoryId, result.quizNo, userResponse, result.correctness, result.timestamp, result.testCount];
             const insertResult = await conn.query(insertQuery, insertValues);
             console.log("Insert result:", insertResult);
         }
@@ -48,9 +68,8 @@ app.post('/api/saveResults', async function (req, res) {
         conn.release();
         res.status(200).json({ message: 'Results saved successfully' });
     } catch (error) {
-        console.error('Database error:', error);
-        conn?.release();
-        res.status(500).json({ message: 'Failed to save results' });
+        console.error('Database error:', error.message || error);
+        res.status(500).json({ message: 'Failed to save results', error: error.message });
     }
 });
 
