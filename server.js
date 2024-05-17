@@ -1,21 +1,25 @@
 const express = require('express');
-const cors = require('cors');
 const mariadb = require('mariadb');
 
 const app = express();
 
-// CORS를 모든 요청에 대해 허용
-app.use(cors());
-
 // JSON 형식의 본문을 처리할 수 있게 설정
 app.use(express.json());
 
+// CORS 설정: 모든 요청에 대해 허용
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*"); // 모든 오리진 허용
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    next();
+});
+
 // 환경 변수에서 MariaDB 연결 설정 가져오기
 const pool = mariadb.createPool({
-  host: process.env.DB_HOST, // 환경 변수에서 데이터베이스 호스트 가져오기
-  user: process.env.DB_USER, // 환경 변수에서 데이터베이스 사용자명 가져오기
-  password: process.env.DB_PASSWORD, // 환경 변수에서 데이터베이스 비밀번호 가져오기
-  database: process.env.DB_NAME, // 환경 변수에서 데이터베이스 이름 가져오기
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   connectionLimit: 5
 });
 
@@ -28,16 +32,13 @@ app.post('/api/saveResults', async function (req, res) {
     try {
         const conn = await pool.getConnection();
 
-        // 결과를 하나씩 처리
         for (const result of results) {
-            // 과목 및 하위 카테고리 ID 조회
             const subjectQuery = "SELECT SubjectId FROM Subjects WHERE SubjectName = ?";
             const [subject] = await conn.query(subjectQuery, [result.subjectName]);
 
             const subcategoryQuery = "SELECT SubcategoryId FROM Subcategories WHERE SubcategoryName = ? AND SubjectId = ?";
             const [subcategory] = await conn.query(subcategoryQuery, [result.subcategoryName, subject.SubjectId]);
 
-            // 결과 저장
             const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp) VALUES (?, ?, ?, ?, ?, ?)";
             const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp];
             const insertResult = await conn.query(insertQuery, insertValues);
@@ -53,12 +54,8 @@ app.post('/api/saveResults', async function (req, res) {
     }
 });
 
-
-
-// POST 요청 처리 (결과 조회)
 app.post('/api/getResults', async function (req, res) {
     console.log("Received POST /api/getResults");
-
     const { userId } = req.body;
 
     if (!userId) {
@@ -67,10 +64,9 @@ app.post('/api/getResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results WHERE userId = ?";
+        const query = "SELECT * FROM Results WHERE UserId = ?";
         const results = await conn.query(query, [userId]);
         conn.release();
-        console.log("Fetch result:", results);
         res.status(200).json(results);
     } catch (error) {
         console.error('Database error:', error);
@@ -78,16 +74,13 @@ app.post('/api/getResults', async function (req, res) {
     }
 });
 
-// GET 요청 처리 (모든 결과 조회)
 app.get('/api/getAllResults', async function (req, res) {
     console.log("Received GET /api/getAllResults");
-
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results";
+        const query = "SELECT * FROM Results";
         const results = await conn.query(query);
         conn.release();
-        console.log("Fetch all results:", results);
         res.status(200).json(results);
     } catch (error) {
         console.error('Database error:', error);
@@ -95,10 +88,8 @@ app.get('/api/getAllResults', async function (req, res) {
     }
 });
 
-// POST 요청 처리 (결과 초기화)
 app.post('/api/resetResults', async function (req, res) {
     console.log("Received POST /api/resetResults");
-
     const { userId } = req.body;
 
     if (!userId) {
@@ -107,7 +98,7 @@ app.post('/api/resetResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "DELETE FROM results WHERE userId = ?";
+        const query = "DELETE FROM Results WHERE UserId = ?";
         await conn.query(query, [userId]);
         conn.release();
         console.log("All results have been reset for user:", userId);
@@ -118,13 +109,11 @@ app.post('/api/resetResults', async function (req, res) {
     }
 });
 
-// POST 요청 처리 (모든 결과 초기화)
 app.post('/api/resetAllResults', async function (req, res) {
     console.log("Received POST /api/resetAllResults");
-
     try {
         const conn = await pool.getConnection();
-        const query = "TRUNCATE TABLE results";
+        const query = "TRUNCATE TABLE Results";
         await conn.query(query);
         conn.release();
         console.log("All results have been reset");
@@ -137,5 +126,5 @@ app.post('/api/resetAllResults', async function (req, res) {
 
 // 서버 시작
 app.listen(3000, function () {
-    console.log('CORS-enabled web server listening on port 3000');
+    console.log('Server listening on port 3000');
 });
