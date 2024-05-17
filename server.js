@@ -19,32 +19,39 @@ const pool = mariadb.createPool({
   connectionLimit: 5
 });
 
-// POST 요청 처리 (결과 저장)
 app.post('/api/saveResults', async function (req, res) {
     console.log("Received POST /api/saveResults");
     console.log("Request body:", req.body);
 
-    const { userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount } = req.body;
-
-    if (!userId || !subject || !subcategory || quizNo === undefined || !userResponse || correctness === undefined || !resultsHtml || !testCount) {
-        return res.status(400).json({ message: 'Invalid request body' });
-    }
+    const { userId, results } = req.body;
 
     try {
         const conn = await pool.getConnection();
-        const query = "INSERT INTO results (userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' '); // 현재 시간 생성
-        const values = [userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp];
-        const result = await conn.query(query, values);
+
+        // 결과를 하나씩 처리
+        for (const result of results) {
+            // 과목 및 하위 카테고리 ID 조회
+            const subjectQuery = "SELECT SubjectId FROM Subjects WHERE SubjectName = ?";
+            const [subject] = await conn.query(subjectQuery, [result.subjectName]);
+
+            const subcategoryQuery = "SELECT SubcategoryId FROM Subcategories WHERE SubcategoryName = ? AND SubjectId = ?";
+            const [subcategory] = await conn.query(subcategoryQuery, [result.subcategoryName, subject.SubjectId]);
+
+            // 결과 저장
+            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp, result.testCount];
+            const insertResult = await conn.query(insertQuery, insertValues);
+            console.log("Insert result:", insertResult);
+        }
+
         conn.release();
-        console.log("Insert result:", result);
-        res.status(200).json({ message: 'Results saved successfully', data: req.body });
+        res.status(200).json({ message: 'Results saved successfully' });
     } catch (error) {
         console.error('Database error:', error);
+        conn?.release();
         res.status(500).json({ message: 'Failed to save results' });
     }
 });
-
 
 // POST 요청 처리 (결과 조회)
 app.post('/api/getResults', async function (req, res) {
@@ -58,7 +65,12 @@ app.post('/api/getResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results WHERE userId = ?";
+        const query = `
+            SELECT r.UserId, s.SubjectName, sc.SubcategoryName, r.QuizNo, r.UserResponse, r.Correctness, r.Timestamp, r.TestCount 
+            FROM Results r
+            JOIN Subcategories sc ON r.SubcategoryId = sc.SubcategoryId
+            JOIN Subjects s ON sc.SubjectId = s.SubjectId
+            WHERE r.UserId = ?`;
         const results = await conn.query(query, [userId]);
         conn.release();
         console.log("Fetch result:", results);
@@ -75,7 +87,11 @@ app.get('/api/getAllResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "SELECT userId, subject, subcategory, quizNo, userResponse, correctness, resultsHtml, testCount, timestamp FROM results";
+        const query = `
+            SELECT r.UserId, s.SubjectName, sc.SubcategoryName, r.QuizNo, r.UserResponse, r.Correctness, r.Timestamp, r.TestCount 
+            FROM Results r
+            JOIN Subcategories sc ON r.SubcategoryId = sc.SubcategoryId
+            JOIN Subjects s ON sc.SubjectId = s.SubjectId`;
         const results = await conn.query(query);
         conn.release();
         console.log("Fetch all results:", results);
@@ -98,7 +114,7 @@ app.post('/api/resetResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "DELETE FROM results WHERE userId = ?";
+        const query = "DELETE FROM Results WHERE UserId = ?";
         await conn.query(query, [userId]);
         conn.release();
         console.log("All results have been reset for user:", userId);
@@ -115,7 +131,7 @@ app.post('/api/resetAllResults', async function (req, res) {
 
     try {
         const conn = await pool.getConnection();
-        const query = "TRUNCATE TABLE results";
+        const query = "TRUNCATE TABLE Results";
         await conn.query(query);
         conn.release();
         console.log("All results have been reset");
