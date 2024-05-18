@@ -36,9 +36,11 @@ app.post('/api/saveResults', async function (req, res) {
                 throw new Error(`Subcategory not found for name: ${result.subcategoryName} and subject ID: ${subject.SubjectId}`);
             }
 
-            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctness, result.timestamp, result.testCount];
+            // 결과 저장
+            const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, CorrectAnswer, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctAnswer, result.correctness, result.timestamp, result.testCount];
             await conn.query(insertQuery, insertValues);
+
         }
 
         conn.release();
