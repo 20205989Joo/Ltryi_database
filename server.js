@@ -20,8 +20,10 @@ app.post('/api/saveResults', async function (req, res) {
     console.log("Received POST /api/saveResults");
     const { userId, results } = req.body;
 
+    let conn;
     try {
-        const conn = await pool.getConnection();
+        conn = await pool.getConnection();
+        await conn.beginTransaction(); // 트랜잭션 시작
 
         for (const result of results) {
             const subjectQuery = "SELECT SubjectId FROM Subjects WHERE SubjectName = ?";
@@ -40,17 +42,65 @@ app.post('/api/saveResults', async function (req, res) {
             const insertQuery = "INSERT INTO Results (UserId, SubcategoryId, QuizNo, UserResponse, CorrectAnswer, Correctness, Timestamp, TestCount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             const insertValues = [userId, subcategory.SubcategoryId, result.quizNo, result.userResponse, result.correctAnswer, result.correctness, result.timestamp, result.testCount];
             await conn.query(insertQuery, insertValues);
-
         }
 
-        conn.release();
+        await conn.commit(); // 모든 쿼리가 성공적으로 실행되면 커밋
         res.status(200).json({ message: 'Results saved successfully' });
     } catch (error) {
         console.error('Database error:', error);
-        conn.release();
+        if (conn) {
+            await conn.rollback(); // 에러 발생 시 롤백
+        }
         res.status(500).json({ message: 'Failed to save results', error: error.message });
+    } finally {
+        if (conn) {
+            conn.release(); // 마지막에 항상 연결 해제
+        }
     }
 });
+
+app.post('/api/saveGrades', async function (req, res) {
+    console.log("Received POST /api/saveGrades");
+    const { userId, grades } = req.body;
+
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        await conn.beginTransaction();
+
+        for (const grade of grades) {
+            // SubcategoryName을 사용하여 SubcategoryId 조회
+            const subcategoryQuery = "SELECT SubcategoryId FROM Subcategories WHERE SubcategoryName = ?";
+            const [subcategory] = await conn.query(subcategoryQuery, [grade.subcategoryName]);
+            
+            if (!subcategory) {
+                throw new Error(`Subcategory not found for name: ${grade.subcategoryName}`);
+            }
+
+            const subcategoryId = subcategory.SubcategoryId;
+
+            // Grades 테이블에 데이터 저장
+            const insertGradeQuery = "INSERT INTO Grades (UserId, SubcategoryId, QuizNo, TestScore) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE TestScore = VALUES(TestScore)";
+            const insertGradeValues = [userId, subcategoryId, grade.quizNo, grade.testScore];
+            await conn.query(insertGradeQuery, insertGradeValues);
+        }
+
+        await conn.commit();
+        conn.release();
+        res.status(200).json({ message: 'Grades saved successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        if (conn) {
+            await conn.rollback();  // 롤백을 처리
+        }
+        res.status(500).json({ message: 'Failed to save grades', error: error.message });
+    } finally {
+        if (conn) {
+            conn.release();  // 연결 해제를 확실하게 처리
+        }
+    }
+});
+
 
 // 특정 사용자의 결과 조회 API
 app.post('/api/getResults', async function (req, res) {
@@ -64,8 +114,9 @@ app.post('/api/getResults', async function (req, res) {
     try {
         const conn = await pool.getConnection();
         const query = `
-            SELECT R.*, S.SubjectName, SC.SubcategoryName
+            SELECT R.*, G.TestScore, S.SubjectName, SC.SubcategoryName
             FROM Results R
+            JOIN Grades G ON R.UserId = G.UserId AND R.SubcategoryId = G.SubcategoryId AND R.QuizNo = G.QuizNo
             JOIN Subcategories SC ON R.SubcategoryId = SC.SubcategoryId
             JOIN Subjects S ON SC.SubjectId = S.SubjectId
             WHERE R.UserId = ?
@@ -78,6 +129,38 @@ app.post('/api/getResults', async function (req, res) {
         res.status(500).json({ message: 'Failed to fetch results', error: error.message });
     }
 });
+
+app.get('/api/getGrades', async function (req, res) {
+    const userId = req.query.userId; // URL에서 userId 파라미터를 읽어옵니다.
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const conn = await pool.getConnection();
+        const query = `
+            SELECT G.UserId, G.SubcategoryId, SC.SubcategoryName, G.QuizNo, G.TestScore
+            FROM Grades G
+            JOIN Subcategories SC ON G.SubcategoryId = SC.SubcategoryId
+            WHERE G.UserId = ?
+            ORDER BY G.QuizNo;
+        `;
+        const grades = await conn.query(query, [userId]);
+        conn.release();
+
+        if (grades.length === 0) {
+            res.status(404).json({ message: 'No grades found for this user' });
+        } else {
+            res.status(200).json(grades);
+        }
+    } catch (error) {
+        console.error('Database error:', error);
+        conn.release();
+        res.status(500).json({ message: 'Failed to fetch grades', error: error.message });
+    }
+});
+
 
 // 모든 결과 조회 API
 app.get('/api/getAllResults', async function (req, res) {
@@ -105,20 +188,26 @@ app.post('/api/resetResults', async function (req, res) {
     const { userId } = req.body;
 
     if (!userId) {
-        return res.status(400).json({ message: 'Invalid request body' }); // 올바른 상태 코드 함수 호출 형식으로 수정
+        return res.status(400).json({ message: 'Invalid request body' });
     }
 
     try {
         const conn = await pool.getConnection();
-        const query = "DELETE FROM Results WHERE UserId = ?";
-        await conn.query(query, [userId]);
+        await conn.beginTransaction();
+        const deleteResultsQuery = "DELETE FROM Results WHERE UserId = ?";
+        await conn.query(deleteResultsQuery, [userId]);
+        const deleteGradesQuery = "DELETE FROM Grades WHERE UserId = ?";
+        await conn.query(deleteGradesQuery, [userId]);
+        await conn.commit();
         conn.release();
         res.status(200).json({ message: `All results have been reset for user: ${userId}` });
     } catch (error) {
+        await conn.rollback();
         console.error('Database error:', error);
         res.status(500).json({ message: 'Failed to reset results', error: error.message });
     }
 });
+
 
 
 // 모든 결과 초기화 API
@@ -127,7 +216,25 @@ app.post('/api/resetAllResults', async function (req, res) {
     try {
         const conn = await pool.getConnection();
         const query = "TRUNCATE TABLE Results";
-        await conn.query(query);
+        await conn.query(query);app.post('/api/resetAllResults', async function (req, res) {
+            console.log("Received POST /api/resetAllResults");
+            try {
+                const conn = await pool.getConnection();
+                await conn.beginTransaction();
+                const truncateResultsQuery = "TRUNCATE TABLE Results";
+                await conn.query(truncateResultsQuery);
+                const truncateGradesQuery = "TRUNCATE TABLE Grades";
+                await conn.query(truncateGradesQuery);
+                await conn.commit();
+                conn.release();
+                res.status(200).json({ message: 'All results and grades have been reset' });
+            } catch (error) {
+                await conn.rollback();
+                console.error('Database error:', error);
+                res.status(500).json({ message: 'Failed to reset all results and grades', error: error.message });
+            }
+        });
+        
         conn.release();
         res.status(200).json({ message: 'All results have been reset' });
     } catch (error) {
