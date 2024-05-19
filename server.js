@@ -80,8 +80,8 @@ app.post('/api/saveGrades', async function (req, res) {
             const subcategoryId = subcategory.SubcategoryId;
 
             // Grades 테이블에 데이터 저장
-            const insertGradeQuery = "INSERT INTO Grades (UserId, SubcategoryId, QuizNo, TestScore) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE TestScore = VALUES(TestScore)";
-            const insertGradeValues = [userId, subcategoryId, grade.quizNo, grade.testScore];
+            const insertGradeQuery = "INSERT INTO Grades (UserId, SubcategoryId, QuizNo, TestScore, TestCount, WhichDay) VALUES (?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE TestScore = VALUES(TestScore), TestCount = VALUES(TestCount), WhichDay = VALUES(WhichDay)";
+            const insertGradeValues = [userId, subcategoryId, grade.quizNo, grade.testScore, grade.testCount, grade.whichDay];
             await conn.query(insertGradeQuery, insertGradeValues);
         }
 
@@ -100,6 +100,7 @@ app.post('/api/saveGrades', async function (req, res) {
         }
     }
 });
+
 
 
 // 특정 사용자의 결과 조회 API
@@ -131,7 +132,7 @@ app.post('/api/getResults', async function (req, res) {
 });
 
 app.get('/api/getGrades', async function (req, res) {
-    const userId = req.query.userId; // URL에서 userId 파라미터를 읽어옵니다.
+    const userId = req.query.userId;
 
     if (!userId) {
         return res.status(400).json({ message: 'User ID is required' });
@@ -140,7 +141,7 @@ app.get('/api/getGrades', async function (req, res) {
     try {
         const conn = await pool.getConnection();
         const query = `
-            SELECT G.UserId, G.SubcategoryId, SC.SubcategoryName, G.QuizNo, G.TestScore
+            SELECT G.UserId, G.SubcategoryId, SC.SubcategoryName, G.QuizNo, G.TestScore, G.TestCount, G.WhichDay
             FROM Grades G
             JOIN Subcategories SC ON G.SubcategoryId = SC.SubcategoryId
             WHERE G.UserId = ?
