@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
+const multer = require('multer');
 
 const app = express();
 
@@ -14,6 +15,8 @@ const pool = mariadb.createPool({
     database: process.env.DB_NAME,
     connectionLimit: 10
 });
+
+const upload = multer(); // Multer 설정
 
 // 결과 저장 API
 app.post('/api/saveResults', async function (req, res) {
@@ -101,7 +104,104 @@ app.post('/api/saveGrades', async function (req, res) {
     }
 });
 
+// HWImages 저장 API
+app.post('/api/saveHWImages', upload.single('이미지'), async function (req, res) {
+    console.log("Received POST /api/saveHWImages");
+    const { userId, 학년, 연도, 월, 번호, 영역 } = req.body;
+    const 이미지 = req.file.buffer;
 
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const insertQuery = "INSERT INTO HWImages (UserId, 학년, 연도, 월, 번호, 영역, 이미지) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        await conn.query(insertQuery, [userId, 학년, 연도, 월, 번호, 영역, 이미지]);
+        conn.release();
+        res.status(200).json({ message: 'HW Image saved successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to save HW Image', error: error.message });
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+});
+
+// CustomWordsList 저장 API
+app.post('/api/saveCustomWordsList', async function (req, res) {
+    console.log("Received POST /api/saveCustomWordsList");
+    const { userId, 학년, 연도, 월, 번호, 단어, 뜻 } = req.body;
+
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        const insertQuery = "INSERT INTO CustomWordsList (UserId, 학년, 연도, 월, 번호, 단어, 뜻) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        await conn.query(insertQuery, [userId, 학년, 연도, 월, 번호, 단어, 뜻]);
+        conn.release();
+        res.status(200).json({ message: 'Custom Words List saved successfully' });
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to save Custom Words List', error: error.message });
+    } finally {
+        if (conn) {
+            conn.release();
+        }
+    }
+});
+
+// HWImages 조회 API
+app.get('/api/getHWImages', async function (req, res) {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const conn = await pool.getConnection();
+        const query = `
+            SELECT * FROM HWImages WHERE UserId = ?
+        `;
+        const images = await conn.query(query, [userId]);
+        conn.release();
+
+        if (images.length === 0) {
+            res.status(404).json({ message: 'No images found for this user' });
+        } else {
+            res.status(200).json(images);
+        }
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to fetch images', error: error.message });
+    }
+});
+
+// CustomWordsList 조회 API
+app.get('/api/getCustomWordsList', async function (req, res) {
+    const userId = req.query.userId;
+
+    if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const conn = await pool.getConnection();
+        const query = `
+            SELECT * FROM CustomWordsList WHERE UserId = ?
+        `;
+        const wordsList = await conn.query(query, [userId]);
+        conn.release();
+
+        if (wordsList.length === 0) {
+            res.status(404).json({ message: 'No words list found for this user' });
+        } else {
+            res.status(200).json(wordsList);
+        }
+    } catch (error) {
+        console.error('Database error:', error);
+        res.status(500).json({ message: 'Failed to fetch words list', error: error.message });
+    }
+});
 
 // 특정 사용자의 결과 조회 API
 app.post('/api/getResults', async function (req, res) {
@@ -162,7 +262,6 @@ app.get('/api/getGrades', async function (req, res) {
     }
 });
 
-
 // 모든 결과 조회 API
 app.get('/api/getAllResults', async function (req, res) {
     console.log("Received GET /api/getAllResults");
@@ -209,38 +308,23 @@ app.post('/api/resetResults', async function (req, res) {
     }
 });
 
-
-
 // 모든 결과 초기화 API
 app.post('/api/resetAllResults', async function (req, res) {
     console.log("Received POST /api/resetAllResults");
     try {
         const conn = await pool.getConnection();
-        const query = "TRUNCATE TABLE Results";
-        await conn.query(query);app.post('/api/resetAllResults', async function (req, res) {
-            console.log("Received POST /api/resetAllResults");
-            try {
-                const conn = await pool.getConnection();
-                await conn.beginTransaction();
-                const truncateResultsQuery = "TRUNCATE TABLE Results";
-                await conn.query(truncateResultsQuery);
-                const truncateGradesQuery = "TRUNCATE TABLE Grades";
-                await conn.query(truncateGradesQuery);
-                await conn.commit();
-                conn.release();
-                res.status(200).json({ message: 'All results and grades have been reset' });
-            } catch (error) {
-                await conn.rollback();
-                console.error('Database error:', error);
-                res.status(500).json({ message: 'Failed to reset all results and grades', error: error.message });
-            }
-        });
-        
+        await conn.beginTransaction();
+        const truncateResultsQuery = "TRUNCATE TABLE Results";
+        await conn.query(truncateResultsQuery);
+        const truncateGradesQuery = "TRUNCATE TABLE Grades";
+        await conn.query(truncateGradesQuery);
+        await conn.commit();
         conn.release();
-        res.status(200).json({ message: 'All results have been reset' });
+        res.status(200).json({ message: 'All results and grades have been reset' });
     } catch (error) {
+        await conn.rollback();
         console.error('Database error:', error);
-        res.status(500).json({ message: 'Failed to reset all results', error: error.message });
+        res.status(500).json({ message: 'Failed to reset all results and grades', error: error.message });
     }
 });
 
