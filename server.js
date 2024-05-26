@@ -105,16 +105,15 @@ app.post('/api/saveGrades', async function (req, res) {
 });
 
 // HWImages 저장 API
-app.post('/api/saveHWImages', upload.single('이미지'), async function (req, res) {
+app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
     console.log("Received POST /api/saveHWImages");
-    const { userId, 학년, 연도, 월, 번호, 영역 } = req.body;
-    const 이미지 = req.file.buffer;
+    const { UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage } = req.body;
 
     let conn;
     try {
         conn = await pool.getConnection();
-        const insertQuery = "INSERT INTO HWImages (UserId, 학년, 연도, 월, 번호, 영역, 이미지) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        await conn.query(insertQuery, [userId, 학년, 연도, 월, 번호, 영역, 이미지]);
+        const insertQuery = "INSERT INTO HWImages (UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage]);
         conn.release();
         res.status(200).json({ message: 'HW Image saved successfully' });
     } catch (error) {
@@ -130,13 +129,13 @@ app.post('/api/saveHWImages', upload.single('이미지'), async function (req, r
 // CustomWordsList 저장 API
 app.post('/api/saveCustomWordsList', async function (req, res) {
     console.log("Received POST /api/saveCustomWordsList");
-    const { userId, 학년, 연도, 월, 번호, 단어, 뜻 } = req.body;
+    const { UserId, QLevel, QYear, QMonth, QNo, CustomWord, CustomMeaning } = req.body;
 
     let conn;
     try {
         conn = await pool.getConnection();
-        const insertQuery = "INSERT INTO CustomWordsList (UserId, 학년, 연도, 월, 번호, 단어, 뜻) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        await conn.query(insertQuery, [userId, 학년, 연도, 월, 번호, 단어, 뜻]);
+        const insertQuery = "INSERT INTO CustomWordsList (UserId, QLevel, QYear, QMonth, QNo, CustomWord, CustomMeaning) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, CustomWord, CustomMeaning]);
         conn.release();
         res.status(200).json({ message: 'Custom Words List saved successfully' });
     } catch (error) {
