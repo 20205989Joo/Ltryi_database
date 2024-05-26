@@ -107,7 +107,8 @@ app.post('/api/saveGrades', async function (req, res) {
 // HWImages 저장 API
 app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
     console.log("Received POST /api/saveHWImages");
-    const { UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage } = req.body;
+    const { UserId, QLevel, QYear, QMonth, QNo, whichHW } = req.body;
+    const HWImage = req.file ? req.file.buffer : null;  // 파일 데이터 처리
 
     let conn;
     try {
@@ -125,6 +126,7 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
         }
     }
 });
+
 
 // CustomWordsList 저장 API
 app.post('/api/saveCustomWordsList', async function (req, res) {
