@@ -122,11 +122,11 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
     const fileName = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${whichHW}.jpg`;
   
     try {
-      const { error } = await supabase.storage
+        const { data, error } = await supabase.storage
         .from('hw-images')
         .upload(fileName, HWImage, {
-          contentType: mimeType, // ✅ 이 변수 사용
-          upsert: true,
+          contentType: mimeType,
+          upsert: true
         });
   
       if (error) throw error;
