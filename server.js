@@ -8,6 +8,13 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // CORS를 모든 요청에 대해 허용
 
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
+
 const pool = mariadb.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -108,24 +115,42 @@ app.post('/api/saveGrades', async function (req, res) {
 app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
     console.log("Received POST /api/saveHWImages");
     const { UserId, QLevel, QYear, QMonth, QNo, whichHW } = req.body;
-    const HWImage = req.file ? req.file.buffer : null;  // 파일 데이터 처리
-
-    let conn;
+    const HWImage = req.file ? req.file.buffer : null;
+  
+    if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
+  
+    const fileName = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${whichHW}.jpg`;
+  
     try {
-        conn = await pool.getConnection();
-        const insertQuery = "INSERT INTO HWImages (UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImage]);
-        conn.release();
-        res.status(200).json({ message: 'HW Image saved successfully' });
+      // Supabase Storage 업로드
+      const { error } = await supabase.storage
+      .from('hw-images')
+      .upload(fileName, HWImage, {
+        contentType: mimeType,
+        upsert: true,
+      });
+  
+      if (error) throw error;
+  
+      const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/hw-images/${fileName}`;
+  
+      // DB 저장
+      const conn = await pool.getConnection();
+      const insertQuery = `
+        INSERT INTO HWImages (UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImageURL)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, whichHW, imageUrl]);
+      conn.release();
+  
+      res.status(200).json({ message: 'HW Image uploaded to Supabase', url: imageUrl });
     } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ message: 'Failed to save HW Image', error: error.message });
-    } finally {
-        if (conn) {
-            conn.release();
-        }
+      console.error('Supabase or DB error:', error);
+      res.status(500).json({ message: 'Failed to upload HW Image', error: error.message });
     }
-});
+  });
+  
+
 
 
 // CustomWordsList 저장 API
@@ -153,29 +178,32 @@ app.post('/api/saveCustomWordsList', async function (req, res) {
 // HWImages 조회 API
 app.get('/api/getHWImages', async function (req, res) {
     const userId = req.query.userId;
-
+  
     if (!userId) {
-        return res.status(400).json({ message: 'User ID is required' });
+      return res.status(400).json({ message: 'User ID is required' });
     }
-
+  
     try {
-        const conn = await pool.getConnection();
-        const query = `
-            SELECT * FROM HWImages WHERE UserId = ?
-        `;
-        const images = await conn.query(query, [userId]);
-        conn.release();
-
-        if (images.length === 0) {
-            res.status(404).json({ message: 'No images found for this user' });
-        } else {
-            res.status(200).json(images);
-        }
+      const conn = await pool.getConnection();
+      const query = `
+        SELECT UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImageURL
+        FROM HWImages
+        WHERE UserId = ?
+      `;
+      const images = await conn.query(query, [userId]);
+      conn.release();
+  
+      if (images.length === 0) {
+        res.status(404).json({ message: 'No images found for this user' });
+      } else {
+        res.status(200).json(images); // 프론트에서 imageUrl로 <img src="..."> 가능
+      }
     } catch (error) {
-        console.error('Database error:', error);
-        res.status(500).json({ message: 'Failed to fetch images', error: error.message });
+      console.error('Database error:', error);
+      res.status(500).json({ message: 'Failed to fetch images', error: error.message });
     }
-});
+  });
+  
 
 // CustomWordsList 조회 API
 app.get('/api/getCustomWordsList', async function (req, res) {
