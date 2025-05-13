@@ -23,6 +23,10 @@ const pool = mariadb.createPool({
     connectionLimit: 10
 });
 
+console.log("Supabase URL:", process.env.SUPABASE_URL);
+console.log("Supabase ANON KEY:", process.env.SUPABASE_ANON_KEY);
+
+
 const upload = multer(); // Multer 설정
 
 // 결과 저장 API
