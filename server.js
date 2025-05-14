@@ -198,7 +198,7 @@ app.get('/api/getHWImages', async function (req, res) {
     try {
       const conn = await pool.getConnection();
       const query = `
-        SELECT UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImageURL
+        SELECT UserId, QLevel, QYear, QMonth, QNo, whichHW, HWImageURL, Timestamp
         FROM HWImages
         WHERE UserId = ?
       `;
