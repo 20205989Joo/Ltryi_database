@@ -115,11 +115,12 @@ app.post('/api/saveGrades', async function (req, res) {
     }
 });
 
-// HWImages 저장 API
 app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
-  const { UserId, QLevel, QYear, QMonth, QNo, WhichHW } = req.body;
-  const HWImage = req.file ? req.file.buffer : null;
+  const {
+    UserId, QLevel, QYear, QMonth, QNo, WhichHW, QGrade, Comment
+  } = req.body;
 
+  const HWImage = req.file ? req.file.buffer : null;
   if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
 
   const mimeType = req.file.mimetype;
@@ -137,16 +138,17 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/hw-images/${fileName}`;
 
-    // ✅ DB에 이미지 URL과 제출 시각 저장
     let conn;
     try {
       conn = await pool.getConnection();
       const insertQuery = `
         INSERT INTO HWImages 
-        (UserId, QLevel, QYear, QMonth, QNo, WhichHW, HWImageURL, Timestamp) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+        (UserId, QLevel, QYear, QMonth, QNo, WhichHW, QGrade, Comment, HWImageURL, Timestamp) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
       `;
-      await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, WhichHW, imageUrl]);
+      await conn.query(insertQuery, [
+        UserId, QLevel, QYear, QMonth, QNo, WhichHW, QGrade || null, Comment || null, imageUrl
+      ]);
       conn.release();
     } catch (dbError) {
       console.error("DB insert error:", dbError);
@@ -158,6 +160,7 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
     res.status(500).json({ message: 'Failed to upload HW Image', error: error.message });
   }
 });
+
 
 
   
@@ -189,32 +192,34 @@ app.post('/api/saveCustomWordsList', async function (req, res) {
 
 // HWImages 조회 API
 app.get('/api/getHWImages', async function (req, res) {
-    const userId = req.query.userId;
-  
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
+  const userId = req.query.userId;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    const query = `
+      SELECT 
+        UserId, QLevel, QYear, QMonth, QNo, WhichHW, QGrade, Comment, HWImageURL, Timestamp
+      FROM HWImages
+      WHERE UserId = ?
+    `;
+    const images = await conn.query(query, [userId]);
+    conn.release();
+
+    if (images.length === 0) {
+      res.status(404).json({ message: 'No images found for this user' });
+    } else {
+      res.status(200).json(images);
     }
-  
-    try {
-      const conn = await pool.getConnection();
-      const query = `
-        SELECT UserId, QLevel, QYear, QMonth, QNo, WhichHW, HWImageURL, Timestamp
-        FROM HWImages
-        WHERE UserId = ?
-      `;
-      const images = await conn.query(query, [userId]);
-      conn.release();
-  
-      if (images.length === 0) {
-        res.status(404).json({ message: 'No images found for this user' });
-      } else {
-        res.status(200).json(images); // 프론트에서 imageUrl로 <img src="..."> 가능
-      }
-    } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ message: 'Failed to fetch images', error: error.message });
-    }
-  });
+  } catch (error) {
+    console.error('Database error:', error);
+    res.status(500).json({ message: 'Failed to fetch images', error: error.message });
+  }
+});
+
   
 
 // CustomWordsList 조회 API
