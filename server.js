@@ -117,13 +117,13 @@ app.post('/api/saveGrades', async function (req, res) {
 
 // HWImages 저장 API
 app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
-  const { UserId, QLevel, QYear, QMonth, QNo, whichHW } = req.body;
+  const { UserId, QLevel, QYear, QMonth, QNo, WhichHW } = req.body;
   const HWImage = req.file ? req.file.buffer : null;
 
   if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
 
   const mimeType = req.file.mimetype;
-  const fileName = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${whichHW}.jpg`;
+  const fileName = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${WhichHW}.jpg`;
 
   try {
     const { data, error } = await supabase.storage
@@ -137,16 +137,16 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
 
     const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/hw-images/${fileName}`;
 
-    // ✅ DB에 이미지 URL 저장
+    // ✅ DB에 이미지 URL과 제출 시각 저장
     let conn;
     try {
       conn = await pool.getConnection();
       const insertQuery = `
         INSERT INTO HWImages 
-        (UserId, QLevel, QYear, QMonth, QNo, WhichHW, HWImageURL) 
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        (UserId, QLevel, QYear, QMonth, QNo, WhichHW, HWImageURL, Timestamp) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `;
-      await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, whichHW, imageUrl]);
+      await conn.query(insertQuery, [UserId, QLevel, QYear, QMonth, QNo, WhichHW, imageUrl]);
       conn.release();
     } catch (dbError) {
       console.error("DB insert error:", dbError);
@@ -158,6 +158,7 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
     res.status(500).json({ message: 'Failed to upload HW Image', error: error.message });
   }
 });
+
 
   
   
