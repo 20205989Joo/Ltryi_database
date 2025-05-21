@@ -115,6 +115,10 @@ app.post('/api/saveGrades', async function (req, res) {
     }
 });
 
+function safeSupabaseKey(input) {
+  return encodeURIComponent(input).replace(/%/g, '');
+}
+
 app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res) {
   const {
     UserId, QLevel, QYear, QMonth, QNo, WhichHW, QGrade, Comment
@@ -124,14 +128,32 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
   if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
 
   const mimeType = req.file.mimetype;
-  const fileName = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${WhichHW}.jpg`;
+
+  const base = `${UserId}_${QLevel}_${QYear}_${QMonth}_${QNo}_${WhichHW}`;
+  const safeBase = safeSupabaseKey(base);
+
+  let fileName = `${safeBase}.jpg`;
+  let suffix = 1;
+
+  // ✅ 중복된 파일명 방지 루프
+  while (true) {
+    const { data: existing, error: checkError } = await supabase
+      .storage
+      .from('hw-images')
+      .list('', { search: fileName });
+
+    if (!existing || existing.length === 0) break;
+
+    fileName = `${safeBase}(${suffix}).jpg`;
+    suffix++;
+  }
 
   try {
     const { data, error } = await supabase.storage
       .from('hw-images')
       .upload(fileName, HWImage, {
         contentType: mimeType,
-        upsert: true
+        upsert: false  // ✅ 덮어쓰기 방지
       });
 
     if (error) throw error;
@@ -160,6 +182,7 @@ app.post('/api/saveHWImages', upload.single('HWImage'), async function (req, res
     res.status(500).json({ message: 'Failed to upload HW Image', error: error.message });
   }
 });
+
 
 
 
