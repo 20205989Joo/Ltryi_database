@@ -2,6 +2,14 @@ const express = require('express');
 const cors = require('cors');
 const mariadb = require('mariadb');
 const multer = require('multer');
+const webpush = require('web-push');
+
+webpush.setVapidDetails(
+  'mailto:deathlyevil@gmail.com',
+  'BEvKBnLcnotYEeOBexk0i-_2oK5aU3epudG8lszhppdiGeiDT2JPbkXF-THFDYXcWjiGNktD7gIOj4mE_MC_9nE',
+  '5kA0Noc2rQyIPtWIaUUqNCJGXQSbnoMZZ4Nhc59nwzE'
+);
+
 
 const app = express();
 
