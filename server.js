@@ -455,22 +455,27 @@ app.post('/api/send-push', async (req, res) => {
   try {
     const conn = await pool.getConnection();
 
-    const [rows] = await conn.query(
+    const result = await conn.query(
       'SELECT * FROM PushSubscriptions WHERE UserId = ?',
       [userId]
     );
 
     conn.release();
 
-    if (!rows || rows.length === 0) {
+    // 🔍 디버깅용 로그 추가
+    console.log('쿼리 결과:', result);
+
+    if (!result || result.length === 0) {
       return res.status(404).json({ message: 'No subscription found for this userId' });
     }
 
+    const row = result[0]; // ✅ 첫 행만 추출
+
     const sub = {
-      endpoint: rows[0].Endpoint,
+      endpoint: row.Endpoint,
       keys: {
-        auth: rows[0].AuthKey,
-        p256dh: rows[0].P256dhKey
+        auth: row.AuthKey,
+        p256dh: row.P256dhKey
       }
     };
 
@@ -483,9 +488,11 @@ app.post('/api/send-push', async (req, res) => {
 
   } catch (err) {
     console.error('❌ 푸시 전송 실패:', err);
-    res.status(500).json({ message: 'Push error' });
+    res.status(500).json({ message: 'Push error', error: err.message });
   }
 });
+
+
 
 
 
