@@ -407,16 +407,42 @@ app.post('/api/resetAllResults', async function (req, res) {
 
 const subscriptions = [];
 
-app.post('/api/save-subscription', (req, res) => {
-  const subscription = req.body;
-  if (!subscription?.endpoint) {
-    return res.status(400).json({ message: 'Invalid subscription' });
+app.post('/api/save-subscription', async (req, res) => {
+  const { userId, subscription } = req.body;
+  if (!userId || !subscription?.endpoint) {
+    return res.status(400).json({ message: 'Invalid input' });
   }
 
-  subscriptions.push(subscription);
-  console.log('✅ 구독 저장:', subscription.endpoint);
-  res.status(200).json({ message: 'Subscription saved' });
+  try {
+    const conn = await pool.getConnection();
+
+    const query = `
+      INSERT INTO PushSubscriptions (UserId, Endpoint, AuthKey, P256dhKey)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        Endpoint = VALUES(Endpoint),
+        AuthKey = VALUES(AuthKey),
+        P256dhKey = VALUES(P256dhKey),
+        UpdatedAt = CURRENT_TIMESTAMP
+    `;
+
+    await conn.query(query, [
+      userId,
+      subscription.endpoint,
+      subscription.keys.auth,
+      subscription.keys.p256dh
+    ]);
+
+    conn.release();
+    res.status(200).json({ message: 'Saved' });
+  } catch (err) {
+    console.error('DB error:', err);
+    res.status(500).json({ message: 'DB error' });
+  }
 });
+
+
+
 
 app.get('/api/send-push', (req, res) => {
   const payload = JSON.stringify({
