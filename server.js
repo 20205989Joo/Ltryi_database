@@ -410,6 +410,22 @@ app.post('/api/save-subscription', (req, res) => {
   res.status(200).json({ message: 'Subscription saved' });
 });
 
+app.get('/api/send-push', (req, res) => {
+  const payload = JSON.stringify({
+    title: '📣 숙제 도착!',
+    body: '오늘의 단어 퀴즈를 풀어보세요!'
+  });
+
+  subscriptions.forEach(sub => {
+    webpush.sendNotification(sub, payload)
+      .then(() => console.log('✅ 푸시 알림 전송 완료'))
+      .catch(err => console.error('❌ 전송 실패:', err));
+  });
+
+  res.send('🚀 푸시 전송 시도 완료');
+});
+
+
 
 // 서버 시작
 app.listen(3000, function () {
