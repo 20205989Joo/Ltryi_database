@@ -14,6 +14,8 @@ webpush.setVapidDetails(
 const app = express();
 
 app.use(express.json());
+app.use(express.static('public'));
+
 app.use(cors()); // CORS를 모든 요청에 대해 허용
 
 const { createClient } = require('@supabase/supabase-js');
