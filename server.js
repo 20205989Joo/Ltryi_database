@@ -397,6 +397,20 @@ app.post('/api/resetAllResults', async function (req, res) {
     }
 });
 
+const subscriptions = [];
+
+app.post('/api/save-subscription', (req, res) => {
+  const subscription = req.body;
+  if (!subscription?.endpoint) {
+    return res.status(400).json({ message: 'Invalid subscription' });
+  }
+
+  subscriptions.push(subscription);
+  console.log('✅ 구독 저장:', subscription.endpoint);
+  res.status(200).json({ message: 'Subscription saved' });
+});
+
+
 // 서버 시작
 app.listen(3000, function () {
     console.log('Server listening on port 3000');
