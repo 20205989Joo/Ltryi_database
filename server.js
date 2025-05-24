@@ -447,38 +447,44 @@ app.post('/api/save-subscription', async (req, res) => {
 
 
 app.post('/api/send-push', async (req, res) => {
-    const { userId, title, body } = req.body;
-    if (!userId || !title || !body) {
-      return res.status(400).json({ message: 'Invalid input' });
+  const { userId, title, body } = req.body;
+  if (!userId || !title || !body) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    const [rows] = await conn.query(
+      'SELECT * FROM PushSubscriptions WHERE UserId = ?',
+      [userId]
+    );
+
+    conn.release();
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: 'No subscription found for this userId' });
     }
 
-    try {
-      const conn = await pool.getConnection();
-      const [rows] = await conn.query('SELECT * FROM PushSubscriptions WHERE UserId = ?', [userId]);
-      conn.release();
-
-      if (!rows || rows.length === 0) {
-        return res.status(404).json({ message: 'No subscription found' });
+    const sub = {
+      endpoint: rows[0].Endpoint,
+      keys: {
+        auth: rows[0].AuthKey,
+        p256dh: rows[0].P256dhKey
       }
+    };
 
-      const sub = {
-        endpoint: rows[0].Endpoint,
-        keys: {
-          auth: rows[0].AuthKey,
-          p256dh: rows[0].P256dhKey
-        }
-      };
+    const payload = JSON.stringify({ title, body });
 
-      const payload = JSON.stringify({ title, body });
+    await webpush.sendNotification(sub, payload);
 
-      await webpush.sendNotification(sub, payload);
-      console.log(`✅ ${userId}에게 푸시 전송 완료`);
-      res.status(200).json({ message: 'Push sent' });
+    console.log(`✅ ${userId}에게 푸시 전송 완료`);
+    res.status(200).json({ message: 'Push sent' });
 
-    } catch (err) {
-      console.error('❌ 푸시 전송 실패:', err);
-      res.status(500).json({ message: 'Push error' });
-    }
+  } catch (err) {
+    console.error('❌ 푸시 전송 실패:', err);
+    res.status(500).json({ message: 'Push error' });
+  }
 });
 
 
