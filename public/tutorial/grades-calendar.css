@@ -1,0 +1,247 @@
+
+#cafe_int {
+  position: absolute;
+  width: 340px;
+  height: 626px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 12px;
+  z-index:2;
+
+  /* ✅ 투명 오렌지 → 베이지 배경 레이어 */
+  background: linear-gradient(
+    to bottom,
+    rgba(241, 123, 42, 0.3) 0px,
+    rgba(241, 123, 42, 0.3) 321px,
+    #D99863 321px,
+    #D99863 100%
+  );
+
+}
+
+
+/* 상단 날짜 텍스트 */
+.date {
+  position: absolute;
+  top: 25px;
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 누적 그래프 영역 */
+.grades-chart-section {
+  position: absolute;
+  top: 170px; /* chalkboard 중앙쯤 */
+  left: 38px;
+  width: 260px;
+  height: 800px;
+  z-index: 2; /* 📌 이미지보다 위에 오도록 */
+  transform: perspective(700px) rotateX(2deg) rotateY(3deg) rotateZ(0deg)
+}
+
+.chart-wrapper {
+  position: absolute;
+  width: 100%;
+  height: 180px; /* 필요 시 조정 */
+}
+
+#submissionChart {
+  width: 100%;
+  height: 100%;
+  background-color: transparent; /* 투명하게 */
+}
+
+#todayPointWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+  margin-bottom: -10px;
+  z-index: 3;
+  position: relative;
+}
+
+#todayPoint {
+  position: absolute;
+  top: -110px;
+  font-size: 70px;
+  font-weight: 900;
+  font-family: 'Cafe24SsurroundAir', 'Nanum Pen Script', cursive;
+  background: linear-gradient(to right, #bfffc2, #66cc66); /* 연두 → 초록 */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  /* 테두리 */
+  -webkit-text-stroke: 3px rgba(255, 255, 200, 0.7); /* 흰+노란빛 */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  pointer-events: none;
+  transform: perspective(700px) rotateX(2deg) rotateY(3deg) rotateZ(0deg)
+}
+
+
+
+/* 🔸 달력 배경 (종이 느낌) */
+.calendar-section {
+  position: absolute;
+  top: 340px;
+  left: 54px;
+  width: 240px;
+  background-color: #fff4dc; /* 종이 베이지 */
+  border: 3px solid #a86c3d;
+  border-radius: 12px;
+  padding: 16px 12px;
+  z-index: 2;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.15);
+  transform: perspective(700px) rotateX(3deg) rotateY(-3deg) rotateZ(2deg);
+  transform-origin: top center;
+  
+}
+
+#calendar_backside {
+  position: absolute;
+  top: 370px;
+  left: 42px;
+  width: 280px;  /* calendar-section보다 약간 큼 */
+  height: 220px;
+  background-color: #917761; /* 카페 브라운 종이색 */
+  border-radius: 10px;
+
+  transform: perspective(700px) rotateX(-15deg) rotateY(-20deg) rotateZ(-8deg);
+  transform-origin: top center;
+
+  z-index: 1;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+  pointer-events: none;
+}
+
+/* 🔸 달력 제목 */
+#calendarTitle {
+  text-align: left;
+  font-weight: bold;
+  font-size: 28px;
+  color: #5c3a1e;
+  margin-bottom: 10px;
+  margin-left: 8px;
+}
+
+.calendar-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+#calendarMonth {
+  left:218px;
+  top: 90px;
+  position: absolute;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  font-size: 14px;
+  font-weight: bold;
+  color: #6b4e2f;
+  padding: 8px 6px;
+  box-shadow: inset 0 0 3px rgba(0,0,0,0.05);
+  z-index: 5;
+}
+
+/* 🔸 달력 테이블 */
+#calendarTable {
+  margin-top: 10px;
+  width: 200px;
+  border-collapse: collapse;
+  background-color: #fffef8;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+
+#calendarTable td {
+  width: 30px;
+  height: 25px;
+  text-align: center;
+  border: 1px solid #d0a97f;
+  font-size: 14px;
+  font-weight: bold;
+  color: #5c3a1e;
+  background-color: #fff8e8;
+}
+
+/* 🔸 색상표시 */
+.submitted {
+  background-color: #b9d8b1 !important; /* 세이지 그린 */
+  color: #355230; /* 진한 줄기색 글자 */
+  font-weight: bold;
+}
+
+
+.not-submitted {
+  background-color: #f2e6d4 !important;
+  color: #a0522d;
+}
+
+
+.overlay-point {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 36px;
+  font-weight: bold;
+  color: rgba(0, 0, 0, 0.4); /* 흐릿한 강조 */
+  pointer-events: none;
+  z-index: 10;
+}
+
+#chalkboard {
+  position: absolute;
+  width: 440px;
+  height: 440px;
+  top: 7px;
+  left: -48px;
+  object-fit: contain;
+  z-index: 0; /* 내용물보다 뒤에 깔리게 */
+  pointer-events: none;
+  transform: perspective(700px) rotateX(2deg) rotateY(-3deg) rotateZ(0deg);
+  transform-origin: top center
+}
+
+#calendar {
+  position: absolute;
+  width: 363px;
+  height: 363px;
+  top: 300px; /* 이건 임시 위치, 필요 시 조절 */
+  left: -10px; /* 중앙 맞추고 싶으면 조정 가능 */
+  object-fit: contain;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.dimmed {
+  opacity: 0.4;
+  color: #888;
+}
+
+.go-back-from-grades {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f17b2a;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  z-index: 10;
+  cursor: pointer;
+  width: 12px;
+  height: 12px;
+}
+
+.go-back-from-grades:hover {
+  background: #e16c1f;
+}

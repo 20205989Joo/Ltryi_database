@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Grades Calendar</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="grades-calendar.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="main-page">
+    <!-- ✅ 공통 카페 프레임 레이어 -->
+     <!-- 돌아가기 버튼 (초기에는 숨김 처리됨) -->
+<button class="go-back-from-grades">🏠 다시 카페로 돌아가기</button>
+
+    <div id="cafe_int">
+      
+<!-- 📊 배경 보드 이미지 -->
+<img id="chalkboard" src="cafe_board2.png" alt="chalkboard" />
+
+
+      <!-- 그래프 구역 -->
+      <div class="grades-chart-section">
+<div id="todayPointWrapper">
+  <div id="todayPoint">5</div>
+</div>
+<!-- 차트 본체 -->
+<div class="chart-wrapper">
+  <canvas id="submissionChart"></canvas>
+</div>
+      </div>
+
+
+<div id="calendar_backside"></div>
+      <!-- 캘린더 구역 -->
+<div class="calendar-section">
+  <div class="calendar-title-row">
+    <div id="calendarTitle">Calendar</div>
+    <div id="calendarMonth"></div> <!-- 📆 몇월 표시 -->
+  </div>
+  <table id="calendarTable"></table>
+</div>
+  </div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script src="tutorial_guide.js"></script>
+  <script src="grades.js" defer></script>
+  <script src="calendar.js" defer></script>
+</body>
+</html>

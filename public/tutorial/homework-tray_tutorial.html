@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>오늘의 숙제 트레이</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      z-index: 2;
+      background-color: rgba(210, 110, 82, 1);
+    }
+
+    .round_table {
+      position: absolute;
+      width: 340px;
+      height: 475px;
+      left: 0px;
+      top: 55px;
+      background-image: url('cafe_table_top.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      z-index: 4;
+    }
+
+    .tray_surface {
+      position: absolute;
+      width: 300px;
+      height: 200px;
+      top: 129px;
+      left: 3px;
+      background-image: url('food_tray_top.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 24px;
+      z-index: 3;
+    }
+
+    .dish {
+      position: absolute;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background-image: url('homework_dish.png');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #444;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      z-index: 7;
+      margin-left: 3px;
+    }
+
+    .room-btn {
+      display: inline-block;
+      height: 30px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: bold;
+      border: none;
+      background: #f17b2a;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      line-height: 1.2;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+      transition: background 0.2s ease;
+    }
+
+    .room-btn:hover {
+      background: #e0611e;
+    }
+
+    .receipt-icon {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border-radius: 10px;
+      padding: 4px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
+      z-index: 15;
+      cursor: pointer;
+    }
+
+    .dish .done-label {
+  font-size: 11px;
+  color: #666;
+  text-align: center;
+  width: 100%;
+  margin-top: 2px;
+  pointer-events: none;
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+}
+
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <img id="receipt_icon" class="receipt-icon" src="receipt_icon.png" alt="영수증 아이콘">
+      <div class="round_table">
+        <div class="tray_surface" id="tray-area">
+          <!-- JS가 .dish 요소 삽입 -->
+        </div>
+      </div>
+      <button onclick="clearDownloadHistory()" class="room-btn"
+              style="position: fixed; bottom: 20px; right: 20px; z-index: 999;">
+        🧹 기록 초기화
+      </button>
+    </div>
+  </div>
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="tutorial_guide.js"></script>
+  <script src="adjustFontSize.js"></script>
+  <script src="homework-dish.js" defer></script>
+</body>
+</html>

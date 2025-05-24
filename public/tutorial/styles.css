@@ -1,0 +1,154 @@
+
+.treeframe {
+    position: absolute;
+    width: 315px;
+    height: 353px;
+    left: 30px;
+    top: 150px;
+    border-radius: 0px;
+}
+
+/* index_corkframe */
+.corkframe {
+    position: absolute;
+    width: 282px;
+    height: 323px;
+    background: rgba(213, 166, 95, 0.72);
+    left:12px;
+    top:12px;
+}
+
+/* index_decoline1 */
+.decoline {
+    position: absolute;
+    width: 120px;
+    top: 100px;
+
+}
+
+
+.label_ID, .label_PW {
+    position: absolute;
+    left: 10px;
+} 
+
+.label_ID {
+    top: 40px;
+}
+
+.label_PW {
+    top: 100px;
+}
+
+
+/* Log in button */
+button {
+    position: absolute;
+    width: 70px;
+    height: 29px;
+    background: rgba(213, 166, 95, 0.72);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 9px;
+    cursor: pointer;
+    border: none;
+    color: #000;
+    font-size: 15px;
+    margin: 20px auto; /* 중앙 정렬 */
+    display: block;
+}
+
+
+
+/* index_postitcorner */
+.postitcorner {
+    position: absolute;
+    left: 240px
+}
+
+
+/* IDPWwindow */
+.IDPWwindow {
+    position: absolute;
+    width: 265px;
+    height: 170px;
+    left: 8px;
+    top: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 40px;
+}
+
+/* IDinput과 PWinput */
+.IDinput, .PWinput {
+    position:absolute;
+    width: 181px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    left: 75px;
+}
+
+.IDinput {
+    top:40px;
+}
+
+.PWinput {
+    top : 100px;
+}
+
+/* ID, PW 텍스트 */
+label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 19px;
+    text-align: left;
+    color: #000000;
+    margin-bottom: 5px;
+}
+
+.tester-btn {
+    position: absolute;
+    width: 100px;
+    height: 32px;
+    background: rgba(213, 166, 95, 0.85);
+    box-shadow: 0px 3px 4px rgba(0, 0, 0, 0.25);
+    border-radius: 9px;
+    cursor: pointer;
+    border: none;
+    color: #000;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+}
+
+/* 세부 위치 지정 */
+#btnTStudent {
+    left: 25px;
+    bottom: 40px;
+}
+
+#btnTParents {
+    left: 135px;
+    bottom: 40px;
+}
+
+#btnTTeacher {
+    left: 245px;
+    bottom: 40px;
+}
+
+#loginButton {
+    position: absolute;
+    top:200px;
+    left:100px;
+}
+
+button, a {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+button:focus {
+  outline: none;
+}

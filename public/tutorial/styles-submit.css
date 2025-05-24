@@ -1,0 +1,158 @@
+/* ✅ cafe_int 기본 배경 */
+#cafe_int {
+  position: absolute;
+  width: 340px;
+  height: 626px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(
+    to bottom,
+    #d99863 0px,
+    #d99863 116px,
+    #553e2f 116px,
+    #553e2f 484px,
+    rgba(210, 110, 82, 1) 308px
+  );
+  border-radius: 12px;
+  overflow: visible; /* ✅ 제약 제거 */
+  z-index:2;
+}
+
+/* ✅ return-box 이미지 */
+#return-box {
+  position: absolute;
+  top: 81px;
+  left: -18px;
+  width: 376px;
+  height: 450px;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* ✅ 전체 UI 묶는 컨테이너 */
+.submit-ui {
+  position: absolute;
+  top: 81px;
+  left: 20px;
+  width: 100%;
+  height: auto;
+  z-index: 2;
+}
+
+/* ✅ 타이틀 박스 */
+.upload-title-block {
+  position: absolute;
+  top: 50px;
+  left: 20px;
+  width: 260px;
+  height: 90px;
+  background: #fdad65;
+  border: 5px solid #422c1fac;
+  border-radius: 15px;
+  padding: 11px 14px;
+  font-weight: bold;
+  color: #6d5442;
+  font-size: 40px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* ✅ 파일 업로드 */
+#hwSubmitbutton {
+  position: absolute;
+  top: 170px;
+  left: 25px;
+  width: 250px;
+  height: 36px;
+  background: linear-gradient(to bottom,
+    #795b47 0px,
+    #795b47 20px,
+    #5E3A29 20px,
+    #5E3A29 100%);
+  border: 4px solid #422c1f;
+  border-radius: 12px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+  
+  /* ✅ 텍스트 정렬 추가 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  user-select: none;
+  text-shadow: 1px 1px 2px #00000060;
+}
+
+#hwSubmitbutton:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 5px rgba(255,255,255,0.4);
+}
+
+
+
+
+
+
+/* ✅ 상태 표시 */
+#submissionStatus {
+  position: absolute;
+  top: 0px; /* 너가 조절 */
+  left: 20px;
+  width: 120px;
+  background: #fff8ed;
+  border: 2px solid #422c1f;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #222;
+  text-align: center;
+}
+
+#submit-btn:hover {
+  transform: translateY(-2px);
+  background: #ffe2b5;
+}
+
+/* ✅ 제출 대기 리스트 타이틀 */
+#pendingListTitle {
+  position: absolute;
+  top: 230px;
+  left: 13px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #3a2c22;
+}
+
+/* ✅ 제출 대기 카드 리스트 */
+.pending-list {
+  position: absolute;
+  top: 255px;
+  left: 10px;
+  width: 280px;
+height: 160px;
+  overflow-y: auto;
+  background: #fffaf2;
+  border: 2px dashed #c49b6b;
+  border-radius: 10px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* ✅ 개별 카드 */
+.pending-card {
+  background: #fff5df;
+  border: 1px solid #d6b083;
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #4b392e;
+  box-shadow: 1px 1px 0 #d6b083;
+}

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>학생 방 - Cafe Ver</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+  <link rel="stylesheet" href="kiosk_screen.css" />
+  <link rel="stylesheet" href="tutorial_guide.css" />
+
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    #cafe_int::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 208px;
+      background-color: #FBD7BF;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    #cafe_int::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 418px;
+      background-color: rgba(210, 110, 82, 1);
+      bottom: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .interactive-obj {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      z-index: 3;
+    }
+
+    .interactive-obj:hover {
+      transform: scale(1.1);
+    }
+
+    #kiosk {
+      width: 306px;
+      height: 493px;
+      left: -50px;
+      top: 228px;
+      z-index: 5;
+    }
+
+    #return-ham {
+      width: 159px;
+      height: 159px;
+      left: 219px;
+      top: 217px;
+      z-index:5;
+    }
+
+    #bar_top {
+      position: absolute;
+      width: 339px;
+      height: 26px;
+      left: 18px;
+      top: 209px;
+      background: #D99863;
+      z-index: 4;
+    }
+
+    #bar_bottom {
+      position: absolute;
+      width: 339px;
+      height: 105px;
+      left: 18px;
+      top: 235px;
+      background: #553E2F;
+      z-index: 4;
+    }
+
+    #cafe_jigi {
+      position: absolute;
+      width: 195px;
+      height: 195px;
+      left: 0px;
+      top: 69px;
+      background-image: url('cafe_jigi.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      transform: matrix(-1, 0, 0, 1, 0, 0);
+      z-index: 3;
+        cursor: pointer;
+    }
+
+    .cafe-table {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      z-index: 3;
+    }
+
+.cafe-table.hovered {
+  transform: scale(1.1);
+}
+
+    .table-1 {
+      width: 197px;
+      height: 111px;
+      left: 30px;
+      top: 264px;
+    }
+
+    .table-2 {
+      width: 244px;
+      height: 138px;
+      left: 142px;
+      top: 319px;
+    }
+
+    .table-3 {
+      width: 360px;
+      height: 204px;
+      left: 54px;
+      top: 396px;
+    }
+
+.cafe_billboard {
+  position: absolute;
+  left: 150px;
+  top: 57px;
+  width: 100px;
+  height: 80px;
+  z-index: 4;
+}
+
+#chalkboard {
+  position: absolute;
+  left: 6px;
+  top: 0px;
+  width: 165px;
+  height: 165px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+#calendar {
+  position: absolute;
+  left: 102px;
+  top: 77px;
+  width: 94px;
+  height: 94px;
+  object-fit: contain;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+#food-tray.hovered {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+#todayPointWrapper {
+  position: absolute;
+  top: 54px;
+  left: 90px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.today-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(255, 255, 230, 0.6); /* 연노랑 분필 느낌 */
+  margin-bottom: 2px;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+#todayPoint {
+  font-size: 38px;
+  font-weight: 900;
+  font-family: 'Cafe24SsurroundAir', 'Nanum Pen Script', cursive;
+  background: linear-gradient(to right, #bfffc2, #66cc66);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-text-stroke: 2px rgba(255, 255, 200, 0.7);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+#cafe_jigi:hover {
+  transform: matrix(-1.1, 0, 0, 1.1, 0, 0); /* 수평 반전 + 확대 */
+  transition: transform 0.2s ease;
+}
+
+.option-group {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.option-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  background: #fff;
+  border: 2px solid #888;
+  border-radius: 8px;
+  cursor: default;
+  color: #444;
+}
+.option-btn.active {
+  background: #def6de;
+  border-color: #4caf50;
+  font-weight: bold;
+}
+
+
+
+  </style>
+</head>
+<body>
+  <div class="main-page">
+        <div id="popup-container"></div>
+    <div id="cafe_int"></div>
+    <div id="bar_top"></div>
+    <div id="bar_bottom"></div>
+    <div id="cafe_jigi"></div>
+
+    <img id="kiosk" class="interactive-obj" src="kiosk_png_transparent4.png" alt="키오스크" />
+    <img id="return-ham" class="interactive-obj" src="return-ham2.png" alt="반납함" />
+
+    <img class="cafe-table table-1 interactive-obj" src="cafe-table_transparent.png" alt="테이블1" />
+    <img class="cafe-table table-2 interactive-obj" src="cafe-table_transparent.png" alt="테이블2" />
+    <img class="cafe-table table-3 interactive-obj" src="cafe-table_transparent.png" alt="테이블3" />
+
+<div class="cafe_billboard interactive-obj">
+  <img id="chalkboard" src="cafe_board2.png" alt="칠판" />
+  <div id="todayPointWrapper">
+  <div class="today-label">Today</div>
+  <div id="todayPoint">0</div>
+</div>
+
+  <img id="calendar" src="cafe_calendar.png" alt="달력" />
+</div>
+
+<img id="food-tray" src="food_tray.webp"
+     style="position:absolute; top:379px; left:200px; width:127px; height:96px; display:none; cursor:pointer; z-index: 5;">
+
+
+
+  </div>
+<!-- 반드시 이 순서 지켜야 함 -->
+
+
+
+<script>
+  const userId = new URLSearchParams(window.location.search).get('id');
+
+  // ░░ 테이블 + food tray 공통 처리 ░░
+  const tables = document.querySelectorAll('.cafe-table');
+  const tray = document.getElementById('food-tray');
+  const qordered = localStorage.getItem('Qordered');
+
+  function setupHoverAndClick(el, target) {
+    el.addEventListener('mouseenter', () => {
+      tables.forEach(t => t.classList.add('hovered'));
+      tray?.classList.add('hovered');
+    });
+    el.addEventListener('mouseleave', () => {
+      tables.forEach(t => t.classList.remove('hovered'));
+      tray?.classList.remove('hovered');
+    });
+    el.addEventListener('click', () => {
+      window.location.href = `${target}?id=${userId}`;
+    });
+  }
+
+  // 모든 테이블 → student-table로
+  tables.forEach(table => setupHoverAndClick(table, 'homework-tray_tutorial.html'));
+
+  // ░░ food tray 조건부 적용 ░░
+  if (qordered && tray) {
+    tray.style.display = 'block';
+    setupHoverAndClick(tray, 'homework-tray_tutorial.html');
+  }
+
+  // ░░ billboard hover + 이동 ░░
+  const billboard = document.querySelector('.cafe_billboard');
+  billboard.addEventListener('mouseenter', () => {
+    billboard.classList.add('hovered');
+  });
+  billboard.addEventListener('mouseleave', () => {
+    billboard.classList.remove('hovered');
+  });
+  billboard.addEventListener('click', () => {
+    window.location.href = `grades-calendar_tutorial.html?id=${userId}`;
+  });
+
+  // ░░ 반납함 이동 ░░
+  document.getElementById('return-ham').addEventListener('click', () => {
+    window.location.href = `homework-submit_tutorial.html?id=${userId}`;
+  });
+
+  // ░░ 카페지기 클릭 → 분석 보고서 페이지 이동 ░░
+document.getElementById('cafe_jigi').addEventListener('click', () => {
+  window.location.href = `report-analysis_tutorial.html?id=${userId}`;
+});
+
+    (async () => {
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/getHWImages?userId=${userId}`);
+      const data = await res.json();
+
+      const today = new Date();
+      const todayStr = today.toISOString().slice(0, 10);
+      let todayQGrade = 0;
+
+      data.forEach(entry => {
+        const entryDate = new Date(entry.Timestamp);
+        const entryStr = entryDate.toISOString().slice(0, 10);
+        if (entryStr === todayStr && !isNaN(Number(entry.QGrade))) {
+          todayQGrade += Number(entry.QGrade);
+        }
+      });
+
+      const pointEl = document.getElementById('todayPoint');
+      if (pointEl) pointEl.textContent = todayQGrade;
+
+    } catch (err) {
+      console.error("오늘 점수 불러오기 오류:", err);
+    }
+  })();
+  
+
+</script>
+<!-- 반드시 이 순서 지켜야 함 -->
+<script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+<script src="tutorial_guide.js"></script>
+<script src="kiosk_screen_tutorial.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,34 @@
+.tutorial-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998; /* 반드시 kiosk보다 높게 */
+  pointer-events: auto; /* 아래 요소 클릭 차단 */
+}
+
+
+.tooltip {
+  background: #fffaf2;
+  border: 2px solid #444;
+  padding: 10px 14px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  position: absolute;
+  pointer-events: auto;
+}
+
+.tooltip.right {
+  transform: translateX(100%);
+}
+
+.next-btn {
+  margin-top: 8px;
+  background: #444;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+

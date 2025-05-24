@@ -1,0 +1,186 @@
+/* Styles for frame-related components */
+
+body, html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f4f4f4; /* 원하는 배경색 */
+    z-index:0;
+}
+
+.main-page {
+    position: relative;
+    width: 375px;
+    height: 667px;
+    background: #FFFFFF;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 그림자 효과로 강조 */
+    overflow: hidden; /* 부모 요소가 자식 요소를 넘지 않도록 */
+    z-index:0;
+}
+
+/* treeframe */
+.treeframe {
+    box-sizing: border-box;
+    position: absolute; /* 기준점을 설정 */
+    width: 336px;
+    height: 299px;
+    left: 20px;
+    top: 70px;
+    background: #7E3106;
+    border: 6px solid #7e3106;
+    border-radius: 25px;
+}
+
+.window {
+    position: absolute;
+    width: 315px;
+    height: 248px;
+    left: 4px;
+    top: 14px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 40px;
+    overflow-x: hidden; /* 자식이 스크롤 되도록 설정 */
+
+}
+
+/* corkframe */
+.corkframe {
+    box-sizing: border-box;
+    position: absolute;
+    width: 315px;
+    height: 180px;
+    left: 30px; /* treeframe 기준 */
+    top: 430px; /* treeframe 기준 */
+    background: rgba(213, 166, 95, 0.72);
+    border: 2px solid #7E3106;
+}
+
+
+/* Decoline */
+.decoline1 {
+    position: absolute;
+    width: 243px;
+    height: 0px;
+    left: 10px; /* window 기준 */
+    top: 280px; /* window 기준 */
+    border: 1px solid #7E3106;
+}
+
+/* Submitbutton */
+.submitbutton {
+    position: absolute;
+    width: 70px;
+    height: 29px;
+    left: 230px; /* window 기준 */
+    top: 210px; /* window 기준 */
+    background: rgba(213, 166, 95, 0.72);
+    border-radius: 9px;
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.submitbutton:hover {
+    background-color: #7e320694;
+    scale:1.1;
+}
+
+/* Postitcorner */
+.postitcorner {
+    position: absolute;
+    width: 43px;
+    height: 45px;
+    left: 268px; /* window 기준 */
+    top: 277px; /* window 기준 */
+    background: #7E3106;
+    clip-path: polygon(0 0, 100% 100%, 0 100%);
+    transform: rotate(90deg);
+}
+
+.title {
+    position: absolute;
+    width: 79px;
+    height: 31px;
+    left: 26px; /* treeframe 기준 */
+    top: -10px; /* treeframe 기준 */
+    background: #BC8546;
+    border-radius: 10px;
+}
+
+.label_title {
+    position: absolute;
+    width: 100%; /* 부모 요소 너비에 맞춤 */
+    height: 100%; /* 부모 요소 높이에 맞춤 */
+    display: flex;
+    align-items: center; /* 세로 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 15px;
+    text-align: center;
+    color: #FFFFFF;
+}
+
+.label_submitbutton {
+    position: absolute;
+    width: 100%; /* 부모 요소 너비에 맞춤 */
+    height: 100%; /* 부모 요소 높이에 맞춤 */
+    display: flex;
+    align-items: center; /* 세로 중앙 정렬 */
+    justify-content: center; /* 가로 중앙 정렬 */
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 15px;
+    line-height: 18px;
+    text-align: center;
+    color: #000000;
+}
+
+/* Ellipses 스타일 */
+.ellipse2 {
+    position: absolute;
+    width: 38px;
+    height: 38px;
+    background: #D9D9D9;
+    border-radius: 50%;
+    left: 307px;
+    top: 26px;
+    border: 1px solid #000000;
+}
+
+.ellipse3 {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    background: #000000;
+    border-radius: 50%;
+    left: 321px;
+    top: 40px;
+    border: 1px solid #000000;
+}
+
+/* Date 스타일 */
+.date {
+    position: absolute;
+    width: auto;
+    height: 29px;
+    left: 20px;
+    top: 31px;
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 29px;
+    text-align: center;
+    color: #000000;
+    user-select: none;
+}
