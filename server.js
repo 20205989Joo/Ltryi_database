@@ -492,6 +492,62 @@ app.post('/api/send-push', async (req, res) => {
   }
 });
 
+// Tutorial Id 최신 받아오고 +1해서 부여
+app.post('/api/grant-tutorial-id', async (req, res) => {
+  const { subscription } = req.body;
+  if (!subscription || !subscription.endpoint) {
+    return res.status(400).json({ message: 'Invalid subscription object' });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+
+    // 1. 이미 동일 endpoint가 존재하는지 확인
+    const [existing] = await conn.query(
+      `SELECT UserId FROM PushSubscriptions WHERE Endpoint = ? LIMIT 1`,
+      [subscription.endpoint]
+    );
+
+    if (existing && existing.UserId) {
+      conn.release();
+      return res.status(200).json({ userId: existing.UserId });
+    }
+
+    // 2. tutorial% ID 중 가장 높은 숫자 찾기
+    const results = await conn.query(`
+      SELECT UserId FROM PushSubscriptions WHERE UserId LIKE 'tutorial%'
+    `);
+
+    let max = 0;
+    for (const row of results) {
+      const match = row.UserId.match(/^tutorial(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num)) max = Math.max(max, num);
+      }
+    }
+
+    const newId = `tutorial${max + 1}`;
+
+    // 3. 새 subscription 저장
+    await conn.query(`
+      INSERT INTO PushSubscriptions (UserId, Endpoint, AuthKey, P256dhKey)
+      VALUES (?, ?, ?, ?)
+    `, [
+      newId,
+      subscription.endpoint,
+      subscription.keys.auth,
+      subscription.keys.p256dh
+    ]);
+
+    conn.release();
+    res.status(200).json({ userId: newId });
+
+  } catch (err) {
+    console.error('grant-tutorial-id error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 
