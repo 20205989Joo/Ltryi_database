@@ -53,6 +53,7 @@ function setupKioskUI() {
     setupTabs();
     bindMenuButtons();
     document.getElementById('popupCloseBtn').onclick = () => popup.style.display = 'none';
+    document.getElementById('finalOrderBtn').disabled = true;
     document.getElementById('finalOrderBtn').onclick = handleFinalOrder;
   });
 }
@@ -116,11 +117,27 @@ function renderBasicSubPopup() {
     <button id="subPopupConfirm" class="order-btn">담기</button>
   `;
 
-  document.getElementById('subPopupConfirm').onclick = () => {
-    selectedItems.push({ label: currentSubItem, difficulty: 0, rangeBegin: 0, rangeEnd: 0 });
-    updateSelectedDisplay();
-    subPopup.classList.add('hidden');
-  };
+document.getElementById('subPopupConfirm').onclick = () => {
+  selectedItems.push({ label: currentSubItem, difficulty: 0, rangeBegin: 0, rangeEnd: 0 });
+  updateSelectedDisplay();
+  subPopup.classList.add('hidden');
+
+  // ✅ 조건 검사: 튜토리얼 step === 10 이고 두 메뉴 담겼는지 확인
+  if (typeof currentSteps !== 'undefined' && currentSteps[currentIndex]?.step === 10) {
+    const labels = selectedItems.map(i => i.label);
+    const hasBoth = labels.includes('레벨테스트') && labels.includes('Prologue Question');
+    if (hasBoth) {
+      console.log('🟢 레벨테스트 + Prologue 담김 → done:order 트리거');
+      // 주문 버튼 해금
+      const finalBtn = document.getElementById('finalOrderBtn');
+      if (finalBtn) finalBtn.disabled = false;
+
+      // 튜토리얼 진행
+      advanceStep('done:order');
+    }
+  }
+};
+
 
   document.getElementById('subPopupCloseBtn').onclick = () => subPopup.classList.add('hidden');
   subPopup.classList.remove('hidden');

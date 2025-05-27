@@ -245,3 +245,11 @@
 .go-back-from-grades:hover {
   background: #e16c1f;
 }
+
+#chalkboard_grades {
+  left: 40px;
+  top: 80px;
+  width : 270px;
+  height : 220px;
+  position: absolute;
+}

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tooltip 위치 조정기</title>
+
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="tutorial_guide.css" />
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    .control-panel {
+      padding: 16px;
+      text-align: center;
+      background: #eef;
+    }
+    .tooltip-xyhw-display {
+      margin-top: 6px;
+      font-family: monospace;
+      font-size: 15px;
+      color: #222;
+    }
+    .tutorial-tooltip {
+      background: #fffaf2;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 2px solid #444;
+      font-size: 14px;
+      z-index: 10000;
+      white-space: pre-wrap;
+      position: absolute;
+      box-sizing: border-box;
+      cursor: move;
+      resize: both;
+    }
+  </style>
+</head>
+<body>
+  <div class="control-panel">
+    <select id="stepSelect"><option>불러오는 중...</option></select>
+    <div class="tooltip-xyhw-display" id="xyhwDisplay">좌표값: 없음</div>
+  </div>
+
+  <div class="main-page" id="mainPage">
+    <div style="position:absolute; top:100px; left:100px; width:120px; height:60px; background:#d0f0ff; border:1px dashed #333;">#100,100</div>
+    <div style="position:absolute; top:300px; left:250px; width:160px; height:80px; background:#ffe0e0; border:1px dashed #333;">#300,250</div>
+    <div style="position:absolute; top:500px; left:400px; width:180px; height:100px; background:#e0ffd8; border:1px dashed #333;">#500,400</div>
+  </div>
+
+  <script>
+    let steps = [];
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const res = await fetch('tutorial_steps_full_complete.xlsx');
+      const arrayBuffer = await res.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+      steps = raw.map((row) => ({
+        step: parseInt(row.step, 10),
+        message: row.message || '',
+        tooltip_xyhw: typeof row.tooltip_xyhw === 'string' ? row.tooltip_xyhw : String(row.tooltip_xyhw || '')
+      }));
+
+      const select = document.getElementById('stepSelect');
+      select.innerHTML = steps.map(s =>
+        `<option value="${s.step}">${s.step}</option>`
+      ).join('');
+    });
+
+    document.getElementById('stepSelect').addEventListener('change', () => {
+      const stepNo = parseInt(document.getElementById('stepSelect').value, 10);
+      const step = steps.find(s => s.step === stepNo);
+      clearTooltips();
+      document.getElementById('xyhwDisplay').textContent = '좌표값: 없음';
+
+      if (!step || !step.tooltip_xyhw || !step.tooltip_xyhw.includes('_')) return;
+
+      const [top, left, width, height] = step.tooltip_xyhw.split('_').map(Number);
+      if ([top, left, width, height].some(isNaN)) return;
+
+      const tooltip = document.createElement('div');
+      tooltip.className = 'tutorial-tooltip';
+      tooltip.innerText = step.message;
+
+      tooltip.style.top = `${top}px`;
+      tooltip.style.left = `${left}px`;
+      tooltip.style.width = `${width}px`;
+      tooltip.style.height = `${height}px`;
+
+      makeDraggableResizable(tooltip);
+      document.getElementById('mainPage').appendChild(tooltip);
+      updateXYHWDisplay(tooltip);
+    });
+
+    function clearTooltips() {
+      document.querySelectorAll('.tutorial-tooltip').forEach(el => el.remove());
+    }
+
+    function updateXYHWDisplay(el) {
+      const rect = el.getBoundingClientRect();
+      const parentRect = document.getElementById('mainPage').getBoundingClientRect();
+      const top = Math.round(rect.top - parentRect.top);
+      const left = Math.round(rect.left - parentRect.left);
+      const width = Math.round(rect.width);
+      const height = Math.round(rect.height);
+      document.getElementById('xyhwDisplay').textContent = `${top}_${left}_${width}_${height}`;
+    }
+
+    function makeDraggableResizable(el) {
+      let isDragging = false;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      el.addEventListener('mousedown', (e) => {
+        if (e.target === el) {
+          isDragging = true;
+          offsetX = e.offsetX;
+          offsetY = e.offsetY;
+        }
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const parentRect = document.getElementById('mainPage').getBoundingClientRect();
+        el.style.left = `${e.clientX - parentRect.left - offsetX}px`;
+        el.style.top = `${e.clientY - parentRect.top - offsetY}px`;
+        updateXYHWDisplay(el);
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+
+      const resizeObserver = new ResizeObserver(() => updateXYHWDisplay(el));
+      resizeObserver.observe(el);
+    }
+  </script>
+</body>
+</html>

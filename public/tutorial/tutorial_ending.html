@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>튜토리얼 종료</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Pretendard:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="tutorial_guide.css" />
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="tutorial_guide.js"></script>
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      background: linear-gradient(to bottom, #fdf6f0, #fce4cf);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-family: 'Gowun Batang', serif;
+      color: #5d4037;
+    }
+
+    .end-box {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      animation: fadeInUp 1.2s ease;
+      max-width: 90%;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-size: 20px;
+      color: #bf360c;
+      margin-bottom: 12px;
+      font-family: 'Pretendard', sans-serif;
+    }
+
+    .decorative-divider {
+      width: 100%;
+      height: 10px;
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.05) 0%, transparent 80%);
+      margin: 20px 0;
+    }
+
+    p {
+      font-size: 14px;
+      line-height: 1.6;
+      font-family: 'Gowun Batang', serif;
+    }
+
+
+    .restart-btn {
+      margin-top: 24px;
+      background: linear-gradient(to right, #8d6e63, #a1887f);
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    }
+
+    .restart-btn:hover {
+      background: linear-gradient(to right, #6d4c41, #8d6e63);
+    }
+
+
+.contact {
+  margin-top: 20px;
+  font-size: 12px;
+  color: #795548;
+  text-align: center;
+}
+
+.katalk_text {
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.katalk_row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.kakao-link {
+  display: inline-block;
+  background: #fae100;
+  color: #3b1e1e;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 12px;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  text-align: center;
+  line-height: 1.4;
+  width: 60px;
+}
+
+.katalk_QR {
+  width: 80px;
+  height: 80px;
+  background-image: url('katalk_QR_trimmed.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.qr-popup-overlay {
+  position: absolute;
+  top: -17px;
+  left: -17px;
+    width: 375px;
+    height: 667px;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.qr-popup-box {
+  background: white;
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  animation: popupFadeIn 0.3s ease;
+}
+
+.qr-popup-box img {
+  width: 230px;
+  height: 230px;
+  display: block;
+}
+
+@keyframes popupFadeIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div class="end-box">
+        <h2>고생하셨어요 🥰</h2>
+        <div class="decorative-divider"></div>
+        <p>튜토리얼이 모두 끝났습니다.<br>
+        카페는 당신에 맞춰서 꾸준히 성장합니다.<br><br>
+        도움이 더 필요하시면<br> 
+        언제든 돌아오세요!</p>
+
+        <button class="restart-btn" onclick="restartTutorial()">튜토리얼 다시 보기</button>
+
+                <div class="decorative-divider"></div>
+<div class="contact">
+  <div class="katalk_text">
+    Kakao ID : LTRYI<br>
+    운영: LTRYI E-Class Team
+  </div>
+  <div class="katalk_row">
+    <a class="kakao-link" href="http://qr.kakao.com/talk/tbF6eMFRkHhV_EYAYXGmD7Gi_aE-">
+      카카오톡 <br> 채팅방 열기 <br> (모바일)
+    </a>
+<!-- 이 부분을 이렇게 바꿔야 함 -->
+<div class="katalk_QR" onclick="showQrPopup()"></div>
+
+  </div>
+
+  <!-- 팝업용 오버레이 (처음엔 숨김) -->
+<div id="qrPopup" class="qr-popup-overlay" onclick="hideQrPopup()">
+  <div class="qr-popup-box">
+    <img src="katalk_QR_trimmed.png" alt="QR 확대 보기" />
+  </div>
+</div>
+</div>
+
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+
+    function restartTutorial() {
+      localStorage.removeItem('tutorial_tray');
+      localStorage.removeItem('tutorial_submit');
+      localStorage.removeItem('tutorial_report');
+      localStorage.removeItem('tutorial_grades');
+      localStorage.removeItem('tutorial_choice_ready');
+      window.location.href = `student-room_tutorial.html?id=${userId}`;
+    }
+
+      function showQrPopup() {
+    document.getElementById('qrPopup').style.display = 'flex';
+  }
+
+  function hideQrPopup() {
+    document.getElementById('qrPopup').style.display = 'none';
+  }
+  </script>
+</body>
+</html>

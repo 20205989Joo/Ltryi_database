@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles-frame.css">
   <link rel="stylesheet" href="styles-room.css">
+    <link rel="stylesheet" href="tutorial_guide.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -24,6 +25,7 @@
         rgba(241, 123, 42, 0.3) 247px,
         rgba(210, 110, 82, 1) 247px,
         rgba(210, 110, 82, 1) 100%);
+        z-index:2;
     }
 
     #bar_top {
@@ -33,7 +35,7 @@
       width: 340px;
       height: 32px;
       background-color: #d99863;
-      z-index: 1;
+      z-index: 4;
     }
 
     #bar_bottom {
@@ -43,7 +45,7 @@
       width: 340px;
       height: 129px;
       background-color: #553E2F;
-      z-index: 1;
+      z-index: 4;
     }
 
     #cafe_jigi {
@@ -55,7 +57,7 @@
       background-image: url('cafe_jigi_report.png');
       background-size: contain;
       background-repeat: no-repeat;
-      z-index: 0;
+      z-index: 3;
     }
 
     .display-window {
@@ -184,6 +186,23 @@
       font-size: 18px;
       text-align: center;
     }
+
+    .choice-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  filter: grayscale(70%);
+}
+
+.choice-visible {
+  opacity: 1;
+  pointer-events: none;
+}
+
+.choice-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
   </style>
 </head>
 <body>
@@ -197,9 +216,9 @@
     <div class="npc-dialogue-box" id="dialogueBox">
       안녕하세요, 어떻게 찾아오셨나요!
       <div class="main-choices">
-        <button class="main-choice" data-cat="analysis">진행상황 체크하러 왔어요</button>
-        <button class="main-choice" data-cat="custom">저 주실 거 있어요</button>
-        <button class="main-choice" data-cat="chat">이제 나가기</button>
+        <button class="main-choice choice-disabled" id="choice1" data-cat="analysis">진행상황 체크하러 왔어요</button>
+        <button class="main-choice choice-disabled" id="choice2" data-cat="custom">저 주실 거 있어요</button>
+        <button class="main-choice choice-disabled" id="choice3" data-cat="chat">(다 보셨다면)</button>
       </div>
     </div>
 
@@ -223,7 +242,7 @@
       { label: '채점 결과 주세요', type: 'grading', msg: '최근 채점 결과를 정리했어요.' }
     ],
     chat: [
-      { label: '저장하고 나가자', type: 'gacha', msg: '운명의 룰렛을 돌려볼까요?' },
+      { label: '저장하고 홀로 돌아가기!', type: 'gacha', msg: '운명의 룰렛을 돌려볼까요?' },
     ]
   };
 

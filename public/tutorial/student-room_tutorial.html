@@ -181,6 +181,7 @@
   text-align: center;
   z-index: 4;
   pointer-events: none;
+  z-index: 10003;
 }
 
 .today-label {
@@ -190,6 +191,7 @@
   margin-bottom: 2px;
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
   letter-spacing: 1px;
+  z-index: 10003;
 }
 
 #todayPoint {
@@ -291,7 +293,7 @@
     });
   }
 
-  // 모든 테이블 → student-table로
+  // 모든 테이블 → 숙제 트레이 페이지로 연결
   tables.forEach(table => setupHoverAndClick(table, 'homework-tray_tutorial.html'));
 
   // ░░ food tray 조건부 적용 ░░
@@ -318,39 +320,15 @@
   });
 
   // ░░ 카페지기 클릭 → 분석 보고서 페이지 이동 ░░
-document.getElementById('cafe_jigi').addEventListener('click', () => {
-  window.location.href = `report-analysis_tutorial.html?id=${userId}`;
-});
+  document.getElementById('cafe_jigi').addEventListener('click', () => {
+    window.location.href = `report-analysis_tutorial.html?id=${userId}`;
+  });
 
-    (async () => {
-    if (!userId) return;
-
-    try {
-      const res = await fetch(`https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/getHWImages?userId=${userId}`);
-      const data = await res.json();
-
-      const today = new Date();
-      const todayStr = today.toISOString().slice(0, 10);
-      let todayQGrade = 0;
-
-      data.forEach(entry => {
-        const entryDate = new Date(entry.Timestamp);
-        const entryStr = entryDate.toISOString().slice(0, 10);
-        if (entryStr === todayStr && !isNaN(Number(entry.QGrade))) {
-          todayQGrade += Number(entry.QGrade);
-        }
-      });
-
-      const pointEl = document.getElementById('todayPoint');
-      if (pointEl) pointEl.textContent = todayQGrade;
-
-    } catch (err) {
-      console.error("오늘 점수 불러오기 오류:", err);
-    }
-  })();
-  
-
+  // ░░ 튜토리얼: 오늘 점수 무조건 0으로 시작 ░░
+  const pointEl = document.getElementById('todayPoint');
+  if (pointEl) pointEl.textContent = '0';
 </script>
+
 <!-- 반드시 이 순서 지켜야 함 -->
 <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <script src="tutorial_guide.js"></script>

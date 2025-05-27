@@ -3,32 +3,84 @@
   top: 0; left: 0;
   width: 100vw; height: 100vh;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 9998; /* 반드시 kiosk보다 높게 */
-  pointer-events: auto; /* 아래 요소 클릭 차단 */
-}
-
-
-.tooltip {
-  background: #fffaf2;
-  border: 2px solid #444;
-  padding: 10px 14px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  position: absolute;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   pointer-events: auto;
 }
 
-.tooltip.right {
-  transform: translateX(100%);
+.tutorial-box {
+  background: #fffaf2;
+  padding: 24px;
+  border-radius: 14px;
+  max-width: 340px;
+  text-align: center;
+font-family: 'Cafe24Dangdanghae', 'Pretendard', sans-serif;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
 }
 
-.next-btn {
-  margin-top: 8px;
-  background: #444;
-  color: #fff;
+.tutorial-box img {
+  width: 64px;
+  margin-bottom: 14px;
+}
+
+.tutorial-box .message {
+  font-size: 15px;
+  color: #3b2b26;
+  margin-bottom: 16px;
+  white-space: pre-wrap;
+}
+
+.tutorial-next-btn {
+  background: #7e3106;
+  color: white;
+  padding: 6px 11px;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 14px;
+  margin-top: 2px;
+  margin-left:10px;
+}
+
+.tutorial-next-btn:hover {
+  background: #a9460a;
+}
+
+
+.tutorial-quiz-button {
+  flex: 0 1 28%;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  transition: background 0.3s;
+  cursor: pointer;
+}
+
+.tutorial-quiz-button.correct {
+  background: #d2f5c2;
+}
+
+.tutorial-quiz-button.wrong {
+  background: #eeeeee;
+}
+
+.tutorial-feedback {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #b40000;
+  height: 18px;
+}
+
+.locked {
+  pointer-events: none !important;
+}
+
+.unlocked {
+  pointer-events: auto !important;
 }
 

@@ -1,6 +1,6 @@
 /* Styles for frame-related components */
 
-body, html {
+html {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -11,9 +11,10 @@ body, html {
     justify-content: center;
     background-color: #f4f4f4; /* 원하는 배경색 */
     z-index:0;
+    position: relative;
 }
 
-.main-page {
+.main-page,body {
     position: relative;
     width: 375px;
     height: 667px;

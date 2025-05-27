@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LTRYI E-Class</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f0f0f0;
+    }
+
+    .main-page {
+      position: relative;
+      width: 375px;
+      height: 667px;
+      background: #FFFFFF;
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+  background-image: url('LTRYI_main_e.png');
+  background-size: cover;
+      overflow: hidden;
+    }
+
+    #signboard {
+      position: absolute;
+      top: 70px;
+      height: 30px;
+      width: 140px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 40px 24px;
+      background: #7e32066f;
+      color: white;
+      font-size: 21px;
+      font-weight: bold;
+      border-radius: 60px;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      border: 3px solid #d9a06329;
+      line-height: 30px;
+    }
+
+    .login-box {
+      margin-top: 250px;
+      margin-left: 20px;
+      width: 260px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.65);
+      border-radius: 16px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .login-box input {
+      height: 36px;
+      border-radius: 6px;
+      border: 1px solid #aaa;
+      padding: 6px 10px;
+      font-size: 14px;
+    }
+
+    .login-box button {
+      height: 40px;
+      width: 100px;
+      background: #7e3106;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .login-box button:hover {
+      background: #a9460a;
+    }
+
+    .tester-btn {
+      position: absolute;
+      bottom: 16px;
+      width: 90px;
+      height: 32px;
+      background: #d5a65f;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-weight: bold;
+      font-size: 13px;
+      box-shadow: 1px 2px 3px rgba(0,0,0,0.2);
+      cursor: pointer;
+    }
+
+    #btnTStudent { left: 18px; }
+    #btnTParents { left: 125px; }
+    #btnTTeacher { left: 232px; }
+    #btnTStudentTutorial { left: 68px; bottom: 5px;}
+    #btnTParentsTutorial { left : 185px; bottom: 5px;}
+
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="signboard">LTRYI E-Class</div>
+      <div class="login-box">
+        <input type="text" id="username" placeholder="ID를 입력하세요" />
+        <input type="password" id="password" placeholder="비밀번호를 입력하세요" />
+        <button id="loginButton">ENTER</button>
+      </div>
+    </div>
+
+    <button id="btnTStudent" class="tester-btn">학생모드</button>
+    <button id="btnTParents" class="tester-btn">부모모드</button>
+    <button id="btnTTeacher" class="tester-btn">교사모드</button>
+
+    <button id="btnTStudentTutorial" class="tester-btn">학생 튜토리얼</button>
+<button id="btnTParentsTutorial" class="tester-btn">부모 튜토리얼</button>
+
+  </div>
+
+  <script src="script-index.js" defer></script>
+</body>
+</html>

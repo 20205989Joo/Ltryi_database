@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles-frame.css" />
   <link rel="stylesheet" href="grades-calendar.css" />
+        <link rel="stylesheet" href="tutorial_guide.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -18,7 +19,7 @@
       
 <!-- 📊 배경 보드 이미지 -->
 <img id="chalkboard" src="cafe_board2.png" alt="chalkboard" />
-
+<div id="chalkboard_grades"></div>
 
       <!-- 그래프 구역 -->
       <div class="grades-chart-section">
@@ -42,7 +43,9 @@
   <table id="calendarTable"></table>
 </div>
   </div>
-
+<script>
+  const userId = new URLSearchParams(window.location.search).get('id');
+</script>
   <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 <script src="tutorial_guide.js"></script>
   <script src="grades.js" defer></script>
