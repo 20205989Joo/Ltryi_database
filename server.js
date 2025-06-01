@@ -748,6 +748,140 @@ app.get('/api/getHWPlus', async function (req, res) {
   }
 });
 
+// diligence 올리고 구하는 api
+
+app.post('/api/logDiligence', async (req, res) => {
+  const { UserId, Subcategory, LessonNo, RegisteredBy } = req.body;
+  if (!UserId || !Subcategory) {
+    return res.status(400).json({ message: 'UserId와 Subcategory는 필수입니다.' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+
+    const [user] = await conn.query(
+      "SELECT Deadline FROM UserInfo WHERE UserId = ? LIMIT 1",
+      [UserId]
+    );
+    const deadlineStr = user?.Deadline || '20:00:00';
+
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstNow = new Date(now.getTime() + kstOffset);
+    const todayStr = kstNow.toISOString().slice(0, 10);
+    const deadlineFull = new Date(`${todayStr}T${deadlineStr}`);
+
+    const lateMinutes = Math.max(0, Math.round((kstNow - deadlineFull) / (1000 * 60)));
+
+    await conn.query(`
+      INSERT INTO DiligenceLog
+      (UserId, Subcategory, LessonNo, CreatedAt, Deadline, LateMinutes, RegisteredBy)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `, [
+      UserId,
+      Subcategory,
+      LessonNo ?? 0,
+      kstNow,
+      deadlineFull,
+      lateMinutes,
+      RegisteredBy || 'system'
+    ]);
+
+    res.status(200).json({ success: true, lateMinutes });
+  } catch (err) {
+    console.error('❌ logDiligence 실패:', err);
+    res.status(500).json({ message: '서버 오류', error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.get('/api/getDiligenceStats', async (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ message: "userId 누락" });
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+
+    // 전체 제출 기록
+    const [all] = await conn.query(`
+      SELECT Subcategory, LateMinutes, DATE_FORMAT(CreatedAt, '%Y-%m-%d') AS Day
+      FROM DiligenceLog
+      WHERE UserId = ?
+    `, [userId]);
+
+    if (all.length === 0) {
+      return res.status(200).json({
+        totalSubmissions: 0,
+        lateCount: 0,
+        lateRate: 0,
+        averageLateMinutes: 0,
+        mostFrequentSubject: null,
+        recent7Days: []
+      });
+    }
+
+    const totalSubmissions = all.length;
+    const lateList = all.filter(item => item.LateMinutes > 0);
+    const lateCount = lateList.length;
+    const averageLateMinutes = Math.round(
+      lateList.reduce((sum, item) => sum + item.LateMinutes, 0) / (lateCount || 1)
+    );
+    const lateRate = +(lateCount / totalSubmissions * 100).toFixed(1);
+
+    // 가장 자주 한 과목
+    const freqMap = {};
+    all.forEach(item => {
+      freqMap[item.Subcategory] = (freqMap[item.Subcategory] || 0) + 1;
+    });
+    const mostFrequentSubject = Object.entries(freqMap)
+      .sort((a, b) => b[1] - a[1])[0][0];
+
+    // 최근 7일 날짜별 count
+    const today = new Date();
+    const kstNow = new Date(today.getTime() + 9 * 60 * 60 * 1000);
+    const dateList = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(kstNow);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      dateList.push(key);
+    }
+
+    const dayMap = {};
+    all.forEach(item => {
+      if (!dayMap[item.Day]) {
+        dayMap[item.Day] = { count: 0, late: 0 };
+      }
+      dayMap[item.Day].count++;
+      if (item.LateMinutes > 0) dayMap[item.Day].late++;
+    });
+
+    const recent7Days = dateList.map(date => ({
+      date,
+      count: dayMap[date]?.count || 0,
+      late: dayMap[date]?.late || 0
+    }));
+
+    res.status(200).json({
+      totalSubmissions,
+      lateCount,
+      lateRate,
+      averageLateMinutes,
+      mostFrequentSubject,
+      recent7Days
+    });
+
+  } catch (err) {
+    console.error("❌ getDiligenceStats 실패:", err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 
 // 서버 시작
 app.listen(3000, function () {
