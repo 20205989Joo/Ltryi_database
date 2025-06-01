@@ -549,6 +549,54 @@ app.post('/api/grant-tutorial-id', async (req, res) => {
   }
 });
 
+app.post('/api/register', async (req, res) => {
+  const {
+    userId,
+    password,
+    tutorialIds,
+    phoneNumber,
+    deadline
+  } = req.body;
+
+  if (!userId || !password || !Array.isArray(tutorialIds)) {
+    return res.status(400).json({ message: '누락된 필수 정보가 있습니다.' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+
+    // ✅ 중복 검사
+    const [existing] = await conn.query("SELECT UserId FROM UserInfo WHERE UserId = ?", [userId]);
+    if (existing) {
+      conn.release();
+      return res.status(409).json({ message: '이미 존재하는 ID입니다.' });
+    }
+
+    const insertQuery = `
+      INSERT INTO UserInfo
+      (UserId, Password, TutorialIds, PhoneNumber, Deadline, CreatedAt, IsRegistered, Coin)
+      VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)
+    `;
+
+    await conn.query(insertQuery, [
+      userId,
+      password,
+      tutorialIds.join(','),
+      phoneNumber || null,
+      deadline || '20:00:00',
+      1, // IsRegistered
+      0  // Coin
+    ]);
+
+    conn.release();
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('❌ 회원가입 실패:', error);
+    if (conn) conn.release();
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
 
 
 
