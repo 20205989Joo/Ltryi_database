@@ -555,10 +555,17 @@ app.post('/api/register', async (req, res) => {
     password,
     tutorialIds,
     phoneNumber,
-    deadline
+    deadline,
+    createdAt,
+    isRegistered,
+    coin,
+    userType,
+    name,
+    birthYear,
+    guardianContact
   } = req.body;
 
-  if (!userId || !password || !Array.isArray(tutorialIds)) {
+  if (!userId || !password || !Array.isArray(tutorialIds) || !userType || !name || !birthYear) {
     return res.status(400).json({ message: '누락된 필수 정보가 있습니다.' });
   }
 
@@ -575,8 +582,8 @@ app.post('/api/register', async (req, res) => {
 
     const insertQuery = `
       INSERT INTO UserInfo
-      (UserId, Password, TutorialIds, PhoneNumber, Deadline, CreatedAt, IsRegistered, Coin)
-      VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)
+      (UserId, Password, TutorialIds, PhoneNumber, Deadline, CreatedAt, IsRegistered, Coin, UserType, Name, BirthYear, GuardianContact)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await conn.query(insertQuery, [
@@ -585,8 +592,13 @@ app.post('/api/register', async (req, res) => {
       tutorialIds.join(','),
       phoneNumber || null,
       deadline || '20:00:00',
-      1, // IsRegistered
-      0  // Coin
+      createdAt || new Date(),
+      isRegistered ?? 0,
+      coin ?? 0,
+      userType,
+      name,
+      birthYear,
+      guardianContact || null
     ]);
 
     conn.release();
@@ -597,6 +609,9 @@ app.post('/api/register', async (req, res) => {
     res.status(500).json({ message: '서버 오류', error: error.message });
   }
 });
+
+
+
 
 app.post('/api/login', async (req, res) => {
   const { userId, password } = req.body;
