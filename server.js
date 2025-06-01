@@ -805,14 +805,14 @@ app.get('/api/getDiligenceStats', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
-    // 전체 제출 기록
-    const [all] = await conn.query(`
+    // ✅ 쿼리 결과를 rows로 직접 받음 (대괄호 제거!)
+    const all = await conn.query(`
       SELECT Subcategory, LateMinutes, DATE_FORMAT(CreatedAt, '%Y-%m-%d') AS Day
       FROM DiligenceLog
       WHERE UserId = ?
     `, [userId]);
 
-    if (all.length === 0) {
+    if (!Array.isArray(all) || all.length === 0) {
       return res.status(200).json({
         totalSubmissions: 0,
         lateCount: 0,
@@ -831,7 +831,7 @@ app.get('/api/getDiligenceStats', async (req, res) => {
     );
     const lateRate = +(lateCount / totalSubmissions * 100).toFixed(1);
 
-    // 가장 자주 한 과목
+    // 📚 가장 자주 한 과목
     const freqMap = {};
     all.forEach(item => {
       freqMap[item.Subcategory] = (freqMap[item.Subcategory] || 0) + 1;
@@ -839,9 +839,11 @@ app.get('/api/getDiligenceStats', async (req, res) => {
     const mostFrequentSubject = Object.entries(freqMap)
       .sort((a, b) => b[1] - a[1])[0][0];
 
-    // 최근 7일 날짜별 count
+    // 📆 최근 7일
     const today = new Date();
-    const kstNow = new Date(today.getTime() + 9 * 60 * 60 * 1000);
+    const kstOffset = 9 * 60 * 60 * 1000;
+    const kstNow = new Date(today.getTime() + kstOffset);
+
     const dateList = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(kstNow);
@@ -881,6 +883,7 @@ app.get('/api/getDiligenceStats', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 // 서버 시작
