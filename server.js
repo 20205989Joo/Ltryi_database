@@ -884,6 +884,74 @@ app.get('/api/getDiligenceStats', async (req, res) => {
   }
 });
 
+//여기부터는 progressmatrix 관련
+
+app.post('/api/updateProgressMatrix', async (req, res) => {
+  const { UserId, Subject, LessonNo, Status, RegisteredBy = 'system' } = req.body;
+
+  if (!UserId || !Subject || !LessonNo || !Status) {
+    return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
+  }
+
+  try {
+    const [existing] = await db.execute(
+      `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+      [UserId, Subject, LessonNo]
+    );
+
+    if (existing.length > 0) {
+      // 이미 있으면 업데이트
+      await db.execute(
+        `UPDATE ProgressMatrix 
+         SET Status = ?, RegisteredBy = ?, UpdatedAt = CURRENT_TIMESTAMP 
+         WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+        [Status, RegisteredBy, UserId, Subject, LessonNo]
+      );
+    } else {
+      // 없으면 삽입
+      await db.execute(
+        `INSERT INTO ProgressMatrix (UserId, Subject, LessonNo, Status, RegisteredBy) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [UserId, Subject, LessonNo, Status, RegisteredBy]
+      );
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('❌ updateProgressMatrix 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+app.get('/api/getProgressMatrixAll', async (req, res) => {
+  const { UserId } = req.query;
+
+  if (!UserId) {
+    return res.status(400).json({ message: "UserId는 필수입니다." });
+  }
+
+  try {
+    const [rows] = await db.execute(
+      `SELECT Subject, LessonNo, Status FROM ProgressMatrix WHERE UserId = ?`,
+      [UserId]
+    );
+
+    // 과목별로 묶기
+    const grouped = {};
+    for (const row of rows) {
+      const { Subject, LessonNo, Status } = row;
+      if (!grouped[Subject]) grouped[Subject] = [];
+      grouped[Subject].push({ LessonNo, Status });
+    }
+
+    res.json(grouped);
+  } catch (error) {
+    console.error('❌ getProgressMatrixAll 오류:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+
 
 
 // 서버 시작
