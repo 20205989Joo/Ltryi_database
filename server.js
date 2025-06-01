@@ -550,8 +550,6 @@ app.post('/api/grant-tutorial-id', async (req, res) => {
 });
 
 app.post('/api/register', async (req, res) => {
-  console.log('📥 받은 req.body:', req.body);
-
   const {
     userId,
     password,
@@ -600,6 +598,35 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
+app.post('/api/login', async (req, res) => {
+  const { userId, password } = req.body;
+
+  if (!userId || !password) {
+    return res.status(400).json({ message: 'userId와 password를 입력하세요.' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const query = `
+      SELECT UserId FROM UserInfo
+      WHERE UserId = ? AND Password = ?
+      LIMIT 1
+    `;
+    const result = await conn.query(query, [userId, password]);
+
+    if (result.length > 0) {
+      res.status(200).json({ userId: result[0].UserId });
+    } else {
+      res.status(401).json({ message: 'ID 또는 비밀번호가 일치하지 않습니다.' });
+    }
+  } catch (err) {
+    console.error('❌ 로그인 오류:', err);
+    res.status(500).json({ message: '서버 오류', error: err.message });
+  } finally {
+    if (conn) conn.release();
+  }
+});
 
 
 
