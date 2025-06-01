@@ -550,6 +550,8 @@ app.post('/api/grant-tutorial-id', async (req, res) => {
 });
 
 app.post('/api/register', async (req, res) => {
+  console.log('📥 받은 req.body:', req.body);
+
   const {
     userId,
     password,
