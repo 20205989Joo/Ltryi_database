@@ -549,6 +549,8 @@ app.post('/api/grant-tutorial-id', async (req, res) => {
   }
 });
 
+
+
 app.post('/api/register', async (req, res) => {
   const {
     userId,
@@ -656,6 +658,95 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+
+// 여기부터는 숙제 제출 PLUS 전체 스키마 싹 갈아엎음!
+
+app.post('/api/saveHWPlus', upload.single('HWImage'), async function (req, res) {
+  const {
+    UserId, Subcategory, HWType, LessonNo, Comment
+  } = req.body;
+
+  const HWImage = req.file ? req.file.buffer : null;
+  if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
+
+  const mimeType = req.file.mimetype;
+  const base = `${UserId}_${Subcategory}_${LessonNo}`;
+  const safeBase = safeSupabaseKey(base);
+
+  let fileName = `${safeBase}.jpg`;
+  let suffix = 1;
+
+  while (true) {
+    const { data: existing } = await supabase
+      .storage
+      .from('hw-images')
+      .list('', { search: fileName });
+
+    if (!existing || existing.length === 0) break;
+    fileName = `${safeBase}(${suffix}).jpg`;
+    suffix++;
+  }
+
+  try {
+    const { data, error } = await supabase.storage
+      .from('hw-images')
+      .upload(fileName, HWImage, {
+        contentType: mimeType,
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/hw-images/${fileName}`;
+
+    const conn = await pool.getConnection();
+    const insertQuery = `
+      INSERT INTO HWImagesPlus 
+      (UserId, Subcategory, HWType, LessonNo, orderedFileURL, Comment, Timestamp)
+      VALUES (?, ?, ?, ?, ?, ?, NOW())
+    `;
+    await conn.query(insertQuery, [
+      UserId, Subcategory, HWType, LessonNo, imageUrl, Comment || null
+    ]);
+    conn.release();
+
+    res.status(200).json({ message: 'HW Plus saved', url: imageUrl });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({ message: 'Upload failed', error: error.message });
+  }
+});
+
+app.get('/api/getHWPlus', async function (req, res) {
+  const userId = req.query.userId;
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  try {
+    const conn = await pool.getConnection();
+    const query = `
+      SELECT 
+        HWIPId, UserId, Subcategory, HWType, LessonNo, Status, Score, 
+        orderedFileURL, servedFileURL, Timestamp, Comment, FeedbackComment
+      FROM HWImagesPlus
+      WHERE UserId = ?
+      ORDER BY Timestamp DESC
+    `;
+    const records = await conn.query(query, [userId]);
+    conn.release();
+
+    if (records.length === 0) {
+      res.status(404).json({ message: 'No records found for this user' });
+    } else {
+      res.status(200).json(records);
+    }
+  } catch (error) {
+    console.error('Fetch error:', error);
+    res.status(500).json({ message: 'Failed to fetch records', error: error.message });
+  }
+});
 
 
 // 서버 시작
