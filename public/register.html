@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>회원가입 | LTRYI E-Class</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Gowun Batang', serif;
+      background-color: #f0f0f0;
+    }
+
+    .main-page {
+      position: relative;
+      width: 375px;
+      height: 667px;
+      background: #FFFFFF;
+      border-radius: 2px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+    }
+
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      background-image: url('LTRYI_main_e.png');
+      background-size: cover;
+      background-position: center;
+      overflow: hidden;
+    }
+
+.register-box {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 270px;
+  max-height: 500px; /* ✅ 최대 높이 지정 */
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 18px;
+  box-shadow: 0 0 8px rgba(0,0,0,0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid #d9a06340;
+  overflow-y: auto; /* ✅ 세로 스크롤 허용 */
+}
+
+label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #4c3622;
+  margin-bottom: 4px;
+  display: block;
+        background-color: #7e5b4148;
+}
+
+    .register-title {
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+      color: #5a3623;
+      margin-bottom: 10px;
+      text-shadow: 0px 1px 1px rgba(0,0,0,0.1);
+    }
+
+    .register-box input,
+    .register-box select {
+      height: 28px;
+      border-radius: 6px;
+      border: 1px solid #aa8b5c;
+      padding: 4px 8px;
+      font-size: 14px;
+      background: rgba(255,255,255,0.9);
+      color: #4c3622;
+    }
+
+    .register-box select {
+
+        height: 38px;
+        margin-left: -3px;
+        width: 127px;
+    }
+
+    .register-box input {
+width : 107px;
+
+    }
+
+    #userType {
+width : 80px;
+margin-right: 10px;
+font-size: 16px;
+color: #5a3623;
+
+    }
+    #deadline, #userId, #phone, #guardianContact, #connectedTo {
+        width : 240px;
+    }
+
+    
+    .register-box input::placeholder {
+      color: #aaa;
+    }
+
+    .register-box button {
+      margin-top: 10px;
+      padding: 10px;
+      width : 100px;
+      height: 40px;
+      background: #7e3106;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      position: relative !important;
+    }
+
+    .register-box button:hover {
+      background: #a94c1a;
+      transform: scale(1.03);
+    }
+
+    .separator {
+      margin: 15px 0 10px;
+      padding: 8px 12px;
+      background-color: #5db49d88;
+      border-left: 4px solid #888;
+      font-weight: bold;
+      font-size: 14px;
+      color: #fffcfc;
+    }
+
+    .row-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .row-line label {
+      flex: 1;
+      font-weight: bold;
+      font-size: 14px;
+      color: #4c3622;
+    }
+
+    .row-line select {
+      flex: 2;
+    }
+
+.register-title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+
+.section-divider {
+  min-height: 2px;
+  background-color: #7e5b41; /* 더 잘 보이는 오렌지 */
+  margin: 10px 0;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.section-divider2 {
+  min-height: 2px;
+  background-color: #7e5b4148; /* 더 잘 보이는 오렌지 */
+  margin: 20px 0;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div class="register-box">
+<!-- 회원가입 상단 -->
+<div class="register-title-row">
+  <select id="userType" class="user-type-select">
+    <option value="student">학생</option>
+    <option value="parent">보호자</option>
+  </select>
+  <div class="register-title">회원가입</div>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- 이름 + 회원유형 + 출생년도 -->
+<div class="form-row" style="display: flex; gap: 8px;">
+  <div style="flex: 1;">
+    <label for="name">이름</label>
+    <input type="text" id="name" maxlength="12"/>
+  </div>
+  <div style="flex: 1;">
+    <label for="birthYear">나이</label>
+    <select id="birthYear"></select>
+  </div>
+</div>
+
+
+<!-- 사용자 ID -->
+<div class="form-row">
+  <label for="userId">ID</label>
+  <input type="text" id="userId" maxlength="25"/>
+</div>
+
+<!-- 비밀번호 + 비밀번호 확인 -->
+<div class="form-row">
+  <label for="password">비밀번호</label>
+  <input type="password" id="password" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="4자리 숫자" />
+  <input type="password" id="confirmPassword" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="비밀번호 확인" />
+</div>
+
+<!-- 전화번호 -->
+<div class="form-row">
+  <label for="phone">전화번호</label>
+  <input type="tel" id="phone" inputmode="numeric" pattern="[0-9]*" placeholder="01012345678"/>
+</div>
+
+<div class="section-divider2"></div>
+
+<!-- 마감 시간 -->
+<div class="form-row">
+  <label for="deadline"> 매일 숙제 제출시간</label>
+  <input type="time" id="deadline" value="20:00" />
+</div>
+
+<!-- 학생용 -->
+<div id="guardianContactGroup">
+  <div class="separator">연결</div>
+  <div class="form-row">
+    <label for="guardianContact">보호자 연락처(숙제 확인용)</label>
+    <input type="text" id="guardianContact" inputmode="numeric" pattern="[0-9]*" placeholder="정확하게 적어주세요"/>
+  </div>
+</div>
+
+<!-- 보호자용 -->
+<div id="connectedToGroup">
+      <div class="separator">연결</div>
+  <div class="form-row">
+    <label for="connectedTo">자녀분의 ID를 적어주세요!</label>
+    <input type="text" id="connectedTo" placeholder="정확하게 적어주세요" />
+  </div>
+</div>
+
+<!-- 제출 버튼 -->
+<button id="submitRegister">가입하기</button>
+
+      </div>
+    </div>
+  </div>
+  <script src="script-register.js" defer></script>
+</body>
+</html>

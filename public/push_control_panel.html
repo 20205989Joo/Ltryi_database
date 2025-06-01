@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Push Control Panel</title>
+</head>
+<body>
+  <h2>📤 푸시 알림 발사 패널</h2>
+
+  <label for="userId">👤 대상 ID:</label>
+  <select id="userId">
+    <option value="Dagwa">Dagwa</option>
+    <option value="LDR">LDR</option>
+    <option value="tutorial1">tutorial1</option>
+  </select>
+  <br><br>
+
+  <label for="title">📌 알림 제목:</label><br>
+  <input type="text" id="title" placeholder="예: 숙제 알림" size="40">
+  <br><br>
+
+  <label for="body">📝 알림 내용:</label><br>
+  <textarea id="body" rows="4" cols="40" placeholder="예: 오늘 단어퀴즈가 도착했어요!"></textarea>
+  <br><br>
+
+  <button onclick="sendPush()">🚀 푸시 발사!</button>
+
+  <script>
+    async function sendPush() {
+      const userId = document.getElementById('userId').value;
+      const title = document.getElementById('title').value;
+      const body = document.getElementById('body').value;
+
+      if (!userId || !title || !body) {
+        alert('모든 항목을 입력해주세요!');
+        return;
+      }
+
+      const res = await fetch('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/send-push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, title, body })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('✅ 푸시 전송 완료!');
+      } else {
+        alert('❌ 전송 실패: ' + data.message);
+      }
+    }
+  </script>
+</body>
+</html>

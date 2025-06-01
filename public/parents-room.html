@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>학부모 보기</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      background: linear-gradient(to bottom,
+        rgba(241, 123, 42, 0.3) 0px,
+        rgba(241, 123, 42, 0.3) 247px,
+        rgba(210, 110, 82, 1) 247px,
+        rgba(210, 110, 82, 1) 100%);
+    }
+
+    #bar_top {
+      position: absolute;
+      top: 277px;
+      left: 17px;
+      width: 340px;
+      height: 32px;
+      background-color: #d99863;
+      z-index: 1;
+    }
+
+    #bar_bottom {
+      position: absolute;
+      top: 309px;
+      left: 18px;
+      width: 340px;
+      height: 129px;
+      background-color: #553E2F;
+      z-index: 1;
+    }
+
+    #cafe_jigi {
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      top: 80px;
+      right: -10px;
+      background-image: url('cafe_jigi_report.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      transform: scaleX(-1);
+      z-index: 0;
+    }
+
+    .display-window {
+      position: absolute;
+      top: 118px;
+      left: 20px;
+      width: 160px;
+      height: 160px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1.5px solid rgba(233, 203, 70, 0.4);
+      border-radius: 14px;
+      backdrop-filter: blur(2px);
+      box-shadow: 0 0 4px rgba(0,0,0,0.3);
+      padding: 10px;
+      color: #eee;
+      font-size: 13px;
+      font-style: italic;
+      z-index: 5;
+      overflow-y: auto;
+    }
+
+    .npc-dialogue-box {
+      position: absolute;
+      bottom: 100px;
+      left: 17px;
+      width: 313px;
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6);
+      z-index: 10;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .main-choice {
+      width: 90%;
+      padding: 8px 12px;
+      font-size: 13px;
+      border: 1px solid #bc8546;
+      background: #ffe4c4;
+      color: #333;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .main-choice:hover {
+      background: #f9cba1;
+    }
+
+#choiceStatus {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 280px;
+}
+
+#choiceSuggest {
+  position: absolute;
+  top: 56px;
+  left: 16px;
+  width: 280px;
+}
+
+#choiceCounsel {
+  position: absolute;
+  top: 96px;
+  left: 16px;
+  width: 280px;
+}
+
+#todayLabel {
+  position: absolute;
+  top: 60px;
+  left: 20px;
+  width: 160px;
+  height: 40px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff5de;
+  background: rgba(0,0,0,0.4);
+  padding: 4px 10px;
+  border-radius: 10px;
+  z-index: 6;
+  box-shadow: 0 0 4px rgba(0,0,0,0.3);
+  line-height: 40px;
+  text-align: center;
+}
+
+    .parent-popup {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 280px;
+      background: white;
+      border: 2px solid #7e3106;
+      border-radius: 14px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      padding: 18px;
+      font-size: 14px;
+      z-index: 20;
+      display: none;
+    }
+
+    .parent-popup button {
+      margin-top: 10px;
+      padding: 6px 12px;
+      font-size: 13px;
+      background: #7e3106;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .parent-popup button:hover {
+      background: #a9460a;
+    }
+
+    .image-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 6px;
+      margin-bottom: 6px;
+    }
+
+    .image-card img {
+      width: 100%;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int"></div>
+    <div id="bar_top"></div>
+    <div id="bar_bottom"></div>
+    <div id="cafe_jigi"></div>
+
+
+      <div id="todayLabel">오늘의 숙제 : -</div> <!-- 여기가 추가됨 -->
+    <div class="display-window" id="displayArea">
+      오늘 숙제 미리보기 :
+    </div>
+
+    <div class="npc-dialogue-box">
+      무엇이 궁금하신가요?
+      <button class="main-choice" id="choiceStatus">📊 요즘 어떻게 하고 있나요?</button>
+      <button class="main-choice" id="choiceSuggest">📝 뭐하면 좋을까요?</button>
+      <button class="main-choice" id="choiceCounsel">📮 선생님 상담 좀 부탁드려요.</button>
+    </div>
+
+    <div class="parent-popup" id="popupBox">
+      <div id="popupContent">...</div>
+      <button onclick="document.getElementById('popupBox').style.display='none'">닫기</button>
+    </div>
+  </div>
+
+  <script src="script-parents.js" defer></script>
+</body>
+</html>

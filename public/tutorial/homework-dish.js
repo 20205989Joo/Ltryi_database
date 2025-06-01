@@ -128,6 +128,14 @@ function showDishPopup(item) {
   if (hw === '레벨테스트' || hw === 'Prologue Question') {
     const filename = hw === '레벨테스트' ? '레벨테스트.pdf' : 'PrologueQuestions.pdf';
 
+  // ✅ 1페이지 미리보기 iframe 추가
+  content += `
+    <div style="margin-bottom: 8px;">
+      <iframe src="${filename}#page=1" width="100%" height="180px"
+        style="border: 1px solid #aaa; border-radius: 6px;"></iframe>
+    </div>
+  `;
+
     if (downloaded) {
       content += `
         <div style="margin-bottom: 10px;">숙제를 다시 다운로드하거나, 완료 후 제출할 수 있어요.</div>
@@ -183,7 +191,7 @@ function showDishPopup(item) {
       label: hw,
       type: 'upload',
       timestamp: new Date().toISOString(),
-      comment: '완료 후 제출 예정',
+      comment: 'Tutorial 중 작성됨',
       QLevel: item.QLevel,
       QNo: item.QNo
     });

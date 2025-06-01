@@ -83,7 +83,7 @@
       font-size: 14px;
     }
 
-    .login-box button {
+    .mainbutton {
       height: 40px;
       width: 100px;
       background: #7e3106;
@@ -93,10 +93,23 @@
       font-weight: bold;
       cursor: pointer;
       transition: background 0.2s ease;
+      position: absolute;
     }
 
-    .login-box button:hover {
+
+    .mainbutton:hover {
       background: #a9460a;
+    }
+
+    #loginButton {
+      left : 200px;
+      top: 500px;
+    }
+
+    #signupButton {
+    
+      left : 70px;
+      top : 500px;
     }
 
     .tester-btn {
@@ -120,7 +133,7 @@
     #btnTStudentTutorial { left: 68px; bottom: 5px;}
     #btnTParentsTutorial { left : 185px; bottom: 5px;}
 
-.popup {
+    .popup {
   position: fixed;
   top: 40%;
   left: 50%;
@@ -131,6 +144,12 @@
   border-radius: 12px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
   text-align: center;
+  height: 80px;
+}
+
+#confirmStudentPermission {
+  top : 50px;
+  width : 100px;
 }
 
   </style>
@@ -139,12 +158,15 @@
   <div class="main-page">
     <div id="cafe_int">
       <div id="signboard">LTRYI E-Class</div>
-      <div class="login-box">
-        <input type="text" id="username" placeholder="ID를 입력하세요" />
-        <input type="password" id="password" placeholder="비밀번호를 입력하세요" />
-        <button id="loginButton">ENTER</button>
+        <div class="login-box">
+          <input type="text" id="username" placeholder="ID를 입력하세요" />
+          <input type="password" id="password" placeholder="비밀번호를 입력하세요" />
+        </div>
       </div>
-    </div>
+
+    <button id="signupButton" class="mainbutton">회원가입</button>
+    <button id="loginButton" class="mainbutton">ENTER</button>
+
 
     <button id="btnTStudent" class="tester-btn">학생모드</button>
     <button id="btnTParents" class="tester-btn">부모모드</button>
@@ -152,6 +174,8 @@
 
     <button id="btnTStudentTutorial" class="tester-btn">학생 튜토리얼</button>
 <button id="btnTParentsTutorial" class="tester-btn">부모 튜토리얼</button>
+
+
 
 <div id="popup-student" style="display:none;" class="popup">
   <p>🔔 알림 설정이 필수입니다!</p>

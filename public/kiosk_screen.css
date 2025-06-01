@@ -1,0 +1,385 @@
+/* ░░ 팝업 외곽 ░░ */
+#popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 304px;
+  height: 532px;
+  background: #fff;
+  border: 2px solid #333;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  display: none;
+  z-index: 999;
+  padding: 16px;
+  box-sizing: border-box;
+  font-family: sans-serif;
+}
+
+/* ░░ 팝업 내부 전체 컨텐츠 ░░ */
+.popup-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 95%;
+  position: relative;
+}
+
+/* ░░ 닫기 버튼 ░░ */
+.popup-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font-size: 20px;
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.popup-close:hover {
+  color: #000;
+}
+
+/* ░░ 탭 영역 ░░ */
+.tabs {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  margin-bottom: 0;
+  /* ❌ border-bottom 제거 → 메뉴 영역과 연결 */
+}
+
+.tab {
+  flex: 1;
+  padding: 6px 0;
+  border: none;
+  border-radius: 12px 12px 0 0;
+  background: #f3f3f3;
+  font-weight: bold;
+  cursor: pointer;
+  position: relative;
+  top: 2px;
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.tab.active {
+  background: #ffffff;
+  color: #f17b2a;
+  z-index: 2;
+}
+
+/* ░░ 탭 내 텍스트 크기 차이 ░░ */
+.tab .tab-large {
+  font-size: 18px;
+  font-weight: bold;
+  display: block;
+  line-height: 1;
+}
+
+.tab .tab-small {
+  font-size: 10px;
+  color: #666;
+  display: block;
+  margin-top: 0;
+  line-height: 0.1;
+}
+
+/* ░░ 탭별 콘텐츠 영역 ░░ */
+.tab-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  padding-top: 10px;
+  padding-left: 4px;
+  margin-top: -2px;
+  margin-bottom: 20px;
+  border-top: 2px solid #ccc;
+  min-height: 190px; /* ✅ 보장 */
+}
+
+
+.tab-content.hidden {
+  display: none;
+}
+
+/* ░░ 메뉴 버튼 ░░ */
+.menu-btn {
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #f7f7f7;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s ease;
+}
+
+.menu-btn:hover {
+  background: #ddd;
+}
+
+.menu-btn.square {
+  width: 75px;
+  height: 75px;
+  border-radius: 16px;
+  font-size: 12px;
+  text-align: center;
+  white-space: normal;
+  line-height: 1.2;
+  padding: 8px;
+}
+
+/* ░░ 선택된 항목 표시 ░░ */
+.selection-status {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 12px 0 6px;
+  border-top: 1.5px solid #ccc;
+  margin-bottom: 10px;
+}
+
+/* ░░ 주문 버튼 ░░ */
+.order-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.order-btn:hover {
+  background: #388e3c;
+}
+
+/* ░░ 팝업 헤더 텍스트 ░░ */
+.popup-header-text {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.selected-tag {
+  background: #f0f0f0;
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
+.sub-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 266px;
+  height: 350px;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border: 2px solid #4444447d;
+  border-radius: 10px;
+  padding: 16px;
+  z-index: 1001;
+  box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.sub-popup-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sub-popup-title {
+  font-weight: bold;
+  font-size: 17px;
+  color: #333;
+  margin-bottom: 4px;
+  padding: 20px;
+}
+
+.sub-popup-body {
+  background: #f7f7f7;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  text-align: center;
+  color: #666;
+}
+
+.sub-counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.counter-btn {
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  border: none;
+  border-radius: 6px;
+  background: #f0f0f0;
+  cursor: pointer;
+}
+
+.counter-btn:hover {
+  background: #ddd;
+}
+
+.range-dual {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.range-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.range-label {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* 📌 공통 인풋 필드 */
+.custom-input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+/* 📌 파일 업로드 필드 */
+.custom-file {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* 📌 라디오 그룹 (시험봐주세요 유형 선택) */
+.sub-radio-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.sub-radio-group label {
+  font-size: 13px;
+  color: #333;
+  font-weight: bold;
+  cursor: pointer;
+}
+.sub-radio-group input[type="radio"] {
+  margin-right: 4px;
+}
+
+/* 📌 선택 태그 개별 항목 */
+.selected-tag {
+  background: #f0f0f0;
+  border: 1px solid #aaa;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.selected-tag span {
+  color: crimson;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ✅ 선택된 항목 리스트 전체 영역 */
+.selected-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 6px;
+}
+
+/* ✅ 영수증 박스 */
+.receipt-box {
+  background: white;
+  border: 2px dashed #444;
+  border-radius: 8px;
+  width: 240px;
+  padding: 16px;
+  font-family: monospace;
+  font-size: 13px;
+  color: #222;
+  box-shadow: 2px 2px 8px rgba(0,0,0,0.2);
+  position: absolute;
+  top: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+/* ✅ 영수증 제목 */
+.receipt-title {
+  text-align: center;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+/* ✅ 영수증 내용 */
+.receipt-content {
+  white-space: pre-line;
+  line-height: 1.4;
+}
+
+/* ✅ receipt 아이콘 */
+.receipt-icon {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  z-index: 15;
+  cursor: pointer;
+}

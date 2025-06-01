@@ -60,6 +60,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     input.addEventListener('change', checkTutorialPendingListReady);
 
     card.appendChild(input);
+input.addEventListener('change', () => {
+  if (input.files?.length > 0) {
+    card.classList.add('filled');
+  } else {
+    card.classList.remove('filled');
+  }
+  checkTutorialPendingListReady(); // 기존 로직
+});
+
+
     pendingList.appendChild(card);
   });
 
