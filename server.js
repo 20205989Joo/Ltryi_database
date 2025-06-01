@@ -562,10 +562,20 @@ app.post('/api/register', async (req, res) => {
     userType,
     name,
     birthYear,
-    guardianContact
+    guardianContact,
+    connectedTo
   } = req.body;
 
-  if (!userId || !password || !Array.isArray(tutorialIds) || !userType || !name || !birthYear) {
+  // ✅ 필수 항목 검증
+  if (
+    !userId ||
+    !password ||
+    !Array.isArray(tutorialIds) ||
+    !userType ||
+    !name ||
+    !birthYear ||
+    !connectedTo // ✅ 보호자 or 자녀 ID 필요
+  ) {
     return res.status(400).json({ message: '누락된 필수 정보가 있습니다.' });
   }
 
@@ -573,17 +583,18 @@ app.post('/api/register', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
-    // ✅ 중복 검사
+    // ✅ 중복 ID 검사
     const [existing] = await conn.query("SELECT UserId FROM UserInfo WHERE UserId = ?", [userId]);
     if (existing) {
       conn.release();
       return res.status(409).json({ message: '이미 존재하는 ID입니다.' });
     }
 
+    // ✅ INSERT 쿼리
     const insertQuery = `
       INSERT INTO UserInfo
-      (UserId, Password, TutorialIds, PhoneNumber, Deadline, CreatedAt, IsRegistered, Coin, UserType, Name, BirthYear, GuardianContact)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (UserId, Password, TutorialIds, PhoneNumber, Deadline, CreatedAt, IsRegistered, Coin, UserType, Name, BirthYear, GuardianContact, ConnectedTo)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     await conn.query(insertQuery, [
@@ -598,7 +609,8 @@ app.post('/api/register', async (req, res) => {
       userType,
       name,
       birthYear,
-      guardianContact || null
+      guardianContact || null,
+      connectedTo
     ]);
 
     conn.release();
@@ -609,6 +621,7 @@ app.post('/api/register', async (req, res) => {
     res.status(500).json({ message: '서버 오류', error: error.message });
   }
 });
+
 
 
 
