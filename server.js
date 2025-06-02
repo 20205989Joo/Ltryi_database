@@ -671,10 +671,12 @@ app.post('/api/saveHWPlus', upload.single('HWImage'), async function (req, res) 
   if (!HWImage) return res.status(400).json({ message: "No image uploaded" });
 
   const mimeType = req.file.mimetype;
+  const originalName = req.file.originalname;
+  const ext = originalName.split('.').pop(); // 확장자 추출
   const base = `${UserId}_${Subcategory}_${LessonNo}`;
   const safeBase = safeSupabaseKey(base);
 
-  let fileName = `${safeBase}.jpg`;
+  let fileName = `${safeBase}.${ext}`;
   let suffix = 1;
 
   while (true) {
@@ -684,7 +686,7 @@ app.post('/api/saveHWPlus', upload.single('HWImage'), async function (req, res) 
       .list('', { search: fileName });
 
     if (!existing || existing.length === 0) break;
-    fileName = `${safeBase}(${suffix}).jpg`;
+    fileName = `${safeBase}(${suffix}).${ext}`;
     suffix++;
   }
 
@@ -717,6 +719,7 @@ app.post('/api/saveHWPlus', upload.single('HWImage'), async function (req, res) 
     res.status(500).json({ message: 'Upload failed', error: error.message });
   }
 });
+
 
 app.get('/api/getHWPlus', async function (req, res) {
   const userId = req.query.userId;
