@@ -751,7 +751,7 @@ app.get('/api/getHWPlus', async function (req, res) {
 // diligence 올리고 구하는 api
 
 app.post('/api/logDiligence', async (req, res) => {
-  const { UserId, Subcategory, LessonNo, RegisteredBy } = req.body;
+  const { UserId, Subcategory, LessonNo, RegisteredBy, CreatedAt } = req.body;
   if (!UserId || !Subcategory) {
     return res.status(400).json({ message: 'UserId와 Subcategory는 필수입니다.' });
   }
@@ -766,13 +766,12 @@ app.post('/api/logDiligence', async (req, res) => {
     );
     const deadlineStr = user?.Deadline || '20:00:00';
 
-    const now = new Date();
-    const kstOffset = 9 * 60 * 60 * 1000;
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const todayStr = kstNow.toISOString().slice(0, 10);
-    const deadlineFull = new Date(`${todayStr}T${deadlineStr}`);
+    // ✅ 받은 CreatedAt이 있으면 그것 사용, 없으면 현재 KST 기준
+    const createdDate = CreatedAt ? new Date(CreatedAt) : new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const dateStr = createdDate.toISOString().slice(0, 10);
+    const deadlineFull = new Date(`${dateStr}T${deadlineStr}`);
 
-    const lateMinutes = Math.max(0, Math.round((kstNow - deadlineFull) / (1000 * 60)));
+    const lateMinutes = Math.max(0, Math.round((createdDate - deadlineFull) / (1000 * 60)));
 
     await conn.query(`
       INSERT INTO DiligenceLog
@@ -782,7 +781,7 @@ app.post('/api/logDiligence', async (req, res) => {
       UserId,
       Subcategory,
       LessonNo ?? 0,
-      kstNow,
+      createdDate,
       deadlineFull,
       lateMinutes,
       RegisteredBy || 'system'
@@ -796,6 +795,7 @@ app.post('/api/logDiligence', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 app.get('/api/getDiligenceStats', async (req, res) => {
   const userId = req.query.userId;
