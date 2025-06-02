@@ -893,23 +893,24 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
     return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
   }
 
+  let conn;
   try {
-    const [existing] = await db.execute(
+    conn = await pool.getConnection();
+
+    const existing = await conn.query(
       `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
       [UserId, Subject, LessonNo]
     );
 
     if (existing.length > 0) {
-      // 이미 있으면 업데이트
-      await db.execute(
+      await conn.query(
         `UPDATE ProgressMatrix 
          SET Status = ?, RegisteredBy = ?, UpdatedAt = CURRENT_TIMESTAMP 
          WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
         [Status, RegisteredBy, UserId, Subject, LessonNo]
       );
     } else {
-      // 없으면 삽입
-      await db.execute(
+      await conn.query(
         `INSERT INTO ProgressMatrix (UserId, Subject, LessonNo, Status, RegisteredBy) 
          VALUES (?, ?, ?, ?, ?)`,
         [UserId, Subject, LessonNo, Status, RegisteredBy]
@@ -920,8 +921,12 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
   } catch (error) {
     console.error('❌ updateProgressMatrix 오류:', error);
     res.status(500).json({ message: '서버 오류', error: error.message });
+  } finally {
+    if (conn) conn.release();
   }
 });
+
+
 
 app.get('/api/getProgressMatrixAll', async (req, res) => {
   const { UserId } = req.query;
@@ -930,13 +935,15 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
     return res.status(400).json({ message: "UserId는 필수입니다." });
   }
 
+  let conn;
   try {
-    const [rows] = await db.execute(
+    conn = await pool.getConnection();
+    const rows = await conn.query(
       `SELECT Subject, LessonNo, Status FROM ProgressMatrix WHERE UserId = ?`,
       [UserId]
     );
+    conn.release();
 
-    // 과목별로 묶기
     const grouped = {};
     for (const row of rows) {
       const { Subject, LessonNo, Status } = row;
@@ -950,6 +957,7 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
     res.status(500).json({ message: '서버 오류', error: error.message });
   }
 });
+
 
 
 
