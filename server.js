@@ -682,17 +682,23 @@ app.get('/api/whosmychild', async (req, res) => {
   }
 });
 
+
+
+
 app.post('/api/login-subscription-check', async (req, res) => {
   const { userId, subscription } = req.body;
 
   if (!userId || !subscription || !subscription.endpoint) {
+    console.warn("❌ 잘못된 요청: userId 또는 subscription 누락");
     return res.status(400).json({ message: 'Invalid input' });
   }
 
   const conn = await pool.getConnection();
 
   try {
-    // 1. 이미 등록된 endpoint인지 확인
+    console.log(`🔔 login-subscription-check 호출됨 - userId: ${userId}`);
+
+    // 1. endpoint 존재 여부 확인
     const [existing] = await conn.query(
       `SELECT UserId FROM PushSubscriptions WHERE Endpoint = ? LIMIT 1`,
       [subscription.endpoint]
@@ -701,17 +707,24 @@ app.post('/api/login-subscription-check', async (req, res) => {
     let tutorialId;
     if (existing.length > 0) {
       tutorialId = existing[0].UserId;
+      console.log(`✅ 기존 subscription 감지됨 → tutorialId: ${tutorialId}`);
     } else {
-      // 2. 새 tutorialN 발급
-      const [rows] = await conn.query(`SELECT UserId FROM PushSubscriptions WHERE UserId LIKE 'tutorial%'`);
+      // 2. 새 tutorialN 생성
+      const [rows] = await conn.query(`
+        SELECT UserId FROM PushSubscriptions WHERE UserId LIKE 'tutorial%'
+      `);
       let max = 0;
       for (const row of rows) {
         const match = row.UserId.match(/^tutorial(\d+)$/);
-        if (match) max = Math.max(max, parseInt(match[1], 10));
+        if (match) {
+          const num = parseInt(match[1], 10);
+          if (!isNaN(num)) max = Math.max(max, num);
+        }
       }
       tutorialId = `tutorial${max + 1}`;
+      console.log(`🆕 새 tutorialId 생성됨: ${tutorialId}`);
 
-      // 3. PushSubscriptions에 저장
+      // 3. PushSubscriptions 저장
       await conn.query(`
         INSERT INTO PushSubscriptions (UserId, Endpoint, AuthKey, P256dhKey)
         VALUES (?, ?, ?, ?)
@@ -721,31 +734,37 @@ app.post('/api/login-subscription-check', async (req, res) => {
         subscription.keys.auth,
         subscription.keys.p256dh
       ]);
+      console.log(`📦 PushSubscriptions 테이블에 새 구독 저장 완료`);
     }
 
-    // 4. UserInfo.TutorialIds에 append
+    // 4. UserInfo에 tutorialId append
     const [[user]] = await conn.query(`SELECT TutorialIds FROM UserInfo WHERE UserId = ?`, [userId]);
 
     if (user) {
-      const currentIds = user.TutorialIds ? user.TutorialIds.split(',') : [];
-      if (!currentIds.includes(tutorialId)) {
-        currentIds.push(tutorialId);
+      const ids = user.TutorialIds ? user.TutorialIds.split(',') : [];
+      if (!ids.includes(tutorialId)) {
+        ids.push(tutorialId);
         await conn.query(`UPDATE UserInfo SET TutorialIds = ? WHERE UserId = ?`, [
-          currentIds.join(','),
+          ids.join(','),
           userId
         ]);
+        console.log(`📌 UserInfo.TutorialIds 갱신: ${ids.join(',')}`);
+      } else {
+        console.log(`🔁 tutorialId (${tutorialId}) 이미 포함되어 있음 → 갱신 생략`);
       }
+    } else {
+      console.warn(`⚠️ UserInfo에 해당 유저(${userId}) 없음`);
     }
 
     res.status(200).json({ success: true, tutorialId });
-
   } catch (err) {
-    console.error("❌ login-subscription-check error:", err);
+    console.error("❌ login-subscription-check 처리 중 오류:", err);
     res.status(500).json({ message: "Internal server error" });
   } finally {
     conn.release();
   }
 });
+
 
 
 // 여기부터는 숙제 제출 PLUS 전체 스키마 싹 갈아엎음!
