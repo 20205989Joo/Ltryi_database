@@ -549,7 +549,7 @@ app.post('/api/grant-tutorial-id', async (req, res) => {
   }
 });
 
-
+// <------- 여기부터는 회원가입과 로그인 등등등
 
 app.post('/api/register', async (req, res) => {
   const {
@@ -661,6 +661,26 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+app.get('/api/whosmychild', async (req, res) => {
+  const userId = req.query.userId;
+  if (!userId) return res.status(400).json({ message: "userId 누락" });
+
+  try {
+    const conn = await pool.getConnection();
+    const query = `SELECT ConnectedTo FROM UserInfo WHERE UserId = ? LIMIT 1`;
+    const [result] = await conn.query(query, [userId]);
+    conn.release();
+
+    if (!result || !result.ConnectedTo) {
+      return res.status(404).json({ message: "연결된 자녀 정보 없음" });
+    }
+
+    res.status(200).json({ childId: result.ConnectedTo });
+  } catch (err) {
+    console.error("❌ whosmychild 오류:", err);
+    res.status(500).json({ message: "서버 오류", error: err.message });
+  }
+});
 
 
 
