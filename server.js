@@ -639,14 +639,17 @@ app.post('/api/login', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const query = `
-      SELECT UserId FROM UserInfo
+      SELECT UserId, UserType FROM UserInfo
       WHERE UserId = ? AND Password = ?
       LIMIT 1
     `;
     const result = await conn.query(query, [userId, password]);
 
     if (result.length > 0) {
-      res.status(200).json({ userId: result[0].UserId });
+      res.status(200).json({
+        userId: result[0].UserId,
+        userType: result[0].UserType
+      });
     } else {
       res.status(401).json({ message: 'ID 또는 비밀번호가 일치하지 않습니다.' });
     }
@@ -657,6 +660,7 @@ app.post('/api/login', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
