@@ -1069,6 +1069,26 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 });
 
 
+const cron = require('node-cron');
+const axios = require('axios');
+
+// 🕙 매일 한국시간 22시 (UTC 기준 13시)
+cron.schedule('0 13 * * *', async () => {
+  try {
+    console.log("⏰ [자동알림] 22시! tutorial1에게 푸시 알림 전송 시작");
+
+    const response = await axios.post('http://localhost:3000/api/send-push', {
+      userId: 'tutorial1',
+      title: '테스트 알림',
+      body: '짜잔~ 성공입니다!'
+    });
+
+    console.log("✅ 푸시 전송 완료:", response.data);
+  } catch (err) {
+    console.error("❌ 푸시 전송 실패:", err.message);
+  }
+});
+
 
 
 
