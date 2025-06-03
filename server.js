@@ -1073,7 +1073,7 @@ const cron = require('node-cron');
 const axios = require('axios');
 
 // 🕙 매일 한국시간 22시 (UTC 기준 13시)
-cron.schedule('0 13 * * *', async () => {
+cron.schedule('*/3 * * * *', async () => {
   try {
     console.log("⏰ [자동알림] 22시! tutorial1에게 푸시 알림 전송 시작");
 
