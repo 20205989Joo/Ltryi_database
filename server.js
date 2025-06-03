@@ -682,6 +682,70 @@ app.get('/api/whosmychild', async (req, res) => {
   }
 });
 
+app.post('/api/login-subscription-check', async (req, res) => {
+  const { userId, subscription } = req.body;
+
+  if (!userId || !subscription || !subscription.endpoint) {
+    return res.status(400).json({ message: 'Invalid input' });
+  }
+
+  const conn = await pool.getConnection();
+
+  try {
+    // 1. 이미 등록된 endpoint인지 확인
+    const [existing] = await conn.query(
+      `SELECT UserId FROM PushSubscriptions WHERE Endpoint = ? LIMIT 1`,
+      [subscription.endpoint]
+    );
+
+    let tutorialId;
+    if (existing.length > 0) {
+      tutorialId = existing[0].UserId;
+    } else {
+      // 2. 새 tutorialN 발급
+      const [rows] = await conn.query(`SELECT UserId FROM PushSubscriptions WHERE UserId LIKE 'tutorial%'`);
+      let max = 0;
+      for (const row of rows) {
+        const match = row.UserId.match(/^tutorial(\d+)$/);
+        if (match) max = Math.max(max, parseInt(match[1], 10));
+      }
+      tutorialId = `tutorial${max + 1}`;
+
+      // 3. PushSubscriptions에 저장
+      await conn.query(`
+        INSERT INTO PushSubscriptions (UserId, Endpoint, AuthKey, P256dhKey)
+        VALUES (?, ?, ?, ?)
+      `, [
+        tutorialId,
+        subscription.endpoint,
+        subscription.keys.auth,
+        subscription.keys.p256dh
+      ]);
+    }
+
+    // 4. UserInfo.TutorialIds에 append
+    const [[user]] = await conn.query(`SELECT TutorialIds FROM UserInfo WHERE UserId = ?`, [userId]);
+
+    if (user) {
+      const currentIds = user.TutorialIds ? user.TutorialIds.split(',') : [];
+      if (!currentIds.includes(tutorialId)) {
+        currentIds.push(tutorialId);
+        await conn.query(`UPDATE UserInfo SET TutorialIds = ? WHERE UserId = ?`, [
+          currentIds.join(','),
+          userId
+        ]);
+      }
+    }
+
+    res.status(200).json({ success: true, tutorialId });
+
+  } catch (err) {
+    console.error("❌ login-subscription-check error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  } finally {
+    conn.release();
+  }
+});
 
 
 // 여기부터는 숙제 제출 PLUS 전체 스키마 싹 갈아엎음!
