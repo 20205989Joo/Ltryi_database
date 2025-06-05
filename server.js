@@ -1077,7 +1077,7 @@ const cron = require('node-cron');
 const axios = require('axios');
 
 // 🕙 매일 한국시간 22시 (UTC 기준 13시)
-cron.schedule('*/3 * * * *', async () => {
+cron.schedule('*/30 * * * *', async () => {
   try {
     console.log("⏰ [자동알림] 22시! tutorial1에게 푸시 알림 전송 시작");
 
@@ -1107,13 +1107,14 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     const unsubmitted = [];
 
     for (const user of users) {
-      const [result] = await conn.query(`
+      const result = await conn.query(`
         SELECT COUNT(*) AS count 
         FROM HWImagesPlus 
-        WHERE UserId = ? AND DATE(Timestamp) = CURDATE()
+        WHERE UserId = ? 
+        AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
-      if (result.count === 0) {
+      if (result[0].count === 0) {
         unsubmitted.push({
           userId: user.UserId,
           deadline: user.Deadline
