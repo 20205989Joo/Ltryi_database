@@ -791,7 +791,8 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    const user = rows[0];
+    const user = rows[0];  // ✅ 이거 안 했기 때문에 지금 오류 난 거임
+    console.log("✅ user = ", user);
 
     let tutorialIds = user.TutorialIds ? user.TutorialIds.split(',') : [];
 
@@ -816,6 +817,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
