@@ -1074,31 +1074,33 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 
 const cron = require('node-cron');
 const axios = require('axios'); // ✅ fetch 대신 axios 사용
+// ❌ webpush는 이미 위에서 선언되어 있다면 여기선 다시 선언하지 마!
 
-// 🕐 1분마다 실행
 cron.schedule('* * * * *', async () => {
   console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
 
   let conn;
   try {
-    // ✅ 미제출자 가져오기
+    // ✅ STEP 1: 미제출 학생 목록 가져오기
     const response = await axios.get('http://localhost:3000/api/unsubmitted-today');
     const { unsubmitted } = response.data;
 
-    const now = new Date(); // KST 기준 시스템 시간
+    const now = new Date(); // 시스템 시간 = 한국 시간
+
     conn = await pool.getConnection();
 
     for (const student of unsubmitted) {
-      const [h, m] = student.deadline.split(':').map(Number);
+      // ✅ STEP 2: 마감 시간 파싱
+      const [h, m] = student.deadline.split(':').slice(0, 2).map(Number);
       const deadline = new Date();
-      deadline.setHours(h, m, 0, 0); // 오늘 날짜 + 마감시간
+      deadline.setHours(h, m, 0, 0); // 오늘 날짜 기준 마감 시간
 
       const diffMin = Math.floor((deadline - now) / 1000 / 60);
 
       if (diffMin === 30) {
         console.log(`📣 [PUSH] ${student.userId} → 마감 30분 전 알림 전송`);
 
-        // ✅ 해당 유저의 TutorialIds 조회
+        // ✅ STEP 3: 해당 유저의 TutorialIds 조회
         const [userRow] = await conn.query(
           `SELECT TutorialIds FROM UserInfo WHERE UserId = ?`,
           [student.userId]
@@ -1111,7 +1113,7 @@ cron.schedule('* * * * *', async () => {
 
         const tutorialIds = userRow.TutorialIds.split(',');
 
-        // ✅ 각 TutorialId마다 푸시 전송
+        // ✅ STEP 4: TutorialIds 각각에 푸시 전송
         for (const tid of tutorialIds) {
           const pushRes = await conn.query(
             `SELECT endpoint, p256dh, auth FROM PushSubscriptions WHERE userId = ?`,
