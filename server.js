@@ -1098,15 +1098,24 @@ app.get('/api/unsubmitted-today', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
+    console.log("📥 [STEP 1] UserInfo 테이블 조회 시작...");
+
     const users = await conn.query(`
       SELECT UserId, Deadline 
       FROM UserInfo 
       WHERE UserType = 'student' AND IsRegistered = 1
     `);
 
+    console.log(`📋 [STEP 2] 조건에 맞는 유저 수: ${users.length}`);
+    if (users.length === 0) {
+      console.log("⚠️ 등록된 학생이 없습니다.");
+    }
+
     const unsubmitted = [];
 
     for (const user of users) {
+      console.log(`\n🔍 [STEP 3] UserId: ${user.UserId} → 숙제 제출 여부 확인 중...`);
+
       const result = await conn.query(`
         SELECT COUNT(*) AS count 
         FROM HWImagesPlus 
@@ -1114,22 +1123,30 @@ app.get('/api/unsubmitted-today', async (req, res) => {
         AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
+      console.log(`📦 해당 유저의 오늘 숙제 제출 수: ${result[0].count}`);
+
       if (result[0].count === 0) {
+        console.log(`⛔ [미제출] ${user.UserId} → 리스트에 추가`);
         unsubmitted.push({
           userId: user.UserId,
           deadline: user.Deadline
         });
+      } else {
+        console.log(`✅ [제출함] ${user.UserId}`);
       }
     }
 
+    console.log("\n📤 [STEP 4] 미제출자 최종 리스트:", unsubmitted);
+
     res.status(200).json({ unsubmitted });
   } catch (err) {
-    console.error("❌ 오류:", err);
+    console.error("❌ 서버 오류:", err);
     res.status(500).json({ message: "서버 오류" });
   } finally {
     if (conn) conn.release();
   }
 });
+
 
 
 
