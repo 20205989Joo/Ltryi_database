@@ -779,12 +779,13 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
   }
 
   try {
-    // ✅ 안전하게 구조분해 할당
-    const [rows] = await pool.query(
+    const result = await pool.query(
       'SELECT TutorialIds FROM UserInfo WHERE UserId = ?',
       [userId]
     );
 
+    // ✅ result가 배열인지 객체인지 판단
+    const rows = Array.isArray(result[0]) ? result[0] : result;
     console.log("🔍 SELECT rows:", rows);
 
     if (!rows || rows.length === 0) {
@@ -818,7 +819,6 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     );
 
     console.log(`✅ tutorialId '${tutorialId}'가 '${userId}'에 추가됨`);
-
     return res.json({ status: 'ok', message: 'tutorialId가 추가되었습니다.' });
 
   } catch (err) {
@@ -826,6 +826,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
