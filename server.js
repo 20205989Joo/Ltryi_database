@@ -1097,7 +1097,6 @@ app.get('/api/unsubmitted-today', async (req, res) => {
   let conn;
   try {
     conn = await pool.getConnection();
-
     console.log("📥 [STEP 1] UserInfo 테이블 조회 시작...");
 
     const users = await conn.query(`
@@ -1123,7 +1122,7 @@ app.get('/api/unsubmitted-today', async (req, res) => {
         AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
-      const count = result[0].count;
+      const count = result[0]?.count ?? 0;
       console.log(`📦 숙제 제출 수: ${count}`);
 
       if (count === 0) {
@@ -1142,11 +1141,12 @@ app.get('/api/unsubmitted-today', async (req, res) => {
 
   } catch (err) {
     console.error("❌ 서버 오류:", err);
-    res.status(500).json({ message: "서버 오류" });
+    res.status(500).json({ message: "서버 오류", error: err.message });
   } finally {
     if (conn) conn.release();
   }
 });
+
 
 
 
