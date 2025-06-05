@@ -1069,6 +1069,10 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 });
 
 
+
+
+// 여기부터는 이제 cron 하고 푸시알림 타이머 좀 하는 로직.
+
 const cron = require('node-cron');
 const axios = require('axios');
 
@@ -1089,6 +1093,42 @@ cron.schedule('*/3 * * * *', async () => {
   }
 });
 
+app.get('/api/unsubmitted-today', async (req, res) => {
+  let conn;
+  try {
+    conn = await pool.getConnection();
+
+    const users = await conn.query(`
+      SELECT UserId, Deadline 
+      FROM UserInfo 
+      WHERE UserType = 'student' AND IsRegistered = 1
+    `);
+
+    const unsubmitted = [];
+
+    for (const user of users) {
+      const [result] = await conn.query(`
+        SELECT COUNT(*) AS count 
+        FROM HWImagesPlus 
+        WHERE UserId = ? AND DATE(CONVERT_TZ(Timestamp, '+00:00', '+09:00')) = CURDATE()
+      `, [user.UserId]);
+
+      if (result.count === 0) {
+        unsubmitted.push({
+          userId: user.UserId,
+          deadline: user.Deadline
+        });
+      }
+    }
+
+    res.status(200).json({ unsubmitted });
+  } catch (err) {
+    console.error("❌ 오류:", err);
+    res.status(500).json({ message: "서버 오류" });
+  } finally {
+    if (conn) conn.release();
+  }
+});
 
 
 
