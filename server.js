@@ -771,7 +771,10 @@ app.post('/api/login-subscription-check', async (req, res) => {
 app.post('/api/append-tutorial-id-fromios', async (req, res) => {
   const { userId, tutorialId } = req.body;
 
+  console.log("📥 요청 들어옴: userId =", userId, "| tutorialId =", tutorialId);
+
   if (!userId || !tutorialId) {
+    console.log("❌ userId 또는 tutorialId 누락");
     return res.status(400).json({ status: 'error', message: 'userId와 tutorialId가 필요합니다.' });
   }
 
@@ -781,24 +784,32 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       [userId]
     );
 
-    const rows = result[0];
-    if (!rows || rows.length === 0) {
+    const rows = Array.isArray(result) && Array.isArray(result[0]) ? result[0] : [];
+
+    console.log("🔍 SELECT 결과 rows:", rows);
+
+    if (rows.length === 0) {
+      console.log("❌ User not found in DB:", userId);
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    const user = rows[0];  // ✅ 이제 rows[0]은 무조건 존재
+    const user = rows[0];
+    console.log("🧑 User row:", user);
+    console.log("📦 기존 TutorialIds:", user.TutorialIds);
 
     let tutorialIds = [];
     if (user.TutorialIds) {
       try {
         tutorialIds = JSON.parse(user.TutorialIds);
         if (!Array.isArray(tutorialIds)) tutorialIds = [];
-      } catch {
+      } catch (err) {
+        console.warn("⚠️ TutorialIds 파싱 실패:", err);
         tutorialIds = [];
       }
     }
 
     if (tutorialIds.includes(tutorialId)) {
+      console.log("✅ 이미 존재하는 tutorialId:", tutorialId);
       return res.json({ status: 'ok', message: '이미 등록된 tutorialId입니다.' });
     }
 
@@ -810,13 +821,15 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       [updated, userId]
     );
 
+    console.log("✅ tutorialId 추가 완료:", tutorialId);
     return res.json({ status: 'ok', message: 'tutorialId가 추가되었습니다.' });
 
   } catch (err) {
-    console.error('❌ append-tutorial-id-fromios 오류:', err);
+    console.error('❌ append-tutorial-id-fromios 오류 (예외):', err);
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
