@@ -1074,24 +1074,87 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 // 여기부터는 이제 cron 하고 푸시알림 타이머 좀 하는 로직.
 
 const cron = require('node-cron');
-const axios = require('axios');
+const webpush = require('web-push');
 
-// 🕙 매일 한국시간 22시 (UTC 기준 13시)
-cron.schedule('*/30 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
+  console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
+
+  let conn;
   try {
-    console.log("⏰ [자동알림] 22시! tutorial1에게 푸시 알림 전송 시작");
+    const res = await fetch('http://localhost:3000/api/unsubmitted-today');
+    const { unsubmitted } = await res.json();
 
-    const response = await axios.post('http://localhost:3000/api/send-push', {
-      userId: 'tutorial1',
-      title: '테스트 알림',
-      body: '짜잔~ 성공입니다!'
-    });
+    const now = new Date(); // KST 기준 시간. 변환 필요 없음.
+    conn = await pool.getConnection();
 
-    console.log("✅ 푸시 전송 완료:", response.data);
+    for (const student of unsubmitted) {
+      const [h, m] = student.deadline.split(':').map(Number);
+      const deadline = new Date();
+      deadline.setHours(h, m, 0, 0); // 오늘 날짜 + 마감시간
+
+      const diffMin = Math.floor((deadline - now) / 1000 / 60);
+
+      if (diffMin === 30) {
+        console.log(`📣 [PUSH] ${student.userId} → 마감 30분 전 알림 전송`);
+
+        // ✅ 1. TutorialIds 가져오기
+        const [userRow] = await conn.query(
+          `SELECT TutorialIds FROM UserInfo WHERE UserId = ?`,
+          [student.userId]
+        );
+
+        if (!userRow || !userRow.TutorialIds) {
+          console.log(`⚠️ ${student.userId} → TutorialIds 없음`);
+          continue;
+        }
+
+        const tutorialIds = userRow.TutorialIds.split(',');
+
+        // ✅ 2. TutorialIds 전부에 푸시 전송
+        for (const tid of tutorialIds) {
+          const pushRes = await conn.query(
+            `SELECT endpoint, p256dh, auth FROM PushSubscriptions WHERE userId = ?`,
+            [tid]
+          );
+
+          if (pushRes.length === 0) {
+            console.log(`⚠️ ${student.userId} → ${tid}에 등록된 푸시 없음`);
+            continue;
+          }
+
+          const { endpoint, p256dh, auth } = pushRes[0];
+          const payload = JSON.stringify({
+            title: '⏰ 숙제 제출 마감 임박!',
+            body: `${student.userId}님, 숙제 제출 마감이 30분 남았어요!`
+          });
+
+          try {
+            await webpush.sendNotification(
+              {
+                endpoint,
+                keys: { p256dh, auth }
+              },
+              payload
+            );
+            console.log(`✅ [PUSH SENT] ${student.userId} → ${tid}`);
+          } catch (err) {
+            console.error(`❌ [PUSH ERROR] ${student.userId} / ${tid}:`, err);
+          }
+        }
+
+      } else {
+        console.log(`⏳ [SKIP] ${student.userId} → 마감까지 ${diffMin}분 남음`);
+      }
+    }
+
   } catch (err) {
-    console.error("❌ 푸시 전송 실패:", err.message);
+    console.error("❌ [CRON ERROR]:", err);
+  } finally {
+    if (conn) conn.release();
   }
 });
+
+
 
 app.get('/api/unsubmitted-today', async (req, res) => {
   let conn;
