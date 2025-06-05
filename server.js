@@ -1074,8 +1074,8 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 
 const cron = require('node-cron');
 const axios = require('axios'); // ✅ fetch 대신 axios 사용
-// ❌ webpush는 이미 위에서 선언되어 있다면 여기선 다시 선언하지 마!
 
+// 🕐 1분마다 실행
 cron.schedule('* * * * *', async () => {
   console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
 
@@ -1085,22 +1085,27 @@ cron.schedule('* * * * *', async () => {
     const response = await axios.get('http://localhost:3000/api/unsubmitted-today');
     const { unsubmitted } = response.data;
 
-    const now = new Date(); // 시스템 시간 = 한국 시간
-
+    const now = new Date(Date.now() + 9 * 60 * 60 * 1000); // ✅ KST 기준 시간 확보
     conn = await pool.getConnection();
 
     for (const student of unsubmitted) {
-      // ✅ STEP 2: 마감 시간 파싱
+      // ✅ STEP 2: 마감 시간 파싱 (HH:mm:ss)
       const [h, m] = student.deadline.split(':').slice(0, 2).map(Number);
-      const deadline = new Date();
-      deadline.setHours(h, m, 0, 0); // 오늘 날짜 기준 마감 시간
+
+      const deadline = new Date(now); // ✅ 오늘 날짜 기준
+      deadline.setHours(h, m, 0, 0);  // ✅ 마감 시간 적용 (초는 0)
 
       const diffMin = Math.floor((deadline - now) / 1000 / 60);
+
+      // 🔍 로그로 확인
+      console.log(`🕓 now: ${now.toISOString()}`);
+      console.log(`⏰ deadline(${student.userId}): ${deadline.toISOString()}`);
+      console.log(`➡️ diffMin: ${diffMin}`);
 
       if (diffMin === 30) {
         console.log(`📣 [PUSH] ${student.userId} → 마감 30분 전 알림 전송`);
 
-        // ✅ STEP 3: 해당 유저의 TutorialIds 조회
+        // ✅ STEP 3: TutorialIds 조회
         const [userRow] = await conn.query(
           `SELECT TutorialIds FROM UserInfo WHERE UserId = ?`,
           [student.userId]
@@ -1113,7 +1118,7 @@ cron.schedule('* * * * *', async () => {
 
         const tutorialIds = userRow.TutorialIds.split(',');
 
-        // ✅ STEP 4: TutorialIds 각각에 푸시 전송
+        // ✅ STEP 4: 푸시 전송
         for (const tid of tutorialIds) {
           const pushRes = await conn.query(
             `SELECT endpoint, p256dh, auth FROM PushSubscriptions WHERE userId = ?`,
@@ -1156,6 +1161,7 @@ cron.schedule('* * * * *', async () => {
     if (conn) conn.release();
   }
 });
+
 
 
 
