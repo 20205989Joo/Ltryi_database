@@ -1070,11 +1070,9 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 
 
 
-
 // 여기부터는 이제 cron 하고 푸시알림 타이머 좀 하는 로직.
 
 const cron = require('node-cron');
-const webpush = require('web-push');
 
 cron.schedule('* * * * *', async () => {
   console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
