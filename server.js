@@ -766,6 +766,60 @@ app.post('/api/login-subscription-check', async (req, res) => {
 });
 
 
+//IOS 꼼수. 나중에 이걸로 다 그냥 변경할지도.
+
+app.post('/api/append-tutorial-id-fromios', async (req, res) => {
+  const { userId, tutorialId } = req.body;
+
+  if (!userId || !tutorialId) {
+    return res.status(400).json({ status: 'error', message: 'userId와 tutorialId가 필요합니다.' });
+  }
+
+  try {
+    // 1. 기존 TutorialIds 가져오기
+    const [[user]] = await pool.query(
+      'SELECT TutorialIds FROM UserInfo WHERE UserId = ?',
+      [userId]
+    );
+
+    if (!user) {
+      return res.status(404).json({ status: 'error', message: 'User not found' });
+    }
+
+    // 2. TutorialIds 파싱
+    let tutorialIds = [];
+    if (user.TutorialIds) {
+      try {
+        tutorialIds = JSON.parse(user.TutorialIds);
+        if (!Array.isArray(tutorialIds)) tutorialIds = [];
+      } catch {
+        tutorialIds = [];
+      }
+    }
+
+    // 3. 이미 있는 경우 → 아무것도 안 하고 성공 처리
+    if (tutorialIds.includes(tutorialId)) {
+      return res.json({ status: 'ok', message: '이미 등록된 tutorialId입니다.' });
+    }
+
+    // 4. 새로 append하고 저장
+    tutorialIds.push(tutorialId);
+    const updated = JSON.stringify(tutorialIds);
+
+    await pool.query(
+      'UPDATE UserInfo SET TutorialIds = ? WHERE UserId = ?',
+      [updated, userId]
+    );
+
+    return res.json({ status: 'ok', message: 'tutorialId가 추가되었습니다.' });
+
+  } catch (err) {
+    console.error('❌ append-tutorial-id-fromios 오류:', err);
+    return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
+  }
+});
+
+
 
 // 여기부터는 숙제 제출 PLUS 전체 스키마 싹 갈아엎음!
 
