@@ -1075,10 +1075,6 @@ app.get('/api/getProgressMatrixAll', async (req, res) => {
 const cron = require('node-cron');
 const axios = require('axios'); // ✅ fetch 대신 axios 사용
 
-// 🕐 1분마다 실행
-const cron = require('node-cron');
-const axios = require('axios');
-
 // ⏰ 1분마다 실행
 cron.schedule('* * * * *', async () => {
   console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
