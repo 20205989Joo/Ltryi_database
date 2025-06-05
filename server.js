@@ -1123,9 +1123,10 @@ app.get('/api/unsubmitted-today', async (req, res) => {
         AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
-      console.log(`📦 해당 유저의 오늘 숙제 제출 수: ${result[0].count}`);
+      const count = result[0].count;
+      console.log(`📦 숙제 제출 수: ${count}`);
 
-      if (result[0].count === 0) {
+      if (count === 0) {
         console.log(`⛔ [미제출] ${user.UserId} → 리스트에 추가`);
         unsubmitted.push({
           userId: user.UserId,
@@ -1137,8 +1138,8 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     }
 
     console.log("\n📤 [STEP 4] 미제출자 최종 리스트:", unsubmitted);
-
     res.status(200).json({ unsubmitted });
+
   } catch (err) {
     console.error("❌ 서버 오류:", err);
     res.status(500).json({ message: "서버 오류" });
@@ -1146,6 +1147,7 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
