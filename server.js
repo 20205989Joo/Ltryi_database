@@ -1106,23 +1106,20 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     `);
 
     console.log(`📋 [STEP 2] 조건에 맞는 유저 수: ${users.length}`);
-    if (users.length === 0) {
-      console.log("⚠️ 등록된 학생이 없습니다.");
-    }
 
     const unsubmitted = [];
 
     for (const user of users) {
       console.log(`\n🔍 [STEP 3] UserId: ${user.UserId} → 숙제 제출 여부 확인 중...`);
 
-      const result = await conn.query(`
+      const raw = await conn.query(`
         SELECT COUNT(*) AS count 
         FROM HWImagesPlus 
         WHERE UserId = ? 
         AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
-      const count = result[0]?.count ?? 0;
+      const count = parseInt(raw[0]?.count ?? 0);  // ✅ 문자열 "0" 대비
       console.log(`📦 숙제 제출 수: ${count}`);
 
       if (count === 0) {
@@ -1146,6 +1143,7 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
