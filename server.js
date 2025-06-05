@@ -785,7 +785,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    const user = rows[0];
+    const user = rows[0]; // ✅ 여기서부터는 user 안전
 
     let tutorialIds = [];
     if (user.TutorialIds) {
@@ -816,6 +816,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
