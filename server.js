@@ -776,17 +776,17 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
   }
 
   try {
-    // 1. 기존 TutorialIds 가져오기
-    const [[user]] = await pool.query(
+    const [rows] = await pool.query(
       'SELECT TutorialIds FROM UserInfo WHERE UserId = ?',
       [userId]
     );
 
-    if (!user) {
+    if (!rows || rows.length === 0) {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    // 2. TutorialIds 파싱
+    const user = rows[0];
+
     let tutorialIds = [];
     if (user.TutorialIds) {
       try {
@@ -797,12 +797,10 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       }
     }
 
-    // 3. 이미 있는 경우 → 아무것도 안 하고 성공 처리
     if (tutorialIds.includes(tutorialId)) {
       return res.json({ status: 'ok', message: '이미 등록된 tutorialId입니다.' });
     }
 
-    // 4. 새로 append하고 저장
     tutorialIds.push(tutorialId);
     const updated = JSON.stringify(tutorialIds);
 
@@ -818,6 +816,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
