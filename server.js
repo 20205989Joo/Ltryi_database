@@ -1110,7 +1110,7 @@ app.get('/api/unsubmitted-today', async (req, res) => {
       const [result] = await conn.query(`
         SELECT COUNT(*) AS count 
         FROM HWImagesPlus 
-        WHERE UserId = ? AND DATE(CONVERT_TZ(Timestamp, '+00:00', '+09:00')) = CURDATE()
+        WHERE UserId = ? AND DATE(Timestamp) = CURDATE()
       `, [user.UserId]);
 
       if (result.count === 0) {
@@ -1129,6 +1129,8 @@ app.get('/api/unsubmitted-today', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
+
 
 
 
