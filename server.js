@@ -779,13 +779,11 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
   }
 
   try {
-    const result = await pool.query(
+    const [rows] = await pool.query(
       'SELECT TutorialIds FROM UserInfo WHERE UserId = ?',
       [userId]
     );
 
-    // ✅ result가 배열인지 객체인지 판단
-    const rows = Array.isArray(result[0]) ? result[0] : result;
     console.log("🔍 SELECT rows:", rows);
 
     if (!rows || rows.length === 0) {
@@ -793,25 +791,18 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
       return res.status(404).json({ status: 'error', message: 'User not found' });
     }
 
-    const user = rows[0];  // ✅ rows[0]이 무조건 존재
+    const existing = rows[0].TutorialIds || '';
+    const existingList = existing
+      .split(',')
+      .map(id => id.trim())
+      .filter(id => id !== '');
 
-    let tutorialIds = [];
-    if (user.TutorialIds) {
-      try {
-        tutorialIds = JSON.parse(user.TutorialIds);
-        if (!Array.isArray(tutorialIds)) tutorialIds = [];
-      } catch (err) {
-        console.warn("⚠️ TutorialIds JSON 파싱 실패:", err);
-        tutorialIds = [];
-      }
-    }
-
-    if (tutorialIds.includes(tutorialId)) {
+    if (existingList.includes(tutorialId)) {
       return res.json({ status: 'ok', message: '이미 등록된 tutorialId입니다.' });
     }
 
-    tutorialIds.push(tutorialId);
-    const updated = JSON.stringify(tutorialIds);
+    existingList.push(tutorialId);
+    const updated = existingList.join(',');
 
     await pool.query(
       'UPDATE UserInfo SET TutorialIds = ? WHERE UserId = ?',
@@ -826,6 +817,7 @@ app.post('/api/append-tutorial-id-fromios', async (req, res) => {
     return res.status(500).json({ status: 'error', message: '서버 오류 발생' });
   }
 });
+
 
 
 
