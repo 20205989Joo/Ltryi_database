@@ -1076,6 +1076,10 @@ const cron = require('node-cron');
 const axios = require('axios'); // ✅ fetch 대신 axios 사용
 
 // 🕐 1분마다 실행
+const cron = require('node-cron');
+const axios = require('axios');
+
+// ⏰ 1분마다 실행
 cron.schedule('* * * * *', async () => {
   console.log("⏰ [CRON] 정확히 30분 전 푸시 체크 시작");
 
@@ -1085,25 +1089,26 @@ cron.schedule('* * * * *', async () => {
     const response = await axios.get('http://localhost:3000/api/unsubmitted-today');
     const { unsubmitted } = response.data;
 
-    const now = new Date(Date.now() + 9 * 60 * 60 * 1000); // ✅ KST 기준 시간 확보
+    const now = new Date(Date.now() + 9 * 60 * 60 * 1000); // ✅ KST 기준
+
     conn = await pool.getConnection();
 
     for (const student of unsubmitted) {
       // ✅ STEP 2: 마감 시간 파싱 (HH:mm:ss)
       const [h, m] = student.deadline.split(':').slice(0, 2).map(Number);
 
-      const deadline = new Date(now); // ✅ 오늘 날짜 기준
-      deadline.setHours(h, m, 0, 0);  // ✅ 마감 시간 적용 (초는 0)
+      const deadline = new Date(now); // ✅ 오늘 날짜 기반 마감시간
+      deadline.setHours(h, m, 0, 0);
 
       const diffMin = Math.floor((deadline - now) / 1000 / 60);
 
-      // 🔍 로그로 확인
+      // 🔍 디버깅 로그
       console.log(`🕓 now: ${now.toISOString()}`);
       console.log(`⏰ deadline(${student.userId}): ${deadline.toISOString()}`);
       console.log(`➡️ diffMin: ${diffMin}`);
 
       if (diffMin === 30) {
-        console.log(`📣 [PUSH] ${student.userId} → 마감 30분 전 알림 전송`);
+        console.log(`📣 [PUSH] ${student.userId} → 마감 30분 전 알림 전송 시도`);
 
         // ✅ STEP 3: TutorialIds 조회
         const [userRow] = await conn.query(
@@ -1118,10 +1123,11 @@ cron.schedule('* * * * *', async () => {
 
         const tutorialIds = userRow.TutorialIds.split(',');
 
-        // ✅ STEP 4: 푸시 전송
+        // ✅ STEP 4: TutorialIds 전부에 푸시 전송
         for (const tid of tutorialIds) {
           const pushRes = await conn.query(
-            `SELECT endpoint, p256dh, auth FROM PushSubscriptions WHERE userId = ?`,
+            `SELECT Endpoint AS endpoint, P256dhKey AS p256dh, AuthKey AS auth 
+             FROM PushSubscriptions WHERE userId = ?`,
             [tid]
           );
 
@@ -1161,6 +1167,7 @@ cron.schedule('* * * * *', async () => {
     if (conn) conn.release();
   }
 });
+
 
 
 
