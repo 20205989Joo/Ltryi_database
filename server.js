@@ -639,7 +639,8 @@ app.post('/api/login', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const query = `
-      SELECT UserId, UserType FROM UserInfo
+      SELECT UserId, UserType, IsRegistered
+      FROM UserInfo
       WHERE UserId = ? AND Password = ?
       LIMIT 1
     `;
@@ -648,7 +649,8 @@ app.post('/api/login', async (req, res) => {
     if (result.length > 0) {
       res.status(200).json({
         userId: result[0].UserId,
-        userType: result[0].UserType
+        userType: result[0].UserType,
+        isRegistered: result[0].IsRegistered === 1
       });
     } else {
       res.status(401).json({ message: 'ID 또는 비밀번호가 일치하지 않습니다.' });
@@ -660,6 +662,7 @@ app.post('/api/login', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 app.get('/api/whosmychild', async (req, res) => {
   const userId = req.query.userId;
