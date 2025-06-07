@@ -1089,7 +1089,7 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
     );
     console.log(`🔍 현재 DB 상태 (${UserId} / ${Subject}):`, existingAll);
 
-    // ✅ 범위 여부 판단 및 파싱
+    // ✅ LessonNo 파싱 (단일 or 범위)
     const lessons = [];
 
     if (typeof LessonNo === 'string' && LessonNo.includes('~')) {
@@ -1110,14 +1110,14 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
 
     console.log(`📦 파싱된 Lesson 목록:`, lessons);
 
-    // ✅ 각 레슨 처리
+    // ✅ 각 레슨 개별 처리
     for (const lesson of lessons) {
-      const [existing] = await conn.query(
+      const [existingRows] = await conn.query(
         `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
         [UserId, Subject, lesson]
       );
 
-      if (existing.length > 0) {
+      if (existingRows.length > 0) {
         console.log(`♻️ UPDATE: ${lesson}`);
         await conn.query(
           `UPDATE ProgressMatrix 
@@ -1144,6 +1144,7 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
