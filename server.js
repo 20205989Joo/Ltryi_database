@@ -1082,14 +1082,20 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
-    // ✅ 모든 기존 진도 데이터 가져오기
-    const [existingAll] = await conn.query(
+    // ✅ 기존 진도 현황 불러오기 (fromios 방식으로!)
+    const [rows] = await conn.query(
       `SELECT LessonNo, Status, UpdatedAt FROM ProgressMatrix WHERE UserId = ? AND Subject = ?`,
       [UserId, Subject]
     );
-    console.log(`🔍 현재 DB 상태 (${UserId} / ${Subject}):`, existingAll);
 
-    // ✅ LessonNo 파싱 (단일 or 범위)
+    if (!rows) {
+      console.warn(`❌ DB 조회 실패: "${UserId}" / "${Subject}"`);
+      return res.status(500).json({ message: 'DB 조회 실패' });
+    }
+
+    console.log(`🔍 현재 DB 상태 (${UserId} / ${Subject}):`, rows);
+
+    // ✅ LessonNo 파싱
     const lessons = [];
 
     if (typeof LessonNo === 'string' && LessonNo.includes('~')) {
@@ -1110,14 +1116,16 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
 
     console.log(`📦 파싱된 Lesson 목록:`, lessons);
 
-    // ✅ 각 레슨 개별 처리
+    // ✅ 각각의 레슨 처리 (fromios 스타일 SELECT)
     for (const lesson of lessons) {
-      const [existingRows] = await conn.query(
+      const [existRows] = await conn.query(
         `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
         [UserId, Subject, lesson]
       );
 
-      if (existingRows.length > 0) {
+      const exists = existRows?.length > 0;
+
+      if (exists) {
         console.log(`♻️ UPDATE: ${lesson}`);
         await conn.query(
           `UPDATE ProgressMatrix 
