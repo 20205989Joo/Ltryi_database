@@ -1066,7 +1066,13 @@ app.get('/api/getDiligenceStats', async (req, res) => {
 //여기부터는 progressmatrix 관련
 
 app.post('/api/updateProgressMatrix', async (req, res) => {
-  const { UserId, Subject, LessonNo, Status, RegisteredBy = 'system' } = req.body;
+  const {
+    UserId,
+    Subject,
+    LessonNo,
+    Status,
+    RegisteredBy = 'system'
+  } = req.body;
 
   if (!UserId || !Subject || !LessonNo || !Status) {
     return res.status(400).json({ message: "필수 필드가 누락되었습니다." });
@@ -1076,27 +1082,61 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
-    const existing = await conn.query(
-      `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
-      [UserId, Subject, LessonNo]
+    // ✅ 모든 기존 진도 데이터 가져오기
+    const [existingAll] = await conn.query(
+      `SELECT LessonNo, Status, UpdatedAt FROM ProgressMatrix WHERE UserId = ? AND Subject = ?`,
+      [UserId, Subject]
     );
+    console.log(`🔍 현재 DB 상태 (${UserId} / ${Subject}):`, existingAll);
 
-    if (existing.length > 0) {
-      await conn.query(
-        `UPDATE ProgressMatrix 
-         SET Status = ?, RegisteredBy = ?, UpdatedAt = CURRENT_TIMESTAMP 
-         WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
-        [Status, RegisteredBy, UserId, Subject, LessonNo]
-      );
+    // ✅ 범위 여부 판단 및 파싱
+    const lessons = [];
+
+    if (typeof LessonNo === 'string' && LessonNo.includes('~')) {
+      const [startStr, endStr] = LessonNo.split('~').map(s => s.trim());
+      const start = parseInt(startStr, 10);
+      const end = parseInt(endStr, 10);
+
+      if (isNaN(start) || isNaN(end) || start > end) {
+        return res.status(400).json({ message: '잘못된 범위 형식입니다. (예: "1~30")' });
+      }
+
+      for (let i = start; i <= end; i++) {
+        lessons.push(i.toString());
+      }
     } else {
-      await conn.query(
-        `INSERT INTO ProgressMatrix (UserId, Subject, LessonNo, Status, RegisteredBy) 
-         VALUES (?, ?, ?, ?, ?)`,
-        [UserId, Subject, LessonNo, Status, RegisteredBy]
-      );
+      lessons.push(LessonNo.toString());
     }
 
-    res.json({ success: true });
+    console.log(`📦 파싱된 Lesson 목록:`, lessons);
+
+    // ✅ 각 레슨 처리
+    for (const lesson of lessons) {
+      const [existing] = await conn.query(
+        `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+        [UserId, Subject, lesson]
+      );
+
+      if (existing.length > 0) {
+        console.log(`♻️ UPDATE: ${lesson}`);
+        await conn.query(
+          `UPDATE ProgressMatrix 
+           SET Status = ?, RegisteredBy = ?, UpdatedAt = DATE_ADD(NOW(), INTERVAL 9 HOUR) 
+           WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+          [Status, RegisteredBy, UserId, Subject, lesson]
+        );
+      } else {
+        console.log(`➕ INSERT: ${lesson}`);
+        await conn.query(
+          `INSERT INTO ProgressMatrix 
+           (UserId, Subject, LessonNo, Status, RegisteredBy, UpdatedAt) 
+           VALUES (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 9 HOUR))`,
+          [UserId, Subject, lesson, Status, RegisteredBy]
+        );
+      }
+    }
+
+    res.json({ success: true, lessonsAffected: lessons });
   } catch (error) {
     console.error('❌ updateProgressMatrix 오류:', error);
     res.status(500).json({ message: '서버 오류', error: error.message });
@@ -1104,6 +1144,7 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
