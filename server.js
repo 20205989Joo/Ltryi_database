@@ -1082,7 +1082,7 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
   try {
     conn = await pool.getConnection();
 
-    // ✅ 기존 진도 현황 불러오기 (fromios 방식으로!)
+    // ✅ 기존 데이터 로드 (for 비교 및 분석)
     const [rows] = await conn.query(
       `SELECT LessonNo, Status, UpdatedAt FROM ProgressMatrix WHERE UserId = ? AND Subject = ?`,
       [UserId, Subject]
@@ -1095,11 +1095,11 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
 
     console.log(`🔍 현재 DB 상태 (${UserId} / ${Subject}):`, rows);
 
-    // ✅ LessonNo 파싱
-    const lessons = [];
+    const rawLessonNo = LessonNo;  // ✅ 저장할 실제 LessonNo 문자열
+    const parsedLessons = [];      // ✅ 분석용 분해 리스트
 
-    if (typeof LessonNo === 'string' && LessonNo.includes('~')) {
-      const [startStr, endStr] = LessonNo.split('~').map(s => s.trim());
+    if (typeof rawLessonNo === 'string' && rawLessonNo.includes('~')) {
+      const [startStr, endStr] = rawLessonNo.split('~').map(s => s.trim());
       const start = parseInt(startStr, 10);
       const end = parseInt(endStr, 10);
 
@@ -1108,43 +1108,41 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
       }
 
       for (let i = start; i <= end; i++) {
-        lessons.push(i.toString());
+        parsedLessons.push(i.toString());
       }
     } else {
-      lessons.push(LessonNo.toString());
+      parsedLessons.push(rawLessonNo.toString());
     }
 
-    console.log(`📦 파싱된 Lesson 목록:`, lessons);
+    console.log(`📦 파싱된 Lesson 목록 (분석용):`, parsedLessons);
 
-    // ✅ 각각의 레슨 처리 (fromios 스타일 SELECT)
-    for (const lesson of lessons) {
-      const [existRows] = await conn.query(
-        `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
-        [UserId, Subject, lesson]
+    // ✅ LessonNo 문자열 그대로 존재하는지 확인
+    const [existRows] = await conn.query(
+      `SELECT * FROM ProgressMatrix WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+      [UserId, Subject, rawLessonNo]
+    );
+
+    const exists = existRows?.length > 0;
+
+    if (exists) {
+      console.log(`♻️ UPDATE: ${rawLessonNo}`);
+      await conn.query(
+        `UPDATE ProgressMatrix 
+         SET Status = ?, RegisteredBy = ?, UpdatedAt = NOW() 
+         WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
+        [Status, RegisteredBy, UserId, Subject, rawLessonNo]
       );
-
-      const exists = existRows?.length > 0;
-
-      if (exists) {
-        console.log(`♻️ UPDATE: ${lesson}`);
-        await conn.query(
-          `UPDATE ProgressMatrix 
-           SET Status = ?, RegisteredBy = ?, UpdatedAt = DATE_ADD(NOW(), INTERVAL 9 HOUR) 
-           WHERE UserId = ? AND Subject = ? AND LessonNo = ?`,
-          [Status, RegisteredBy, UserId, Subject, lesson]
-        );
-      } else {
-        console.log(`➕ INSERT: ${lesson}`);
-        await conn.query(
-          `INSERT INTO ProgressMatrix 
-           (UserId, Subject, LessonNo, Status, RegisteredBy, UpdatedAt) 
-           VALUES (?, ?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 9 HOUR))`,
-          [UserId, Subject, lesson, Status, RegisteredBy]
-        );
-      }
+    } else {
+      console.log(`➕ INSERT: ${rawLessonNo}`);
+      await conn.query(
+        `INSERT INTO ProgressMatrix 
+         (UserId, Subject, LessonNo, Status, RegisteredBy, UpdatedAt) 
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [UserId, Subject, rawLessonNo, Status, RegisteredBy]
+      );
     }
 
-    res.json({ success: true, lessonsAffected: lessons });
+    res.json({ success: true, lessonsAffected: parsedLessons });
   } catch (error) {
     console.error('❌ updateProgressMatrix 오류:', error);
     res.status(500).json({ message: '서버 오류', error: error.message });
@@ -1152,6 +1150,7 @@ app.post('/api/updateProgressMatrix', async (req, res) => {
     if (conn) conn.release();
   }
 });
+
 
 
 
