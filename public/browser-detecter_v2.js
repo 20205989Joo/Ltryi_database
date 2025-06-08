@@ -30,6 +30,13 @@ function detectBrowserIssue() {
   return null;
 }
 
+function isIosPwa() {
+  const ua = window.navigator.userAgent.toLowerCase();
+  const isIos = /iphone|ipad|ipod/.test(ua);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  return isIos && isStandalone;
+}
+
 function showEnvironmentTip(type) {
   const messageMap = {
     'kakao': "일부 기능이 카카오 브라우저에서는 정상 작동하지 않을 수 있습니다. 아래 버튼을 눌러 Chrome으로 열어주세요.",
@@ -232,7 +239,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       console.error('❌ 즉시 등록 실패:', err);
     }
   }
-  
+
   let log = "📋 디버그 로그\n----------------\n";
   const ua = navigator.userAgent;
   const tutorialId = localStorage.getItem('tutorialIdForSubscription');
@@ -256,86 +263,23 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
   // ✅ 환경 조건별 처리
-  if (problem === 'ios-safari' && !tutorialId) {
+  if (isIosPwa()) {
+    insertPwaOverlay();
+    log += "📲 iOS PWA 환경 → insertPwaOverlay() 강제 호출됨\n";
+  } else if (problem === 'ios-safari' && !tutorialId) {
     insertIosFallbackOverlay();
     log += "🧪 iOS fallback 오버레이 표시됨\n";
-  }
-
-  if (['kakao', 'samsung-browser'].includes(problem)) {
+  } else if (['kakao', 'samsung-browser'].includes(problem)) {
     showEnvironmentTip(problem);
     log += `⚠️ ${problem} 환경 팁 무조건 표시됨\n`;
   } else if (problem && !hasPushSubscription) {
     showEnvironmentTip(problem);
     log += "⚠️ 일반 브라우저 환경 팁 표시됨\n";
-  }
-
-  if (!tutorialId && !hasPushSubscription && problem !== 'ios-safari') {
+  } else if (!tutorialId && !hasPushSubscription) {
     insertPwaOverlay();
     log += "🧱 insertPwaOverlay() 호출됨\n";
   }
 
   console.log(log);
 
-  // ✅ 디버그 버튼 설정
-  const debugButtons = [
-    {
-      text: '🧪 Safari 테스트',
-      top: 20,
-      color: '#bbf',
-      onclick: () => {
-        const current = localStorage.getItem('forceSafariMode') === 'true';
-        localStorage.setItem('forceSafariMode', current ? 'false' : 'true');
-        alert(`🧪 Safari 테스트 모드 ${!current ? '활성화' : '비활성화'}됨\n새로고침 해주세요.`);
-      }
-    },
-    {
-      text: '🧪 카카오 브라우저 테스트',
-      top: 60,
-      color: '#ffe0e0',
-      onclick: () => {
-        const current = localStorage.getItem('forceKakaoMode') === 'true';
-        localStorage.setItem('forceKakaoMode', current ? 'false' : 'true');
-        alert(`🧪 카카오 테스트 모드 ${!current ? '활성화' : '비활성화'}됨\n새로고침 해주세요.`);
-      }
-    },
-    {
-      text: '🗑️ tutorialId 제거',
-      top: 100,
-      color: '#fcc',
-      onclick: () => {
-        localStorage.removeItem('tutorialIdForSubscription');
-        alert("🗑️ tutorialId 제거됨. 새로고침합니다.");
-        location.reload();
-      }
-    },
-    {
-      text: '🔔 오버레이 테스트',
-      top: 140,
-      color: '#ffd',
-      onclick: () => {
-        console.log("🧪 insertPwaOverlay() 수동 호출");
-        insertPwaOverlay();
-      }
-    }
-  ];
-
-  for (const btn of debugButtons) {
-    const el = document.createElement('button');
-    el.textContent = btn.text;
-    el.style = `
-      position: fixed;
-      top: ${btn.top}px;
-      right: 20px;
-      z-index: 100000;
-      padding: 10px 14px;
-      font-size: 14px;
-      background: ${btn.color};
-      border: none;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      cursor: pointer;
-    `;
-    el.onclick = btn.onclick;
-    document.body.appendChild(el);
-  }
 });
