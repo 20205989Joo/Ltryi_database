@@ -446,10 +446,8 @@ function insertNormalOverlay() {
 }
 
 
-
-
 window.addEventListener('DOMContentLoaded', () => {
-  insertTesterToggles();               // ✅ 버튼 즉시 삽입
+  //insertTesterToggles();               // ✅ 버튼 즉시 삽입
   runOverlayDecisionLogic();           // ✅ overlay 조건 처리
 
   // ✅ serviceWorker는 비동기적으로 따로 처리
@@ -516,10 +514,10 @@ function runOverlayDecisionLogic() {
   console.log(log);
 
   // ✅ 추가: 디버그 리포트 수동 실행
-  runDebugReport?.();
+  //runDebugReport?.();
 }
 
-// ✅ 함수 정의: 콘솔에 정보 출력
+/*// ✅ 함수 정의: 콘솔에 정보 출력
 function runDebugReport() {
   let report = "🧪 디버그 리포트\n----------------\n";
 
@@ -551,7 +549,7 @@ function runDebugReport() {
   report += `🛰️ SW 컨트롤러 존재 여부: ${hasSWController ? '✅ 있음' : '❌ 없음'}\n`;
 
   alert(report);
-}
+}*/
 
 
 
@@ -559,7 +557,7 @@ function runDebugReport() {
 
 
 
-// 테스터 버튼들
+/*// 테스터 버튼들
 function insertTesterToggles() {
   // Safari 모드 토글
   const safariBtn = document.createElement('button');
@@ -589,7 +587,7 @@ function insertTesterToggles() {
     location.reload();
   };
 
-  /*// PWA 모드 토글
+  // PWA 모드 토글
   const pwaBtn = document.createElement('button');
   pwaBtn.textContent = 'PWA 강제 ON/OFF';
   pwaBtn.style = `
@@ -667,7 +665,7 @@ function insertTesterToggles() {
     alert('🧽 tutorialIdForSubscription 삭제됨');
     location.reload();
   };
-*/
+
   //document.body.appendChild(safariBtn);
   //document.body.appendChild(pwaBtn);
   //document.body.appendChild(resetPushBtn);
@@ -711,4 +709,4 @@ function insertTesterToggles() {
     document.body.appendChild(fallbackBtn);
   }
 
-}
+}*/
