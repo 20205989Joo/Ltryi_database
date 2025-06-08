@@ -447,9 +447,7 @@ function insertNormalOverlay() {
 
 
 window.addEventListener('DOMContentLoaded', async () => {
-
-   // insertTesterToggles();
-    
+  // ✅ 서비스워커 등록
   if ('serviceWorker' in navigator) {
     try {
       const reg = await navigator.serviceWorker.register('/service-worker.js');
@@ -459,6 +457,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
+  // ✅ 초기 변수 설정
   let log = "📋 디버그 로그\n----------------\n";
   const ua = navigator.userAgent;
   const tutorialId = localStorage.getItem('tutorialIdForSubscription');
@@ -470,41 +469,49 @@ window.addEventListener('DOMContentLoaded', async () => {
   log += `🔔 알림 권한 상태: ${permission}\n`;
   log += `🧾 tutorialId 존재 여부: ${tutorialId ? '✅ 있음' : '❌ 없음'}\n`;
 
-  const hasPushSubscription = await navigator.serviceWorker.ready
-    .then(reg => reg.pushManager.getSubscription())
-    .then(sub => {
-      log += `📬 pushManager 구독 상태: ${sub ? '✅ 있음' : '❌ 없음'}\n`;
-      return !!sub;
-    })
-    .catch(err => {
+  // ✅ Safari 제외하고 pushManager 구독 여부 확인
+  let hasPushSubscription = false;
+  if (problem !== 'ios-safari') {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if ('pushManager' in reg) {
+        const sub = await reg.pushManager.getSubscription();
+        hasPushSubscription = !!sub;
+        log += `📬 pushManager 구독 상태: ${sub ? '✅ 있음' : '❌ 없음'}\n`;
+      } else {
+        log += `⚠️ pushManager 미지원 환경\n`;
+      }
+    } catch (err) {
       log += `❌ pushManager 오류: ${err}\n`;
-      return false;
-    });
+    }
+  } else {
+    log += `⚠️ iOS Safari → pushManager 확인 생략됨\n`;
+  }
 
-// ✅ 환경 조건별 처리
-if (isIosPwa()) {
-  if (!tutorialId || !hasPushSubscription) {
-    insertPwaOverlay();
-    log += "📲 iOS PWA 환경 → 조건 미충족 → insertPwaOverlay()\n";
+  // ✅ 환경별 조건 처리
+  if (isIosPwa()) {
+    if (!tutorialId || !hasPushSubscription) {
+      insertPwaOverlay();
+      log += "📲 iOS PWA 환경 → 조건 미충족 → insertPwaOverlay()\n";
+    }
+  } else if (problem === 'ios-safari') {
+    if (!tutorialId) {
+      insertIosFallbackOverlay();
+      log += "📱 iOS Safari 환경 → ID 없음 → insertIosFallbackOverlay()\n";
+    }
+  } else if (['kakao', 'samsung-browser'].includes(problem)) {
+    showEnvironmentTip(problem);
+    log += `⚠️ ${problem} 브라우저 환경 → showEnvironmentTip()\n`;
+  } else {
+    if (!tutorialId || !hasPushSubscription) {
+      insertNormalOverlay();
+      log += "🖥️ 일반 브라우저 → 조건 미충족 → insertNormalOverlay()\n";
+    }
   }
-} else if (problem === 'ios-safari') {
-  if (!tutorialId || !hasPushSubscription) {
-    insertIosFallbackOverlay();
-    log += "📱 iOS Safari 환경 → 조건 미충족 → insertIosFallbackOverlay()\n";
-  }
-} else if (['kakao', 'samsung-browser'].includes(problem)) {
-  showEnvironmentTip(problem);
-  log += `⚠️ ${problem} 브라우저 환경 → showEnvironmentTip()\n`;
-} else {
-  if (!tutorialId || !hasPushSubscription) {
-    insertNormalOverlay();
-    log += "🖥️ 일반 브라우저 → 조건 미충족 → insertNormalOverlay()\n";
-  }
-}
 
   console.log(log);
-
 });
+
 
 // 테스터 버튼들
 /*function insertTesterToggles() {
