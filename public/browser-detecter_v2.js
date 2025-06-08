@@ -448,20 +448,8 @@ function insertNormalOverlay() {
 
 
 
-window.addEventListener('DOMContentLoaded', async () => {
-
-  insertTesterToggles()
-
-
-  // ✅ 서비스워커 등록
-  if ('serviceWorker' in navigator) {
-    try {
-      const reg = await navigator.serviceWorker.register('/service-worker.js');
-      console.log('✅ 즉시 등록 성공:', reg.scope);
-    } catch (err) {
-      console.error('❌ 즉시 등록 실패:', err);
-    }
-  }
+window.addEventListener('DOMContentLoaded', () => {
+  insertTesterToggles();
 
   // ✅ 초기 변수 설정
   let log = "📋 디버그 로그\n----------------\n";
@@ -475,35 +463,18 @@ window.addEventListener('DOMContentLoaded', async () => {
   log += `🔔 알림 권한 상태: ${permission}\n`;
   log += `🧾 tutorialId 존재 여부: ${tutorialId ? '✅ 있음' : '❌ 없음'}\n`;
 
-  // ✅ pushManager 구독 여부 확인
   let hasPushSubscription = false;
-  if (problem === 'ios-safari') {
-    // iOS Safari는 푸시 구독 자체가 불가능하므로 false 고정
-    hasPushSubscription = false;
-    log += `⚠️ iOS Safari → pushManager 생략 (false 고정)\n`;
-  } else {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      if ('pushManager' in reg) {
-        const sub = await reg.pushManager.getSubscription();
-        hasPushSubscription = !!sub;
-        log += `📬 pushManager 구독 상태: ${sub ? '✅ 있음' : '❌ 없음'}\n`;
-      } else {
-        log += `⚠️ pushManager 미지원 환경\n`;
-      }
-    } catch (err) {
-      log += `❌ pushManager 오류: ${err.message}\n`;
-    }
-  }
 
-  // ✅ 환경별 조건 처리
+  // ✅ 환경별 오버레이 분기 (DOM 초기 조작은 무조건 여기서 처리)
   if (isIosPwa()) {
-    if (!tutorialId || !hasPushSubscription) {
+    if (!tutorialId) {
       insertPwaOverlay();
       log += "📲 iOS PWA 환경 → 조건 미충족 → insertPwaOverlay()\n";
+    } else {
+      log += "✅ iOS PWA 환경 → 조건 충족 → 오버레이 생략\n";
     }
   } else if (problem === 'ios-safari') {
-    if (!tutorialId || !hasPushSubscription) {
+    if (!tutorialId) {
       insertIosFallbackOverlay();
       log += "📱 iOS Safari 환경 → 조건 미충족 → insertIosFallbackOverlay()\n";
     } else {
@@ -513,7 +484,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     showEnvironmentTip(problem);
     log += `⚠️ ${problem} 브라우저 환경 → showEnvironmentTip()\n`;
   } else {
-    if (!tutorialId || !hasPushSubscription) {
+    if (!tutorialId) {
       insertNormalOverlay();
       log += "🖥️ 일반 브라우저 → 조건 미충족 → insertNormalOverlay()\n";
     } else {
@@ -522,7 +493,31 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   console.log(log);
+
+  // ✅ 서비스워커 등록 및 푸시 구독 확인은 분리 처리 (영향 없음)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => {
+        console.log('✅ 서비스워커 등록 성공:', reg.scope);
+
+        if ('pushManager' in reg) {
+          return reg.pushManager.getSubscription().then(sub => {
+            if (sub) {
+              console.log("📬 pushManager 구독 상태: ✅ 있음");
+            } else {
+              console.log("📬 pushManager 구독 상태: ❌ 없음");
+            }
+          });
+        } else {
+          console.warn("⚠️ pushManager 미지원");
+        }
+      })
+      .catch(err => {
+        console.error('❌ 서비스워커 등록 실패:', err);
+      });
+  }
 });
+
 
 
 
