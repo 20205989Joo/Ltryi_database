@@ -449,9 +449,26 @@ function insertNormalOverlay() {
 
 
 window.addEventListener('DOMContentLoaded', () => {
-  insertTesterToggles();
+  insertTesterToggles();               // ✅ 즉시 버튼 넣기
+  runOverlayDecisionLogic();           // ✅ 오버레이 삽입 조건 분리 처리
 
-  // ✅ 초기 변수 설정
+  // ✅ 서비스워커는 완전히 비동기 처리
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(reg => {
+        console.log('✅ 서비스워커 등록 성공:', reg.scope);
+        return reg.pushManager.getSubscription();
+      })
+      .then(sub => {
+        console.log(`📬 pushManager 구독 상태: ${sub ? '✅ 있음' : '❌ 없음'}`);
+      })
+      .catch(err => {
+        console.error('❌ 서비스워커 등록 실패:', err);
+      });
+  }
+});
+
+function runOverlayDecisionLogic() {
   let log = "📋 디버그 로그\n----------------\n";
   const ua = navigator.userAgent;
   const tutorialId = localStorage.getItem('tutorialIdForSubscription');
@@ -463,9 +480,8 @@ window.addEventListener('DOMContentLoaded', () => {
   log += `🔔 알림 권한 상태: ${permission}\n`;
   log += `🧾 tutorialId 존재 여부: ${tutorialId ? '✅ 있음' : '❌ 없음'}\n`;
 
-  let hasPushSubscription = false;
+  const hasPushSubscription = false;  // 초기값 false. SW 등록 이후 비동기로 별도 확인.
 
-  // ✅ 환경별 오버레이 분기 (DOM 초기 조작은 무조건 여기서 처리)
   if (isIosPwa()) {
     if (!tutorialId) {
       insertPwaOverlay();
@@ -493,30 +509,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   console.log(log);
-
-  // ✅ 서비스워커 등록 및 푸시 구독 확인은 분리 처리 (영향 없음)
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => {
-        console.log('✅ 서비스워커 등록 성공:', reg.scope);
-
-        if ('pushManager' in reg) {
-          return reg.pushManager.getSubscription().then(sub => {
-            if (sub) {
-              console.log("📬 pushManager 구독 상태: ✅ 있음");
-            } else {
-              console.log("📬 pushManager 구독 상태: ❌ 없음");
-            }
-          });
-        } else {
-          console.warn("⚠️ pushManager 미지원");
-        }
-      })
-      .catch(err => {
-        console.error('❌ 서비스워커 등록 실패:', err);
-      });
-  }
-});
+}
 
 
 
