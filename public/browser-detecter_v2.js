@@ -223,6 +223,16 @@ function insertPwaOverlay() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
+
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.register('/service-worker.js');
+      console.log('✅ 즉시 등록 성공:', reg.scope);
+    } catch (err) {
+      console.error('❌ 즉시 등록 실패:', err);
+    }
+  }
+  
   let log = "📋 디버그 로그\n----------------\n";
   const ua = navigator.userAgent;
   const tutorialId = localStorage.getItem('tutorialIdForSubscription');
@@ -329,18 +339,3 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.body.appendChild(el);
   }
 });
-
-// ✅ service-worker.js 항상 등록 시도
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistration().then(existing => {
-      if (!existing) {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('✅ 서비스워커 등록됨:', reg.scope))
-          .catch(err => console.error('❌ 서비스워커 등록 실패:', err));
-      } else {
-        console.log('ℹ️ 기존 서비스워커가 이미 등록되어 있음:', existing.scope);
-      }
-    });
-  });
-}
