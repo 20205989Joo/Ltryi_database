@@ -1,4 +1,3 @@
-// calendar.js
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const userId = params.get('id');
@@ -9,23 +8,18 @@ window.addEventListener('DOMContentLoaded', async () => {
     const res = await fetch(`https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/getHWPlus?userId=${userId}`);
     const data = await res.json();
 
-    const kstOffset = 9 * 60 * 60 * 1000;
-
-    // ✅ 제출 날짜 KST 기준으로 정리 (grades.js와 동일)
+    // ✅ 제출 날짜 문자열(YYYY-MM-DD) 기준으로 저장
     const submissionSet = new Set();
     data.forEach(item => {
-      const raw = new Date(item.Timestamp);
-      const kstKey = new Date(raw.getTime() + kstOffset).toISOString().slice(0, 10);
-      submissionSet.add(kstKey);
-
-      console.log(`📅 숙제 Timestamp: ${item.Timestamp} → KST 날짜: ${kstKey} / ${item.Subcategory}`);
+      const dateStr = item.Timestamp.slice(0, 10); // ISO에서 날짜만 추출
+      submissionSet.add(dateStr);
+      console.log(`📅 숙제 Timestamp: ${item.Timestamp} → 날짜 문자열: ${dateStr} / ${item.Subcategory}`);
     });
 
-    // ✅ 현재 날짜도 KST 기준
+    // ✅ 현재 날짜 기준
     const now = new Date();
-    const kstNow = new Date(now.getTime() + kstOffset);
-    const currentYear = kstNow.getFullYear();
-    const currentMonth = kstNow.getMonth(); // 0-based
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based
 
     // 📆 월 이름 표시
     const monthNames = [
@@ -49,7 +43,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
     calendarTable.appendChild(weekRow);
 
-    // 🗓️ 달력 시작일: 해당 월 1일이 포함된 주의 일요일
+    // 🗓️ 달력 시작일 계산 (해당 월 1일 포함 주의 일요일)
     const firstOfMonth = new Date(currentYear, currentMonth, 1);
     const start = new Date(firstOfMonth);
     start.setDate(firstOfMonth.getDate() - firstOfMonth.getDay());
@@ -61,8 +55,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         const cellDate = new Date(start);
         cellDate.setDate(start.getDate() + week * 7 + day);
 
-        const key = cellDate.toISOString().slice(0, 10); // ✅ UTC 기준으로 key 뽑고
-        const kstKey = new Date(cellDate.getTime() + kstOffset).toISOString().slice(0, 10); // ✅ 보정
+        const dateStr = cellDate.toLocaleDateString('sv-SE'); // 'YYYY-MM-DD'
 
         const td = document.createElement('td');
         td.innerText = cellDate.getDate();
@@ -72,7 +65,8 @@ window.addEventListener('DOMContentLoaded', async () => {
           td.classList.add('dimmed');
         }
 
-        if (submissionSet.has(kstKey)) {
+        // 🔸 숙제 제출 여부 표시
+        if (submissionSet.has(dateStr)) {
           td.classList.add('submitted');
           td.title = "숙제 제출됨";
         } else {

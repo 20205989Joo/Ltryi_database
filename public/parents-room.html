@@ -80,7 +80,7 @@
 
     .npc-dialogue-box {
       position: absolute;
-      bottom: 100px;
+      bottom: 150px;
       left: 17px;
       width: 313px;
       background: rgba(0, 0, 0, 0.6);
@@ -94,6 +94,7 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
+      max-height: 300px;
     }
 
     .main-choice {
@@ -112,44 +113,37 @@
       background: #f9cba1;
     }
 
-#choiceStatus {
-  position: absolute;
-  top: 16px;
-  left: 16px;
-  width: 280px;
-}
+    #choiceStatus {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 280px;
+    }
 
-#choiceSuggest {
-  position: absolute;
-  top: 56px;
-  left: 16px;
-  width: 280px;
-}
+    #choiceCounsel {
+      position: absolute;
+      top: 56px;
+      left: 16px;
+      width: 280px;
+    }
 
-#choiceCounsel {
-  position: absolute;
-  top: 96px;
-  left: 16px;
-  width: 280px;
-}
-
-#todayLabel {
-  position: absolute;
-  top: 60px;
-  left: 20px;
-  width: 160px;
-  height: 40px;
-  font-size: 18px;
-  font-weight: bold;
-  color: #fff5de;
-  background: rgba(0,0,0,0.4);
-  padding: 4px 10px;
-  border-radius: 10px;
-  z-index: 6;
-  box-shadow: 0 0 4px rgba(0,0,0,0.3);
-  line-height: 40px;
-  text-align: center;
-}
+    #todayLabel {
+      position: absolute;
+      top: 60px;
+      left: 20px;
+      width: 160px;
+      height: 40px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff5de;
+      background: rgba(0,0,0,0.4);
+      padding: 4px 10px;
+      border-radius: 10px;
+      z-index: 6;
+      box-shadow: 0 0 4px rgba(0,0,0,0.3);
+      line-height: 40px;
+      text-align: center;
+    }
 
     .parent-popup {
       position: absolute;
@@ -193,6 +187,74 @@
       width: 100%;
       border-radius: 6px;
     }
+
+    .level-badge {
+  background: #f3e2cd;
+  border: 1px solid #c99460;
+  border-radius: 10px;
+  padding: 10px;
+  width: 100px;
+  text-align: center;
+}
+
+.level-badge .subject-title {
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.level-badge .badge {
+  font-size: 16px;
+  font-weight: bold;
+  background: #ff9f66;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 6px;
+}
+
+.level-badge .rank {
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.diligence-box {
+  background: #fcf3d5;
+  border: 1px solid #bfa86e;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-top: 10px;
+}
+
+.diligence-box .icon {
+  font-size: 22px;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.diligence-box .icon span {
+  font-size: 12px;
+  color: #555;
+}
+
+.diligence-box .details {
+  color: #333;
+}
+
+#backBtn {
+  margin-top: 12px;
+  padding: 6px 12px;
+  font-size: 13px;
+  background: #a34f2c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  top:320px;
+  width: 200px;
+}
+
   </style>
 </head>
 <body>
@@ -202,8 +264,7 @@
     <div id="bar_bottom"></div>
     <div id="cafe_jigi"></div>
 
-
-      <div id="todayLabel">오늘의 숙제 : -</div> <!-- 여기가 추가됨 -->
+    <div id="todayLabel">오늘의 숙제 : -</div>
     <div class="display-window" id="displayArea">
       오늘 숙제 미리보기 :
     </div>
@@ -211,7 +272,6 @@
     <div class="npc-dialogue-box">
       무엇이 궁금하신가요?
       <button class="main-choice" id="choiceStatus">📊 요즘 어떻게 하고 있나요?</button>
-      <button class="main-choice" id="choiceSuggest">📝 뭐하면 좋을까요?</button>
       <button class="main-choice" id="choiceCounsel">📮 선생님 상담 좀 부탁드려요.</button>
     </div>
 
@@ -220,7 +280,35 @@
       <button onclick="document.getElementById('popupBox').style.display='none'">닫기</button>
     </div>
   </div>
+<script>
+  const BASE = "https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app";
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get('id');
+  let childId = null;
 
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const res = await fetch(`${BASE}/api/whosmychild?userId=${userId}`);
+      const data = await res.json();
+
+      if (!data.childId) {
+        alert("❌ 연결된 자녀가 없습니다.");
+        return;
+      }
+
+      childId = data.childId;
+      console.log("✅ userId:", userId);
+      console.log("✅ childId:", childId);
+    } catch (err) {
+      console.error("❌ 자녀 정보 로딩 실패:", err);
+    }
+  });
+</script>
+
+
+</script>
+  
+  <script src="parents-todaypreview.js" defer></script>
   <script src="script-parents.js" defer></script>
 </body>
 </html>

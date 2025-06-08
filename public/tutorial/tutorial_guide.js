@@ -193,7 +193,7 @@ else if (trigger === 'done:order') {
 
     // 특수 케이스: push 알림 전송
     if (stepNo === 37) {
-      const userId = localStorage.getItem('currentUserId');
+      const userId = localStorage.getItem('tutorialIdForSubscription');
        console.log("🧪 step 37 - userId:", userId);
       if (userId) {
         fetch('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/send-push', {
@@ -548,7 +548,8 @@ function createSimpleHoleOverlay(x, y, w, h) {
     width: 100vw; height: 100vh;
     background: rgba(0, 0, 0, 0.6);
     z-index: 9997;
-    pointer-events: auto;
+  pointer-events: none;
+  overflow: hidden;
     clip-path: polygon(
       0% 0%, 100% 0%, 100% 100%, 0% 100%,
       0% 0%,

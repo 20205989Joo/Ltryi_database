@@ -72,12 +72,56 @@ function showReceiptAgain(text) {
   receipt.innerHTML = `
     <div class="receipt-title">📄 주문 영수증</div>
     <div class="receipt-content">${text.trim().replace(/\n/g, '<br>')}</div>
+
+    <div style="text-align: right;">
+      <button class="room-btn" style="
+        background-color : rgb(241, 96, 91);
+        color: rgb(254, 254, 254);
+        font-size: 12px;
+        padding: 4px 8px;
+        height: auto;
+        box-shadow: none;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+      " id="cancelOrderBtn">🗑 주문 취소</button>
+    </div>
   `;
 
   document.querySelector('.main-page').appendChild(receipt);
 
+  // 🧹 취소 이벤트
+  document.getElementById('cancelOrderBtn')?.addEventListener('click', () => {
+    localStorage.removeItem('HWPlus');
+    receipt.remove();
+
+    const icon = document.getElementById('receipt_icon');
+    if (icon) icon.remove();
+
+    alert('🗑 주문이 취소되었습니다!');
+     location.reload(); 
+  });
+
+  // 자동 사라짐 (필요 없으면 이 부분 삭제 가능)
   setTimeout(() => {
     receipt.style.opacity = 0;
     setTimeout(() => receipt.remove(), 1000);
   }, 3000);
 }
+
+
+window.showReceiptFromHWPlus = function () {
+  const hwPlusEntries = JSON.parse(localStorage.getItem('HWPlus') || '[]');
+  if (hwPlusEntries.length === 0) return;
+
+  let receiptText = '';
+  hwPlusEntries.forEach(entry => {
+    if (entry.Subcategory && entry.Level && entry.LessonNo !== undefined) {
+      receiptText += `${entry.Subcategory} > ${entry.Level} > Day ${entry.LessonNo}\n`;
+    } else {
+      receiptText += `${entry.Subcategory || entry.label || '기타'}\n`;
+    }
+  });
+
+  showReceiptAgain(receiptText);
+};

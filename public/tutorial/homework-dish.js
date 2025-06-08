@@ -125,16 +125,22 @@ function showDishPopup(item) {
     <div style="font-weight:bold; font-size: 15px; margin-bottom: 10px;">📥 ${hw}</div>
   `;
 
-  if (hw === '레벨테스트' || hw === 'Prologue Question') {
-    const filename = hw === '레벨테스트' ? '레벨테스트.pdf' : 'PrologueQuestions.pdf';
+if (hw === '레벨테스트' || hw === 'Prologue Question') {
+  const images = hw === '레벨테스트'
+    ? ['leveltest_1.png', 'leveltest_2.png', 'leveltest_3.png']
+    : ['PrologueQuestions_1.png', 'PrologueQuestions_2.png'];
 
-  // ✅ 1페이지 미리보기 iframe 추가
-  content += `
-    <div style="margin-bottom: 8px;">
-      <iframe src="${filename}#page=1" width="100%" height="180px"
-        style="border: 1px solid #aaa; border-radius: 6px;"></iframe>
-    </div>
-  `;
+  // ✅ 이미지 미리보기 영역
+content += `
+  <div style="margin-bottom: 8px; height: 180px; overflow-y: auto; border: 1px solid #aaa; border-radius: 6px; padding: 4px; background: #fff;">
+    ${images.map(img => `
+      <img src="${img}" style="width: 100%; margin-bottom: 6px;" />
+    `).join('')}
+  </div>
+`;
+
+
+  const filename = hw === '레벨테스트' ? '레벨테스트.pdf' : 'PrologueQuestions.pdf';
 
     if (downloaded) {
       content += `

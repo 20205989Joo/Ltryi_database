@@ -58,7 +58,7 @@ subBox.addEventListener('click', (e) => {
   subBox.style.display = 'none';
 
   if (type === 'recommend') {
-    loadScriptDynamically('./cafejigi_analysis.js', 'recommendMain', () => recommendMain());
+    loadScriptDynamically('./cafejigi_recommend.js', 'recommendMain', () => recommendMain());
   }
   else if (type === 'summary') {
     loadScriptDynamically('./cafejigi_analysis.js', 'summaryMain', () => summaryMain());
@@ -70,49 +70,60 @@ subBox.addEventListener('click', (e) => {
     loadScriptDynamically('./cafejigi_customorder.js', 'gradingMain', () => gradingMain());
   }
   else if (type === 'counsel') {
-    dialogueBox.innerHTML = `
-      <div>📋 <b>${entry.label}</b></div>
-      <div style="font-size: 13px; margin-bottom: 8px;">
-        어떤 고민이 있나요? 선생님에게 남기면 확인 후 답변드릴게요.
-      </div>
-      <textarea id="counselMsg" style="width: 100%; height: 60px; border-radius: 6px; padding: 6px;"></textarea>
-      <button id="sendCounsel" style="margin-top: 8px;">📨 보내기</button>
-      <button id="backBtn" style="margin-top: 8px;">← 돌아가기</button>
-    `;
+  dialogueBox.innerHTML = `
+    <div>📋 <b>${entry.label}</b></div>
+    <div style="font-size: 13px; margin-bottom: 8px;">
+      궁금하신 점이나 <br> 도움이 필요한 걸 적어서, 저에게 보내주세요. <br> 물론 카톡도 가능!
+    </div>
+    <textarea id="counselMsg" style="width: 100%; height: 100px; border-radius: 6px; padding: 6px;"></textarea>
+    <button id="sendCounsel" style="margin-top: 8px;">📨 보내기</button>
+    <button id="backBtn" style="margin-top: 8px;">← 돌아가기</button>
+  `;
 
-    document.getElementById('sendCounsel').onclick = async () => {
-      const msg = document.getElementById('counselMsg').value.trim();
-      if (!msg) return alert("내용을 입력해주세요!");
+  // ✅ 실행 시점에서 height 확장
+  dialogueBox.style.maxHeight = '320px';
 
-      const formData = new FormData();
-      const now = new Date();
-      formData.append("UserId", userId || "anonymous");
-      formData.append("QLevel", "7");
-      formData.append("QYear", now.getFullYear());
-      formData.append("QMonth", now.getMonth() + 1);
-      formData.append("QNo", "1");
-      formData.append("WhichHW", "help");
-      formData.append("Comment", msg);
+  document.getElementById('sendCounsel').onclick = async () => {
+    const msg = document.getElementById('counselMsg').value.trim();
+    if (!msg) return alert("내용을 입력해주세요!");
 
-      try {
-        const res = await fetch("https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveHWImages", {
-          method: "POST",
-          body: formData
-        });
-        if (res.ok) {
-          alert("✅ 상담 요청이 전송되었어요!");
-          location.reload();
-        } else {
-          const result = await res.json();
-          alert("❌ 전송 실패: " + result.message);
-        }
-      } catch (err) {
-        alert("🚨 서버 오류가 발생했습니다.");
+    // ✅ 텍스트를 파일로 감싸기 (.txt)
+    const blob = new Blob([msg], { type: 'text/plain' });
+    const file = new File([blob], 'counsel_message.txt', { type: 'text/plain' });
+
+    const formData = new FormData();
+    formData.append("UserId", userId || "anonymous");
+    formData.append("Subcategory", "상담");
+    formData.append("HWType", "counsel");
+    formData.append("LessonNo", 0);
+    formData.append("Comment", msg);            // ✅ 텍스트도 comment에 넣음
+    formData.append("HWImage", file);           // ✅ 파일로도 첨부
+
+    try {
+      const res = await fetch("https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveHWPlus", {
+        method: "POST",
+        body: formData
+      });
+
+      if (res.ok) {
+        dialogueBox.innerHTML = `
+          <div style="color:lightgreen; font-weight:bold;">✅ 상담 요청이 전송되었습니다!</div>
+          <button id="backBtn" style="margin-top: 8px;">← 돌아가기</button>
+        `;
+        document.getElementById('backBtn').onclick = () => location.reload();
+      } else {
+        const result = await res.json();
+        alert("❌ 전송 실패: " + result.message);
       }
-    };
+    } catch (err) {
+      alert("🚨 서버 오류가 발생했습니다.");
+    }
+  };
 
-    document.getElementById('backBtn').onclick = () => location.reload();
-  }
+  document.getElementById('backBtn').onclick = () => location.reload();
+}
+
+
   else {
     dialogueBox.innerHTML = `
       <div>📋 <b>${entry.label}</b></div>

@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ffee99">
+
+<!-- iOS 전용 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LTRYI 영어숙제">
+<link rel="apple-touch-icon" href="/icon-192.png">
   <title>LTRYI E-Class</title>
   <link rel="stylesheet" href="styles-frame.css" />
   <link rel="stylesheet" href="styles.css" />
@@ -37,35 +45,44 @@
       left: 50%;
       transform: translate(-50%, -50%);
       border-radius: 20px;
-  background-image: url('LTRYI_main_e.png');
+  background-image: url('LTRYI_main_e.jpg');
   background-size: cover;
       overflow: hidden;
     }
 
-    #signboard {
-      position: absolute;
-      top: 70px;
-      height: 30px;
-      width: 140px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 40px 24px;
-      background: #7e32066f;
-      color: white;
-      font-size: 21px;
-      font-weight: bold;
-      border-radius: 60px;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-      border: 3px solid #d9a06329;
-      line-height: 30px;
-    }
+#signboard {
+  position: absolute;
+  top: 50px;
+  height: 20px;
+  width: 250px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 20px 24px;
+  color: rgb(247, 255, 209); /* 텍스트 색 */
+  font-size: 30px;
+  font-weight: bold;
+  border-radius: 60px;
+  box-shadow: 0 0 10px rgba(16, 224, 113, 0.626), 0 0 20px rgba(16, 224, 113, 0.21);
+  border: 3px solid #d9a06329;
+  line-height: 25px;
+  text-align: center;
+  background-color: rgba(99, 73, 7, 0.317);
+
+  /* ✨ 네온 텍스트 효과 */
+  text-shadow:
+    0 0 5px #fde170a0,
+    0 0 10px #fde170,
+    0 0 20px #fcd842,
+    0 0 30px #fcd742ca;
+}
 
     .login-box {
-      margin-top: 250px;
-      margin-left: 20px;
-      width: 260px;
+      margin-top: 240px;
+      margin-left: 50px;
+      width: 200px;
       padding: 20px;
-      background: rgba(255, 255, 255, 0.65);
+      padding-bottom: 50px;
+      background: rgba(196, 250, 245, 0.45);
       border-radius: 16px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
       backdrop-filter: blur(8px);
@@ -77,6 +94,7 @@
 
     .login-box input {
       height: 36px;
+      width: 90%;
       border-radius: 6px;
       border: 1px solid #aaa;
       padding: 6px 10px;
@@ -86,9 +104,8 @@
     .mainbutton {
       height: 40px;
       width: 100px;
-      background: #7e3106;
+      background: #b86229b3;
       color: white;
-      border: none;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
@@ -102,14 +119,20 @@
     }
 
     #loginButton {
-      left : 200px;
-      top: 500px;
+      height: 30px;
+      width: 85px;
+      left : 205px;
+      top: 382px;
+      border: 1px solid rgba(199, 156, 28, 0.774);
     }
 
     #signupButton {
     
       left : 70px;
       top : 500px;
+      background-color: #5db49d9a;
+      border : 1px solid rgba(15, 172, 44, 0.5);
+      box-shadow: 0 0 8px rgba(185, 206, 189, 0.936);
     }
 
     .tester-btn {
@@ -130,8 +153,20 @@
     #btnTStudent { left: 18px; }
     #btnTParents { left: 125px; }
     #btnTTeacher { left: 232px; }
-    #btnTStudentTutorial { left: 68px; bottom: 5px;}
-    #btnTParentsTutorial { left : 185px; bottom: 5px;}
+    #btnTStudentTutorial { 
+      right : 70px;
+      top : 500px;
+      background: rgba(198, 181, 50, 0.735);
+      box-shadow: 0 0 8px rgba(154, 99, 10, 0.936);
+    
+    }
+    #btnTParentsTutorial { 
+      right : 70px; 
+      bottom: 45px;
+      height : 30px;
+      background: rgba(198, 181, 50, 0.614);
+      font-size: 12px;
+  }
 
     .popup {
   position: fixed;
@@ -168,12 +203,8 @@
     <button id="loginButton" class="mainbutton">ENTER</button>
 
 
-    <button id="btnTStudent" class="tester-btn">학생모드</button>
-    <button id="btnTParents" class="tester-btn">부모모드</button>
-    <button id="btnTTeacher" class="tester-btn">교사모드</button>
-
-    <button id="btnTStudentTutorial" class="tester-btn">학생 튜토리얼</button>
-<button id="btnTParentsTutorial" class="tester-btn">부모 튜토리얼</button>
+    <button id="btnTStudentTutorial" class="mainbutton">튜토리얼</button>
+<button id="btnTParentsTutorial" class="mainbutton">학부모 튜토리얼</button>
 
 
 
@@ -184,6 +215,11 @@
 
 <button id="launchStudentTutorial" style="display:none;">튜토리얼 시작</button>
   </div>
+  <script>
+  window.vapidPublicKey = 'BEvKBnLcnotYEeOBexk0i-_2oK5aU3epudG8lszhppdiGeiDT2JPbkXF-THFDYXcWjiGNktD7gIOj4mE_MC_9nE';
+</script>
+
+<script src="browser-detecter.js"></script>
 
   <script src="script-index.js" defer></script>
 </body>

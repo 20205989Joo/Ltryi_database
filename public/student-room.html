@@ -205,7 +205,40 @@
   transition: transform 0.2s ease;
 }
 
+#sub-popup .menu-btn.active {
+  background-color: #ffddb0;
+  border: 2px solid #ff9900;
+  color: #7e3106;
+  font-weight: bold;
+}
 
+.receipt-icon {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  bottom: 30px;
+  right: 60px;
+  background: white;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  z-index: 15;
+  cursor: pointer;
+}
+
+.menulook-icon {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  bottom: 30px;
+  right: 115px; /* receipt-icon보다 약간 왼쪽 */
+  background: white;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+  z-index: 15;
+  cursor: pointer;
+}
 
 
   </style>
@@ -231,16 +264,22 @@
   <div class="today-label">Today</div>
   <div id="todayPoint">0</div>
 </div>
-
   <img id="calendar" src="cafe_calendar.png" alt="달력" />
 </div>
 
 <img id="food-tray" src="food_tray.webp"
      style="position:absolute; top:379px; left:200px; width:127px; height:96px; display:none; cursor:pointer; z-index: 5;">
 
+     <img id="menulook_icon" class="menulook-icon" src="menulook.png" alt="메뉴 보기 아이콘" />
+
 
 
   </div>
+
+<script src="kiosk_mainpopup.js"></script>
+<script src="kiosk_subpopup.js"></script>
+<script src="kiosk_receipt.js"></script>
+<script src="menulook.js"></script>
 
 <script>
   const userId = new URLSearchParams(window.location.search).get('id');
@@ -273,6 +312,21 @@
     setupHoverAndClick(tray, 'homework-tray.html');
   }
 
+  // ✅ HWPlus가 있을 경우 receipt_icon 표시
+  const hwPlus = JSON.parse(localStorage.getItem('HWPlus') || '[]');
+  if (hwPlus.length > 0) {
+    if (tray) tray.style.display = 'block';
+
+    if (!document.getElementById('receipt_icon')) {
+      const icon = document.createElement('img');
+      icon.src = 'receipt_icon.png';
+      icon.id = 'receipt_icon';
+      icon.className = 'receipt-icon';
+      icon.onclick = () => showReceiptFromHWPlus();
+      document.querySelector('.main-page').appendChild(icon);
+    }
+  }
+
   // ░░ billboard hover + 이동 ░░
   const billboard = document.querySelector('.cafe_billboard');
   billboard.addEventListener('mouseenter', () => {
@@ -291,11 +345,12 @@
   });
 
   // ░░ 카페지기 클릭 → 분석 보고서 페이지 이동 ░░
-document.getElementById('cafe_jigi').addEventListener('click', () => {
-  window.location.href = `report-analysis.html?id=${userId}`;
-});
+  document.getElementById('cafe_jigi').addEventListener('click', () => {
+    window.location.href = `report-analysis.html?id=${userId}`;
+  });
 
-    (async () => {
+  // ░░ 오늘 점수 표시용 fetch ░░
+  (async () => {
     if (!userId) return;
 
     try {
@@ -322,6 +377,7 @@ document.getElementById('cafe_jigi').addEventListener('click', () => {
     }
   })();
 </script>
+
 
 <script src="kiosk_mainpopup.js"></script>
 <script src="kiosk_subpopup.js"></script>

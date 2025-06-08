@@ -24,12 +24,13 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // ✅ 이미 완료된 항목 처리
-    const isDone = pending.some(p =>
-      p.label === item.Subcategory &&
-      p.Level === item.Level &&
-      p.LessonNo === item.LessonNo &&
-      p.type === 'upload'
-    );
+const isDone = pending.some(p =>
+  (p.label === item.Subcategory || p.Subcategory === item.Subcategory) &&
+  (p.Level == null || p.Level === item.Level) &&
+  (p.LessonNo == null || p.LessonNo === item.LessonNo) &&
+  p.Status === 'readyToBeSent'
+);
+
 
     if (isDone) {
       dish.style.pointerEvents = 'none';
@@ -66,7 +67,7 @@ window.storePendingHomework = function(entry) {
   const newEntry = {
     UserId: userId,
     Subcategory: entry.Subcategory,
-    HWType: "pdf사진",
+   HWType: entry.HWType || 'pdf사진',
     LessonNo: entry.LessonNo,
     Status: "readyToBeSent",
     Score: null,

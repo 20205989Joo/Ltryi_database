@@ -51,16 +51,19 @@ window.addEventListener("DOMContentLoaded", async () => {
   const userTypeSelect = document.getElementById("userType");
   const guardianContactGroup = document.getElementById("guardianContactGroup");
   const connectedToGroup = document.getElementById("connectedToGroup");
+  const deadlineField = document.getElementById("deadline")?.closest(".form-row");
 
   userTypeSelect.addEventListener("change", () => {
     const type = userTypeSelect.value;
     guardianContactGroup.style.display = (type === "student") ? "block" : "none";
     connectedToGroup.style.display = (type === "parent") ? "block" : "none";
+    if (deadlineField) deadlineField.style.display = (type === "student") ? "block" : "none";
   });
 
   // ✅ 초기 표시 상태 설정
   guardianContactGroup.style.display = (userTypeSelect.value === "student") ? "block" : "none";
   connectedToGroup.style.display = (userTypeSelect.value === "parent") ? "block" : "none";
+  if (deadlineField) deadlineField.style.display = (userTypeSelect.value === "student") ? "block" : "none";
 
   const submitBtn = document.getElementById("submitRegister");
   if (!submitBtn) return;
@@ -77,49 +80,42 @@ window.addEventListener("DOMContentLoaded", async () => {
     const guardianContact = document.getElementById("guardianContact")?.value.trim();
     const connectedTo = document.getElementById("connectedTo")?.value.trim();
 
-if (
-  !userId || !password || !confirmPassword || !phone ||
-  !deadline || !name || !birthYear || !userType ||
-  (userType === "student" && !guardianContact) ||
-  (userType === "parent" && !connectedTo)
-) {
-  alert("모든 항목을 입력해주세요.");
-  return;
-}
+    if (
+      !userId || !password || !confirmPassword || !phone ||
+      !deadline || !name || !birthYear || !userType ||
+      (userType === "student" && !guardianContact) ||
+      (userType === "parent" && !connectedTo)
+    ) {
+      alert("모든 항목을 입력해주세요.");
+      return;
+    }
 
     if (password !== confirmPassword) {
       alert("비밀번호가 일치하지 않습니다.");
       return;
     }
 
-    if (userType === "student" && !guardianContact) {
-      alert("학생 유형일 경우 보호자 연락처는 필수입니다.");
-      return;
-    }
+const now = new Date();
+now.setHours(now.getHours() + 9);
+const createdAt = now.toISOString().slice(0, 19).replace("T", " ");
 
-    if (userType === "parent" && !connectedTo) {
-      alert("자녀의 ID를 입력해주세요.");
-      return;
-    }
 
-    const now = new Date();
-    const createdAt = now.toISOString().slice(0, 19).replace("T", " ");
+const body = {
+  userId,
+  password,
+  tutorialIds: tutorialId ? [tutorialId] : [],
+  createdAt,
+  isRegistered: 0,
+  phoneNumber: phone,
+  deadline,
+  coin: 0,
+  userType,
+  name,
+  birthYear,
+  guardianContact: userType === 'student' ? guardianContact : 'dummy',
+  connectedTo: userType === 'parent' ? connectedTo : 'dummy'
+};
 
-    const body = {
-      userId,
-      password,
-      tutorialIds: tutorialId ? [tutorialId] : [],
-      createdAt,
-      isRegistered: 0,
-      phoneNumber: phone,
-      deadline,
-      coin: 0,
-      userType,
-      name,
-      birthYear,
-      guardianContact: userType === 'student' ? guardianContact : null,
-      connectedTo
-    };
 
     console.log("🚀 회원가입 요청 바디:", body);
 

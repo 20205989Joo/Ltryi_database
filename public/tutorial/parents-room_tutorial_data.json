@@ -1,0 +1,31 @@
+{
+  "summary": {
+    "name": "김학생",
+    "progress": 76,
+    "lastActivity": "2025-06-02"
+  },
+  "todayPreview": [
+    {
+      "subject": "단어",
+      "title": "Day 32",
+      "status": "완료"
+    },
+    {
+      "subject": "문법",
+      "title": "Lesson G44~46",
+      "status": "진행 중"
+    }
+  ],
+  "customOrders": [
+    {
+      "label": "채점 결과 주세요",
+      "comment": "어제 올린 문법 숙제 채점 부탁드립니다.",
+      "status": "확인됨"
+    },
+    {
+      "label": "상담 요청",
+      "comment": "어휘 암기가 어려워하는 것 같아요.",
+      "status": "대기 중"
+    }
+  ]
+}

@@ -44,12 +44,13 @@ function showReceiptFromQordered(latestLabel = null) {
 
   let content = '<div class="receipt-title">📄 주문 영수증</div><div class="receipt-content">';
   hwItems.forEach(entry => {
-    const isChecked = pending.some(p =>
-      (p.label === entry.Subcategory || (entry.Subcategory === "Customorder" && p.Subcategory === "Customorder")) &&
-      (p.Level == null || p.Level === entry.Level) &&
-      (p.LessonNo == null || p.LessonNo === entry.LessonNo) &&
-      p.type === 'upload'
-    );
+const isChecked = pending.some(p =>
+  (p.label === entry.Subcategory || p.Subcategory === entry.Subcategory) &&
+  (p.Level == null || p.Level === entry.Level) &&
+  (p.LessonNo == null || p.LessonNo === entry.LessonNo) &&
+  p.Status === 'readyToBeSent'
+);
+
 
     const line = entry.Level && entry.LessonNo
       ? `${entry.Subcategory} (난이도: ${entry.Level}, 범위: ${entry.LessonNo})`
@@ -61,7 +62,7 @@ function showReceiptFromQordered(latestLabel = null) {
       ${highlight ? 'font-weight: bold; animation: flashText 0.5s linear 1;' : ''}
     `;
 
-    content += `<div style="${style}">${line}${isChecked ? ' ✔️ Check!' : ''}</div>`;
+    content += `<div style="${style}">${line}${isChecked ? ' ✔️' : ''}</div>`;
   });
 
   content += '</div>';

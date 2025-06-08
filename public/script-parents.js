@@ -1,97 +1,158 @@
-const params = new URLSearchParams(window.location.search);
-const userId = params.get('id');
-const API_URL = 'https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/getHWImages?userId=' + userId;
+window.addEventListener('DOMContentLoaded', async () => {
+  const res = await fetch(`${BASE}/api/whosmychild?userId=${userId}`);
+  const data = await res.json();
+  childId = data.childId;
+});
 
-// 오늘 날짜 판별
-function isToday(timestampStr) {
-  const now = new Date();
-  const tzOffset = now.getTimezoneOffset() * 60000;
-  const todayKST = new Date(now.getTime() - tzOffset + 9 * 60 * 60 * 1000);
 
-  const submitted = new Date(new Date(timestampStr).getTime() + 9 * 60 * 60 * 1000);
 
-  return (
-    todayKST.getFullYear() === submitted.getFullYear() &&
-    todayKST.getMonth() === submitted.getMonth() &&
-    todayKST.getDate() === submitted.getDate()
+// ✅ 분석 로직
+window.summaryMain = async function () {
+  const progress = await loadStudentProgress();
+  const analysis = analyzeStudentProgress(progress);
+
+  let diligenceText = '';
+  try {
+    const res = await fetch(`${BASE}/api/getDiligenceStats?userId=${childId}`);
+    const stats = await res.json();
+    const recent7 = stats.recent7Days;
+    const { totalThisWeek, longestStreak, lateCount, avgLate } = calculateDiligenceFromRecent7(recent7);
+
+    let icon = '🐢', label = '조금 느림';
+    if (longestStreak >= 5) { icon = '😎'; label = '성실함 장인'; }
+    else if (longestStreak >= 3) { icon = '🙂'; label = '성실보스'; }
+    else if (longestStreak >= 1) { icon = '⛵'; label = '평균적 성실함'; }
+
+    diligenceText = `
+      <div class="diligence-box">
+        <div class="icon">${icon}<br><span>${label}</span></div>
+        <div class="details">
+          • 총 숙제 제출: <b>${totalThisWeek}</b>건<br>
+          • 최장 연속 제출: <b>${longestStreak}</b>일<br>
+          • 이번주 지각: <b>${lateCount}</b>회 / 평균 <b>${avgLate}</b>분
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    diligenceText = `<div style="color:red;">🚨 성실도 분석 실패: ${err.message}</div>`;
+  }
+
+  const dialogueBox = document.querySelector('.npc-dialogue-box');
+  dialogueBox.style.bottom = '63px';
+  dialogueBox.innerHTML = `
+    <div style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">📊 자녀분의 현재 단계는 ... </div>
+    <div style="display:flex; gap: 6px; justify-content: space-between; margin-bottom: 8px;">
+      ${Object.entries(analysis).map(([s, d]) => {
+        const subject = subjectLabel(s);
+        const level = d.level;
+        const percent = d.percent;
+        const topPercent = Math.max(0, 100 - Math.floor(percent));
+        return `
+          <div class="level-badge">
+            <div class="subject-title">📘 ${subject}</div>
+            <div><span class="badge">${level}</span></div>
+            <div class="rank">상위 ${topPercent}%</div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+    ${diligenceText}
+    <button id="backBtn" style="margin-top: 10px;">← 돌아가기</button>
+  `;
+
+  document.getElementById('backBtn').onclick = () => location.reload();
+};
+
+
+document.getElementById("choiceStatus")?.addEventListener("click", summaryMain);
+
+function subjectLabel(key) {
+  return { vocab: '단어', grammar: '문법', rc: '독해' }[key] || key;
+}
+
+function analyzeStudentProgress(progressData) {
+  const TOTALS = { vocab: 250, grammar: 1500, pattern: 50 };
+
+  function parseRangeString(rangeStr) {
+    const ranges = rangeStr.split(',');
+    const numbers = new Set();
+    for (const part of ranges) {
+      if (/^\d+$/.test(part)) numbers.add(parseInt(part));
+      else if (/^\d+~\d+$/.test(part)) {
+        const [start, end] = part.split('~').map(Number);
+        for (let i = start; i <= end; i++) numbers.add(i);
+      }
+    }
+    return [...numbers];
+  }
+
+  return Object.fromEntries(
+    Object.entries(progressData).map(([subject, data]) => {
+      const total = TOTALS[subject];
+      const completed = new Set();
+
+      for (const [k, v] of Object.entries(data || {})) {
+        const lessons = parseRangeString(k);
+        const done = subject === 'vocab' ? v === 'done' : (v === 'done' || /^\d+%$/.test(v));
+        if (done) lessons.forEach(i => completed.add(i));
+      }
+
+      const percent = +(completed.size / total * 100).toFixed(1);
+      let level = 'A1';
+      if (percent >= 80) level = 'C1';
+      else if (percent >= 60) level = 'B2';
+      else if (percent >= 40) level = 'B1';
+      else if (percent >= 20) level = 'A2';
+
+      return [subject, { percent, level }];
+    })
   );
 }
 
-// 날짜 + 시간 문자열
-function formatDateTime(timestampStr) {
-  const date = new Date(timestampStr);
-  const hours = String(date.getHours()).padStart(2, '0');
-  const mins = String(date.getMinutes()).padStart(2, '0');
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${hours}:${mins}`;
+
+async function loadStudentProgress() {
+  const res = await fetch(`${BASE}/api/getProgressMatrixAll?UserId=${childId}`);
+  const raw = await res.json();
+
+  const lessons = {};
+  for (const subject in raw) {
+    if (!['vocab', 'grammar', 'pattern'].includes(subject)) continue;
+    lessons[subject] = {};
+    for (const { LessonNo, Status } of raw[subject]) {
+      lessons[subject][LessonNo.toString()] = Status;
+    }
+  }
+  return lessons;
 }
 
-// 숙제 로드 및 렌더링
-fetch(API_URL)
-  .then(res => res.json())
-  .then(data => {
-    console.log('[📦 전체 데이터]', data);
 
-    const container = document.getElementById('displayArea');
-    const label = document.getElementById('todayLabel');
-    container.innerHTML = '';
+function calculateDiligenceFromRecent7(arr) {
+  let longestStreak = 0;
+  let current = 0;
+  let lateCount = 0;
+  let totalThisWeek = 0;
+  let lateMinutes = 0;
 
-    const todayHomework = data.filter(entry => isToday(entry.Timestamp));
-
-    if (todayHomework.length > 0) {
-      label.textContent = '오늘의 숙제 : 제출됨';
-        label.style.background = 'rgba(43, 156, 54, 0.8)';
-        label.style.color = '#fff'
-
-      todayHomework.forEach(entry => {
-        if (!entry.HWImageURL) return;
-
-        const titleText = entry.WhichHW ?? '제목 없음';
-        const timeText = formatDateTime(entry.Timestamp).split(' ')[1];
-
-        const card = document.createElement('div');
-        card.className = 'image-card';
-        card.innerHTML = `
-          <div><b>${titleText}</b> (🕒 ${timeText})</div>
-          <img src="${entry.HWImageURL}" alt="숙제 이미지" />
-        `;
-        container.appendChild(card);
-      });
-
+  arr.forEach(day => {
+    if (day.count > 0) {
+      current++;
+      totalThisWeek += day.count;
+      if (day.late) {
+        lateCount += day.late;
+        lateMinutes += day.late * 20;
+      }
     } else {
-      label.textContent = '오늘의 숙제 :  X';
-      label.style.background = 'rgba(181, 78, 40, 0.8)';
-      container.innerHTML = '<div style="color:#eee;">제출된 숙제가 없습니다.</div>';
+      longestStreak = Math.max(longestStreak, current);
+      current = 0;
     }
-  })
-  .catch(err => {
-    console.error('불러오기 실패:', err);
-    const label = document.getElementById('todayLabel');
-    const container = document.getElementById('displayArea');
-    label.textContent = '오늘의 숙제 : 확인 실패';
-    container.textContent = '데이터를 불러오지 못했습니다.';
   });
+  longestStreak = Math.max(longestStreak, current);
 
-// Grades 포탈 이동 버튼
-document.getElementById('goGrades')?.addEventListener('click', () => {
-  window.location.href = `grades-calendar.html?id=${userId}`;
-});
+  return {
+    totalThisWeek,
+    longestStreak,
+    lateCount,
+    avgLate: lateCount ? Math.round(lateMinutes / lateCount) : 0
+  };
+}
 
-// 메뉴 팝업
-const popupBox = document.getElementById('popupBox');
-const popupContent = document.getElementById('popupContent');
-
-const responses = {
-  choiceStatus: "최근 제출률은 또래보다 약간 높은 편이에요. 단어 숙제는 특히 열심히 하고 있답니다.",
-  choiceSuggest: "이번 주는 문법 중급 Day 3과 독해 시작 단계를 추천드려요!",
-  choiceCounsel: "상담 요청은 따로 메시지를 남겨주시면 선생님이 확인 후 연락드릴게요. ✉️"
-};
-
-['choiceStatus', 'choiceSuggest', 'choiceCounsel'].forEach(id => {
-  const btn = document.getElementById(id);
-  if (btn) {
-    btn.addEventListener('click', () => {
-      popupContent.innerHTML = responses[id];
-      popupBox.style.display = 'block';
-    });
-  }
-});

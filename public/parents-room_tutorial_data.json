@@ -1,0 +1,127 @@
+{
+  "summary": {
+    "name": "학생 1",
+    "progress": 37,
+    "lastActivity": "2025-06-03"
+  },
+  "progressMatrix": {
+    "vocab": [
+      {
+        "LessonNo": "1~50",
+        "Status": "done"
+      },
+      {
+        "LessonNo": 51,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 52,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 53,
+        "Status": "not yet"
+      },
+      {
+        "LessonNo": 54,
+        "Status": "not yet"
+      }
+    ],
+    "grammar": [
+      {
+        "LessonNo": "1~400",
+        "Status": "done"
+      },
+      {
+        "LessonNo": 401,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 402,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 403,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 404,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 405,
+        "Status": "50%"
+      },
+      {
+        "LessonNo": 406,
+        "Status": "50%"
+      }
+    ],
+    "pattern": [
+      {
+        "LessonNo": 1,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 2,
+        "Status": "done"
+      },
+      {
+        "LessonNo": 3,
+        "Status": "not yet"
+      },
+      {
+        "LessonNo": 4,
+        "Status": "not yet"
+      }
+    ]
+  },
+  "diligence": {
+    "recent7Days": [
+      {
+        "date": "2025-05-28",
+        "count": 0
+      },
+      {
+        "date": "2025-05-29",
+        "count": 1,
+        "late": 2
+      },
+      {
+        "date": "2025-05-30",
+        "count": 0
+      },
+      {
+        "date": "2025-05-31",
+        "count": 2
+      },
+      {
+        "date": "2025-06-01",
+        "count": 0
+      },
+      {
+        "date": "2025-06-02",
+        "count": 1,
+        "late": 2
+      },
+      {
+        "date": "2025-06-03",
+        "count": 1,
+        "late": 2
+      }
+    ]
+  },
+  "todayPreview": [],
+  "customOrders": [
+    {
+      "label": "추가 자료 요청 - 독해 5회차",
+      "comment": "어려웠던 문제에 대한 해설을 보고 싶어요.",
+      "status": "처리 중"
+    },
+    {
+      "label": "오류 제보 - 문법 Day 11",
+      "comment": "문제에 오타가 있었던 것 같아요.",
+      "status": "답변 완료"
+    }
+  ]
+}

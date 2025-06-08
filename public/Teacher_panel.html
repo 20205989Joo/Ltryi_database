@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Panel - 파일 이름 바꾸기</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+      background-color: #f5f5f5;
+    }
+    .panel {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    input[type="file"] {
+      display: block;
+      margin: 10px 0 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .note {
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <h1>📂 파일 이름 일괄 변경 (CEFR A1)</h1>
+    <p class="note">예: <code>CEFR_A1_Day_01.pdf</code> → <code>Vocabulary_Words_A1_Day1_Lesson1_v1.pdf</code></p>
+    <input type="file" id="fileInput" multiple accept=".pdf" />
+    <button id="renameButton">리네임 후 ZIP 다운로드</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+  <script>
+    document.getElementById("renameButton").addEventListener("click", processFiles);
+
+    async function processFiles() {
+      console.log("🚀 버튼 클릭됨");
+      const input = document.getElementById("fileInput");
+      const files = input.files;
+
+      if (!files.length) {
+        alert("📁 파일을 업로드해주세요.");
+        return;
+      }
+
+      const zip = new JSZip();
+      let renamedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        console.log("🧪 처리중인 파일:", file.name);
+
+        const match = file.name.match(/CEFR_A1_Day_(\d+).pdf/i);
+        if (!match) {
+          console.warn("⚠️ 이름 형식 불일치:", file.name);
+          continue;
+        }
+
+        const dayNum = parseInt(match[1], 10);
+        const newName = `Vocabulary_Words_A1_Day${dayNum}_Lesson${dayNum}_v1.pdf`;
+        const content = await file.arrayBuffer();
+        zip.file(newName, content);
+        renamedCount++;
+      }
+
+      if (renamedCount === 0) {
+        alert("⚠️ 유효한 파일명이 없습니다. 형식을 확인해주세요.");
+        return;
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "renamed_pdfs.zip";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 0);
+    }
+  </script>
+</body>
+</html>

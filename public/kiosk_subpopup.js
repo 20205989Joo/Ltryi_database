@@ -1,5 +1,3 @@
-// kiosk_subpopup.js
-
 window.selectedItems = [];
 
 function updateSelectedDisplay() {
@@ -28,6 +26,9 @@ function updateSelectedDisplay() {
 }
 
 function renderBasicSubPopup(label) {
+
+  console.log("📦 전달된 label:", label); // ✅ 로그 추가
+  
   const subPopup = document.getElementById('sub-popup');
   const container = document.querySelector('.sub-popup-inner');
   if (!subPopup || !container) return;
@@ -51,12 +52,20 @@ function renderBasicSubPopup(label) {
   };
 
   document.getElementById('subPopupAddBtn').onclick = () => {
-    if (temp.Subcategory && temp.Level && temp.LessonNo) {
+    const labelOnlyItems = ['오늘 내 숙제', '시험지 만들어주세요', '채점만 해주세요'];
+    const isLabelOnly = labelOnlyItems.includes(temp.label);
+
+    if (
+      isLabelOnly ||
+      (temp.Subcategory && temp.Level && temp.LessonNo !== undefined)
+    ) {
       const duplicate = selectedItems.some(item =>
         item.label === temp.label &&
-        item.Subcategory === temp.Subcategory &&
-        item.Level === temp.Level &&
-        item.LessonNo === temp.LessonNo
+        (isLabelOnly || (
+          item.Subcategory === temp.Subcategory &&
+          item.Level === temp.Level &&
+          item.LessonNo === temp.LessonNo
+        ))
       );
       if (!duplicate) {
         selectedItems.push({ ...temp });
@@ -77,9 +86,8 @@ function renderSubcategoryOptions(label, temp) {
 
   const map = {
     '단어': ['단어', '연어'],
-    '문법': ['기초문법'],
+    '문법': ['문법'],
     '구문': ['단계별 독해'],
-    '독해': ['파편의 재구성']
   };
 
   section.innerHTML = '세부 유형을 골라주세요:<br>';
@@ -89,6 +97,8 @@ function renderSubcategoryOptions(label, temp) {
     btn.innerText = sub;
     btn.onclick = () => {
       temp.Subcategory = sub;
+      document.querySelectorAll('#subcategorySection .menu-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       renderLevelOptions(temp);
     };
     section.appendChild(btn);
@@ -100,11 +110,10 @@ function renderLevelOptions(temp) {
   if (!section) return;
 
   const levelMap = {
-    '단어': ['1단계', '2단계', '3단계'],
-    '연어': ['1단계', '2단계'],
-    '기초문법': ['1단계'],
-    '단계별 독해': ['1단계', '2단계'],
-    '파편의 재구성': ['1단계']
+    '단어': ['A1', 'A2', 'B1', 'B2', 'C1'],
+    '연어': ['900핵심연어'],
+    '문법': ['Basic'],
+    '단계별 독해': ['RCStepper'],
   };
 
   section.innerHTML = '난이도를 골라주세요:<br>';
@@ -115,49 +124,98 @@ function renderLevelOptions(temp) {
     btn.innerText = level;
     btn.onclick = () => {
       temp.Level = level;
+      document.querySelectorAll('#levelSection .menu-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       renderLessonOptions(temp);
     };
     section.appendChild(btn);
   });
 }
 
+function createDaySelector(temp, count, baseLessonNo) {
+  const container = document.createElement('div');
+  container.style.display = 'flex';
+  container.style.alignItems = 'center';
+  container.style.gap = '8px';
+  container.style.marginTop = '8px';
+
+  const minusBtn = document.createElement('button');
+  minusBtn.textContent = '－';
+  minusBtn.className = 'menu-btn small';
+
+  const input = document.createElement('input');
+  input.type = 'number';
+  input.value = 1;
+  input.min = 1;
+  input.max = count;
+  input.style.width = '60px';
+  input.style.textAlign = 'center';
+
+  const plusBtn = document.createElement('button');
+  plusBtn.textContent = '＋';
+  plusBtn.className = 'menu-btn small';
+
+  const setLessonNo = () => {
+    let day = parseInt(input.value);
+    if (isNaN(day)) day = 1;
+    if (day < 1) day = 1;
+    if (day > count) day = count;
+    input.value = day;
+    temp.LessonNo = baseLessonNo + (day - 1);
+  };
+
+  minusBtn.onclick = () => {
+    input.value = Math.max(1, parseInt(input.value || '1') - 1);
+    setLessonNo();
+  };
+
+  plusBtn.onclick = () => {
+    input.value = Math.min(count, parseInt(input.value || '1') + 1);
+    setLessonNo();
+  };
+
+  input.oninput = setLessonNo;
+
+  container.appendChild(minusBtn);
+  container.appendChild(input);
+  container.appendChild(plusBtn);
+
+  setLessonNo(); // ✅ 초기값 설정
+
+  return container;
+}
+
 function renderLessonOptions(temp) {
   const section = document.getElementById('lessonSection');
   if (!section) return;
+  section.innerHTML = 'Day를 골라주세요:<br>';
 
-  const lessonMap = {
-    '단어': {
-      '1단계': [1, 2, 3],
-      '2단계': [4, 5, 6],
-      '3단계': [7, 8, 9]
+  const RANGES = {
+     '단어': {
+      'A1': [1, 45],
+      'A2': [46, 89],
+      'B1': [90, 130],
+      'B2': [131, 201],
+      'C1': [202, 265]
     },
     '연어': {
-      '1단계': [10, 11],
-      '2단계': [12, 13]
+      '900핵심연어': [1, 42]
     },
-    '기초문법': {
-      '1단계': [14, 15, 16]
+    '문법': {
+      'Basic': [1, 50]
     },
     '단계별 독해': {
-      '1단계': [17, 18],
-      '2단계': [19, 20]
-    },
-    '파편의 재구성': {
-      '1단계': [21, 22, 23]
+      'RCStepper': [1, 50]
     }
   };
 
-  section.innerHTML = 'Day를 골라주세요:<br>';
-  const lessons = lessonMap[temp.Subcategory]?.[temp.Level] || [];
-  lessons.forEach(day => {
-    const btn = document.createElement('button');
-    btn.className = 'menu-btn small';
-    btn.innerText = `Day ${day}`;
-    btn.onclick = () => {
-      temp.LessonNo = day;
-    };
-    section.appendChild(btn);
-  });
+  const range = RANGES[temp.Subcategory]?.[temp.Level];
+  if (!range) return;
+
+  const [start, end] = range;
+  const count = end - start + 1;
+  const selector = createDaySelector(temp, count, start);
+  section.appendChild(selector);
 }
 
 function renderSubPopup(label) {
