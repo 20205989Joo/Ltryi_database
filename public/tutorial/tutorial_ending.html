@@ -166,6 +166,25 @@
   }
 }
 
+.home-btn {
+  margin-top: 6px;
+  background: linear-gradient(to right, #4a7c52ec, #759c6be5); /* 녹색 계열 */
+  color: #f9e8bc; /* 베이지 글씨 */
+  padding: 10px 13px;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.home-btn:hover {
+  background: linear-gradient(to right, #3e6647, #5e8b5e);
+}
+
+
   </style>
 </head>
 <body>
@@ -180,6 +199,10 @@
         언제든 돌아오세요!</p>
 
         <button class="restart-btn" onclick="restartTutorial()">튜토리얼 다시 보기</button>
+<div style="height: 6px;"></div>
+
+<!-- 둘째 줄: 홈으로 -->
+<button class="restart-btn home-btn" onclick="goToHome()"> 메인으로 </button>
 
                 <div class="decorative-divider"></div>
 <div class="contact">
@@ -209,14 +232,28 @@
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('id');
 
-    function restartTutorial() {
-      localStorage.removeItem('tutorial_tray');
-      localStorage.removeItem('tutorial_submit');
-      localStorage.removeItem('tutorial_report');
-      localStorage.removeItem('tutorial_grades');
-      localStorage.removeItem('tutorial_choice_ready');
-      window.location.href = `student-room_tutorial.html?id=${userId}`;
-    }
+function restartTutorial() {
+  localStorage.removeItem('tutorial_tray');
+  localStorage.removeItem('tutorial_submit');
+  localStorage.removeItem('tutorial_report');
+  localStorage.removeItem('tutorial_grades');
+  localStorage.removeItem('tutorial_choice_ready');
+  localStorage.removeItem('PendingUploads');  // ✅ 추가됨
+  window.location.href = `student-room_tutorial.html?id=${userId}`;
+}
+
+function goToHome() {
+  localStorage.removeItem('tutorial_tray');
+  localStorage.removeItem('tutorial_submit');
+  localStorage.removeItem('tutorial_report');
+  localStorage.removeItem('tutorial_grades');
+  localStorage.removeItem('tutorial_choice_ready');
+  localStorage.removeItem('PendingUploads');  // ✅ 추가
+window.location.href = '../index.html';
+
+}
+
+
 
       function showQrPopup() {
     document.getElementById('qrPopup').style.display = 'flex';
