@@ -127,7 +127,7 @@ function showDishPopup(item) {
 
 if (hw === '레벨테스트' || hw === 'Prologue Question') {
   const images = hw === '레벨테스트'
-    ? ['leveltest_1.png', 'leveltest_2.png', 'leveltest_3.png']
+    ? ['leveltest_1.png', 'leveltest_2.png', 'leveltest_3.png', 'leveltest_4.png']
     : ['PrologueQuestions_1.png', 'PrologueQuestions_2.png'];
 
   // ✅ 이미지 미리보기 영역

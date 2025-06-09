@@ -1,16 +1,42 @@
+// ✅ kiosk_receipt.js의 계산 기준 그대로 가져오기
+const RECEIPT_RANGES = {
+  '단어': {
+    'A1': [1, 45],
+    'A2': [46, 89],
+    'B1': [90, 130],
+    'B2': [131, 201],
+    'C1': [202, 266]
+  },
+  '연어': {
+    '900핵심연어': [1, 42]
+  },
+  '문법': {
+    'Basic': [1, 50]
+  },
+  '단계별 독해': {
+    'RCStepper': [1, 50]
+  }
+};
+
+function inferLevel(subcategory, level, lessonNo) {
+  const range = RECEIPT_RANGES?.[subcategory]?.[level];
+  if (!range) return null;
+  const [start, end] = range;
+  if (lessonNo >= start && lessonNo <= end) {
+    const day = lessonNo - start + 1;
+    return { start, day };
+  }
+  return null;
+}
+
 function showReceiptFromQordered(latestLabel = null) {
-  // 애니메이션 스타일이 없으면 추가
   if (!document.getElementById('receipt-animation-style')) {
     const style = document.createElement('style');
     style.id = 'receipt-animation-style';
     style.innerHTML = `
       @keyframes receiptShadowPop {
-        0% {
-          box-shadow: 0 0 0px rgba(80, 200, 120, 0);
-        }
-        100% {
-          box-shadow: 0 0 30px 25px rgba(80, 200, 120, 0.4);
-        }
+        0% { box-shadow: 0 0 0px rgba(80, 200, 120, 0); }
+        100% { box-shadow: 0 0 30px 25px rgba(80, 200, 120, 0.4); }
       }
     `;
     document.head.appendChild(style);
@@ -43,18 +69,23 @@ function showReceiptFromQordered(latestLabel = null) {
   `;
 
   let content = '<div class="receipt-title">📄 주문 영수증</div><div class="receipt-content">';
+
   hwItems.forEach(entry => {
-const isChecked = pending.some(p =>
-  (p.label === entry.Subcategory || p.Subcategory === entry.Subcategory) &&
-  (p.Level == null || p.Level === entry.Level) &&
-  (p.LessonNo == null || p.LessonNo === entry.LessonNo) &&
-  p.Status === 'readyToBeSent'
-);
+    const isChecked = pending.some(p =>
+      (p.label === entry.Subcategory || p.Subcategory === entry.Subcategory) &&
+      (p.Level == null || p.Level === entry.Level) &&
+      (p.LessonNo == null || p.LessonNo === entry.LessonNo) &&
+      p.Status === 'readyToBeSent'
+    );
 
-
-    const line = entry.Level && entry.LessonNo
-      ? `${entry.Subcategory} (난이도: ${entry.Level}, 범위: ${entry.LessonNo})`
-      : `${entry.Subcategory}`;
+    let line = '';
+    if (entry.Level && entry.LessonNo !== undefined) {
+      const meta = inferLevel(entry.Subcategory, entry.Level, entry.LessonNo);
+      const dayStr = meta ? `Day ${meta.day}` : `Lesson ${entry.LessonNo}`;
+      line = `${entry.Subcategory} > ${entry.Level} > ${dayStr}`;
+    } else {
+      line = `${entry.Subcategory}`;
+    }
 
     const highlight = entry.Subcategory === latestLabel || (entry.Subcategory === "Customorder" && latestLabel === "Customorder");
     const style = `
@@ -76,7 +107,6 @@ const isChecked = pending.some(p =>
   }, 3000);
 }
 
-// receipt 아이콘 연결
 window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('receipt_icon')?.addEventListener('click', () => {
     showReceiptFromQordered();

@@ -4,13 +4,44 @@ function updateSelectedDisplay() {
   const list = document.getElementById('selectedList');
   if (!list) return;
   list.innerHTML = '';
+
+  const RANGES = {
+    '단어': {
+      'A1': [1, 45],
+      'A2': [46, 89],
+      'B1': [90, 130],
+      'B2': [131, 201],
+      'C1': [202, 265]
+    },
+    '연어': {
+      '900핵심연어': [1, 42]
+    },
+    '문법': {
+      'Basic': [1, 50]
+    },
+    '단계별 독해': {
+      'RCStepper': [1, 50]
+    }
+  };
+
   selectedItems.forEach((item, index) => {
     const tag = document.createElement('div');
     tag.className = 'selected-tag';
+
+    let dayStr = '';
+    if (item.Level && item.LessonNo !== undefined) {
+      const range = RANGES[item.Subcategory]?.[item.Level];
+      if (range) {
+        const [start] = range;
+        const day = item.LessonNo - start + 1;
+        dayStr = ` - Day ${day}`;
+      }
+    }
+
     tag.innerHTML = `
       ${item.label}${item.Subcategory ? ' - ' + item.Subcategory : ''}
       ${item.Level ? ' - ' + item.Level : ''}
-      ${item.LessonNo !== undefined ? ' - Day ' + item.LessonNo : ''}
+      ${dayStr}
       <span class="remove-tag" data-index="${index}">✖</span>
     `;
     list.appendChild(tag);
@@ -25,6 +56,7 @@ function updateSelectedDisplay() {
   });
 }
 
+
 function renderBasicSubPopup(label) {
 
   console.log("📦 전달된 label:", label); // ✅ 로그 추가
@@ -38,14 +70,24 @@ function renderBasicSubPopup(label) {
 
   const temp = { label };
 
-  container.innerHTML = `
+container.innerHTML = `
+  <div style="position: relative; min-height: 290px; padding-bottom: 70px;">
     <div class="sub-section" id="subcategorySection"></div>
     <div class="sub-section" id="levelSection"></div>
     <div class="sub-section" id="lessonSection"></div>
-    <div class="sub-footer">
+
+    <div class="sub-footer" style="
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+    ">
       <button class="order-btn confirm-btn" id="subPopupAddBtn">🛒 담기</button>
     </div>
-  `;
+  </div>
+`;
+
 
   document.getElementById('subPopupCloseBtn').onclick = () => {
     subPopup.classList.add('hidden');
@@ -141,7 +183,7 @@ function createDaySelector(temp, count, baseLessonNo) {
 
   const minusBtn = document.createElement('button');
   minusBtn.textContent = '－';
-  minusBtn.className = 'menu-btn small';
+  minusBtn.className = 'counter-btn';
 
   const input = document.createElement('input');
   input.type = 'number';
@@ -153,7 +195,7 @@ function createDaySelector(temp, count, baseLessonNo) {
 
   const plusBtn = document.createElement('button');
   plusBtn.textContent = '＋';
-  plusBtn.className = 'menu-btn small';
+  plusBtn.className = 'counter-btn';
 
   const setLessonNo = () => {
     let day = parseInt(input.value);
@@ -225,13 +267,23 @@ function renderSubPopup(label) {
 
   subPopup.classList.remove('hidden');
   container.innerHTML = `
-    <div class="info-message">
-      상세 내용은 테이블에서 작성해주세요
+  <div style="position: relative; min-height: 240px; padding-bottom: 70px;">
+    <div class="info-message" style="margin-top : 50px;">
+      *상세 내용은 테이블에서 작성해주세요
     </div>
-    <div class="sub-footer">
+
+    <div class="sub-footer" style="
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+    ">
       <button class="order-btn confirm-btn" id="subPopupAddBtn">🛒 담기</button>
     </div>
-  `;
+  </div>
+`;
+
 
   document.getElementById('subPopupCloseBtn').onclick = () => {
     subPopup.classList.add('hidden');

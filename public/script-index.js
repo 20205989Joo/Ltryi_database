@@ -116,7 +116,7 @@ document.getElementById('password')?.addEventListener('keydown', function (e) {
 document.getElementById('btnTStudentTutorial')?.addEventListener('click', () => {
   const tutorialId = localStorage.getItem('tutorialIdForSubscription');
   if (!tutorialId) {
-    alert("❌ tutorial ID가 없습니다.\n먼저 '일단 시도!'를 눌러 tutorial ID를 발급받아야 합니다.");
+    alert("❌ tutorial ID가 없습니다.\n 초기 화면을 통해 우선 tutorial ID를 발급해주세요.");
     return;
   }
   window.location.href = `tutorial/student-room_tutorial.html?id=${tutorialId}`;

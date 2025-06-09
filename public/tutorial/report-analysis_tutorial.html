@@ -218,7 +218,7 @@
       <div class="main-choices">
         <button class="main-choice choice-disabled" id="choice1" data-cat="analysis">진행상황 체크하러 왔어요</button>
         <button class="main-choice choice-disabled" id="choice2" data-cat="custom">저 주실 거 있어요</button>
-        <button class="main-choice choice-disabled" id="choice3" data-cat="chat">(다 보셨다면)</button>
+        <button class="main-choice choice-disabled" id="choice3" data-cat="chat">(다 보셨다면 대기)</button>
       </div>
     </div>
 
@@ -314,81 +314,65 @@
           }
 
           if (item.type === 'exam' || item.type === 'grading') {
-            const pending = JSON.parse(localStorage.getItem('PendingUploads') || '[]');
-            const filtered = pending.filter(p => p.type === 'upload' && p.grading === true);
-            const labelList = filtered.map(p => {
-              const title = p.WhichHW || '무제';
-              const level = p.QLevel ? `Lv.${p.QLevel}` : '';
-              const no = p.QNo ? ` Day ${p.QNo}` : '';
-              return `- ${title} ${level}${no}`;
-            });
+  const pending = JSON.parse(localStorage.getItem('PendingUploads') || '[]');
+  const filtered = pending.filter(p => p.type === 'upload' && p.grading === true);
+  const labelList = filtered.map(p => {
+    const title = p.WhichHW || '무제';
+    const level = p.QLevel ? `Lv.${p.QLevel}` : '';
+    const no = p.QNo ? ` Day ${p.QNo}` : '';
+    return `- ${title} ${level}${no}`;
+  });
 
-            display.innerHTML = `
-              <div style="text-align:center;">
-                <img src="icon_exam.png" alt="icon" style="width: 80px; opacity: 0.7;" />
-                <p style="margin-top: 6px;">요청한 시험지를 확인했어요!</p>
-              </div>
-            `;
-            dialogueBox.innerHTML = `
-              <div>📋 <b>${item.label}</b></div>
-              <div style="font-size: 13px;">
-                총 ${labelList.length}개의 시험 요청이 있었어요.<br>
-                ${labelList.length > 0 ? labelList.join('<br>') : '아직 요청된 시험지가 없네요.'}
-              </div>
-              <button id="backBtn">← 돌아가기</button>
-            `;
-          }
+  // ✅ 타입에 따라 아이콘과 메시지 분기
+  const iconSrc = item.type === 'grading' ? 'icon_grading.png' : 'icon_exam.png';
+  const iconMsg = item.type === 'grading'
+    ? '채점된 결과를 <br>다운로드 하세요!'
+    : '요청한 시험지를 <br> 다운로드 하세요!';
+  const fallbackMsg = item.type === 'grading'
+    ? '튜토리얼이 끝나면 다운로드 버튼이 활성화됩니다.'
+    : '튜토리얼이 끝나면 다운로드 버튼이 활성화됩니다.';
 
-          if (item.type === 'counsel') {
-            display.innerHTML = `
-              <div style="text-align:center;">
-                <div style="font-size: 36px;">☎</div>
-                <p>DEEP 한 분석/상담은 이쪽으로! </p>
-              </div>
-            `;
-            dialogueBox.innerHTML = `
-              <div>📋 <b>${item.label}</b></div>
-              <div style="font-size: 13px; margin-bottom: 8px;">
-                어떤 고민이 있나요? 선생님에게 남기면 확인 후 답변드릴게요.
-              </div>
-              <textarea id="counselMsg" style="width: 100%; height: 60px; border-radius: 6px; padding: 6px;"></textarea>
-              <button id="sendCounsel" style="margin-top: 8px;">📨 보내기</button>
-              <button id="backBtn" style="margin-top: 8px;">← 돌아가기</button>
-            `;
+  display.innerHTML = `
+    <div style="text-align:center;">
+      <img src="${iconSrc}" alt="icon" style="width: 150px; opacity: 0.7;" />
+      <p style="margin-top: 6px;">${iconMsg}</p>
+    </div>
+  `;
+  dialogueBox.innerHTML = `
+    <div>📋 <b>${item.label}</b></div>
+    <div style="font-size: 13px;">
+      총 1개의 요청(샘플)이 있었어요.<br>
+      ${labelList.length > 0 ? labelList.join('<br>') : fallbackMsg}
+    </div>
+    <button id="backBtn">← 돌아가기</button>
+  `;
+}
 
-            document.getElementById('sendCounsel').onclick = async () => {
-              const msg = document.getElementById('counselMsg').value.trim();
-              if (!msg) return alert("내용을 입력해주세요!");
 
-              const formData = new FormData();
-              const now = new Date();
-              formData.append("UserId", userId);
-              formData.append("QLevel", "7");
-              formData.append("QYear", now.getFullYear());
-              formData.append("QMonth", now.getMonth() + 1);
-              formData.append("QNo", "1");
-              formData.append("WhichHW", "help");
-              formData.append("Comment", msg);
+        if (item.type === 'counsel') {
+  display.innerHTML = `
+    <div style="text-align:center;">
+      <div style="font-size: 36px;">☎</div>
+      <p>DEEP 한 분석/상담은 이쪽으로! </p>
+    </div>
+  `;
+  dialogueBox.innerHTML = `
+    <div>📋 <b>${item.label}</b></div>
+    <div style="font-size: 13px; margin-bottom: 8px;">
+      어떤 고민이 있나요? 선생님에게 남기면 확인 후 답변드릴게요.
+    </div>
+    <textarea id="counselMsg" placeholder="고민을 적어주시면,선생님에게 전송됩니다!" 
+      style="width: 97%; height: 60px; border-radius: 6px; padding: 6px;"></textarea>
+    <button id="sendCounsel" style="margin-top: 8px;">📨 보내기</button>
+    <button id="backBtn" style="margin-top: 8px;">← 돌아가기</button>
+  `;
 
-              try {
-                const res = await fetch("https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveHWImages", {
-                  method: "POST",
-                  body: formData
-                });
+  document.getElementById('sendCounsel').onclick = () => {
+    alert("📮 튜토리얼 후에는 선생님에게 직접 전송됩니다!");
+  };
+}
 
-                const result = await res.json();
-                if (res.ok) {
-                  alert("✅ 상담 요청이 전송되었어요!");
-                  location.reload();
-                } else {
-                  alert("❌ 전송 실패: " + result.message);
-                }
-              } catch (err) {
-                console.error(err);
-                alert("🚨 서버 오류가 발생했습니다.");
-              }
-            };
-          }
+
 
           if (item.type === 'gacha') {
   localStorage.setItem('tutorial_report', 'done');

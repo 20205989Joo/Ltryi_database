@@ -1,40 +1,8 @@
 window.addEventListener("DOMContentLoaded", async () => {
-  const vapidPublicKey = 'BEvKBnLcnotYEeOBexk0i-_2oK5aU3epudG8lszhppdiGeiDT2JPbkXF-THFDYXcWjiGNktD7gIOj4mE_MC_9nE';
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = atob(base64);
-    return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
-  }
-
-  let tutorialId = null;
-
-  // ✅ 알림 권한 및 튜토리얼 ID 발급
-  try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') throw new Error('알림 권한 거부됨');
-
-    await navigator.serviceWorker.register('service-worker.js');
-    const registration = await navigator.serviceWorker.ready;
-
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
-    });
-
-    const res = await fetch('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/grant-tutorial-id', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subscription })
-    });
-
-    const data = await res.json();
-    tutorialId = data.userId || null;
-    console.log("✅ 튜토리얼 ID 받아옴:", tutorialId);
-  } catch (err) {
-    console.error("❌ 튜토리얼 ID 요청 실패:", err);
-    alert("튜토리얼 ID를 가져오는 데 실패했습니다. 알림 권한을 확인해주세요.");
+  const tutorialId = localStorage.getItem('tutorialIdForSubscription');
+  if (!tutorialId) {
+    alert("❌ tutorial ID가 없습니다.\n초기 화면을 통해 우선 tutorial ID를 발급해주세요.");
+    return;
   }
 
   // ✅ 출생년도 드롭다운 채우기
@@ -95,27 +63,25 @@ window.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-const now = new Date();
-now.setHours(now.getHours() + 9);
-const createdAt = now.toISOString().slice(0, 19).replace("T", " ");
+    const now = new Date();
+    now.setHours(now.getHours() + 9);
+    const createdAt = now.toISOString().slice(0, 19).replace("T", " ");
 
-
-const body = {
-  userId,
-  password,
-  tutorialIds: tutorialId ? [tutorialId] : [],
-  createdAt,
-  isRegistered: 0,
-  phoneNumber: phone,
-  deadline,
-  coin: 0,
-  userType,
-  name,
-  birthYear,
-  guardianContact: userType === 'student' ? guardianContact : 'dummy',
-  connectedTo: userType === 'parent' ? connectedTo : 'dummy'
-};
-
+    const body = {
+      userId,
+      password,
+      tutorialIds: [tutorialId],
+      createdAt,
+      isRegistered: 0,
+      phoneNumber: phone,
+      deadline,
+      coin: 0,
+      userType,
+      name,
+      birthYear,
+      guardianContact: userType === 'student' ? guardianContact : 'dummy',
+      connectedTo: userType === 'parent' ? connectedTo : 'dummy'
+    };
 
     console.log("🚀 회원가입 요청 바디:", body);
 

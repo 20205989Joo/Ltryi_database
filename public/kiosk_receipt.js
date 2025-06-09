@@ -1,17 +1,52 @@
-// kiosk_receipt.js
+const RECEIPT_RANGES = {
+  '단어': {
+    'A1': [1, 45],
+    'A2': [46, 89],
+    'B1': [90, 130],
+    'B2': [131, 201],
+    'C1': [202, 266]
+  },
+  '연어': {
+    '900핵심연어': [1, 42]
+  },
+  '문법': {
+    'Basic': [1, 50]
+  },
+  '단계별 독해': {
+    'RCStepper': [1, 50]
+  }
+};
+
+function inferLevel(subcategory, level, lessonNo) {
+  const range = RECEIPT_RANGES?.[subcategory]?.[level];
+  if (!range) return null;
+  const [start, end] = range;
+  if (lessonNo >= start && lessonNo <= end) {
+    const day = lessonNo - start + 1;
+    return { start, day };
+  }
+  return null;
+}
 
 window.handleFinalOrder = function () {
-  const hwPlusEntries = [];
-  let receiptText = '';
+  const MAX_LIMIT = 6;
 
-  // ✅ selectedItems가 window에 정의되어 있어야 함
+  // ✅ 이미 고른 항목 체크
   if (!Array.isArray(window.selectedItems) || window.selectedItems.length === 0) {
     alert("선택된 항목이 없습니다.");
     return;
   }
 
+  if (window.selectedItems.length > MAX_LIMIT) {
+    alert(`❌ 하루 최대 ${MAX_LIMIT}개까지만 주문할 수 있어요!\n현재 ${window.selectedItems.length}개 담으셨습니다.`);
+    return;
+  }
+
+  // ✅ 이하 기존 로직 유지
+  const hwPlusEntries = [];
+  let receiptText = '';
+
   window.selectedItems.forEach(entry => {
-    // 학습형 항목: label, Subcategory, Level, LessonNo가 모두 있는 경우
     if (entry.Subcategory && entry.Level && entry.LessonNo !== undefined) {
       hwPlusEntries.push({
         Subcategory: entry.Subcategory,
@@ -19,48 +54,40 @@ window.handleFinalOrder = function () {
         LessonNo: entry.LessonNo
       });
 
-      receiptText += `${entry.label} > ${entry.Subcategory} > ${entry.Level} > Day ${entry.LessonNo}\n`;
-    }
-
-    // 단순 항목: label만 있는 경우 (e.g. "오늘 내 숙제", "시험지 만들어주세요")
-    else {
+      const meta = inferLevel(entry.Subcategory, entry.Level, entry.LessonNo);
+      const dayStr = meta ? `Day ${meta.day}` : `Lesson ${entry.LessonNo}`;
+      receiptText += `${entry.label || entry.Subcategory} > ${entry.Level} > ${dayStr}\n`;
+    } else {
       hwPlusEntries.push({
         Subcategory: entry.label,
         Level: null,
         LessonNo: null
       });
-
       receiptText += `${entry.label}\n`;
     }
   });
 
-  // ✅ localStorage에 저장
   localStorage.setItem('HWPlus', JSON.stringify(hwPlusEntries));
-
-  // ✅ 로그 확인
   console.log("✅ [저장된 HWPlus]:", hwPlusEntries);
 
-  // ✅ 팝업 닫기
   const popup = document.getElementById('popup');
   if (popup) popup.style.display = 'none';
 
-  // ✅ 트레이 표시
   const tray = document.getElementById('food-tray');
   if (tray) tray.style.display = 'block';
 
-  // ✅ 영수증 아이콘 생성 (최초만)
   if (!document.getElementById('receipt_icon')) {
     const icon = document.createElement('img');
     icon.src = 'receipt_icon.png';
     icon.id = 'receipt_icon';
     icon.className = 'receipt-icon';
-    icon.onclick = () => showReceiptAgain(receiptText);
+    icon.onclick = () => window.showReceiptFromHWPlus();  // ✅ 최신 반영
     document.querySelector('.main-page').appendChild(icon);
   }
 
-  // ✅ 영수증 표시
   showReceiptAgain(receiptText);
 };
+
 
 function showReceiptAgain(text) {
   const existing = document.getElementById('temp-receipt');
@@ -72,7 +99,6 @@ function showReceiptAgain(text) {
   receipt.innerHTML = `
     <div class="receipt-title">📄 주문 영수증</div>
     <div class="receipt-content">${text.trim().replace(/\n/g, '<br>')}</div>
-
     <div style="text-align: right;">
       <button class="room-btn" style="
         background-color : rgb(241, 96, 91);
@@ -87,28 +113,22 @@ function showReceiptAgain(text) {
       " id="cancelOrderBtn">🗑 주문 취소</button>
     </div>
   `;
-
   document.querySelector('.main-page').appendChild(receipt);
 
-  // 🧹 취소 이벤트
   document.getElementById('cancelOrderBtn')?.addEventListener('click', () => {
     localStorage.removeItem('HWPlus');
     receipt.remove();
-
     const icon = document.getElementById('receipt_icon');
     if (icon) icon.remove();
-
     alert('🗑 주문이 취소되었습니다!');
-     location.reload(); 
+    location.reload();
   });
 
-  // 자동 사라짐 (필요 없으면 이 부분 삭제 가능)
   setTimeout(() => {
     receipt.style.opacity = 0;
     setTimeout(() => receipt.remove(), 1000);
   }, 3000);
 }
-
 
 window.showReceiptFromHWPlus = function () {
   const hwPlusEntries = JSON.parse(localStorage.getItem('HWPlus') || '[]');
@@ -117,7 +137,9 @@ window.showReceiptFromHWPlus = function () {
   let receiptText = '';
   hwPlusEntries.forEach(entry => {
     if (entry.Subcategory && entry.Level && entry.LessonNo !== undefined) {
-      receiptText += `${entry.Subcategory} > ${entry.Level} > Day ${entry.LessonNo}\n`;
+      const meta = inferLevel(entry.Subcategory, entry.Level, entry.LessonNo);
+      const dayStr = meta ? `Day ${meta.day}` : `Day ${entry.LessonNo}`;
+      receiptText += `${entry.Subcategory} > ${entry.Level} > ${dayStr}\n`;
     } else {
       receiptText += `${entry.Subcategory || entry.label || '기타'}\n`;
     }
