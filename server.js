@@ -1342,16 +1342,24 @@ app.get('/api/unsubmitted-today', async (req, res) => {
 //TeacherPanel 관련해서.
 
 app.get('/api/getAllUserInfos', async (req, res) => {
+  let conn;
   try {
-    const [rows] = await db.query(`
-      SELECT * FROM UserInfo
+    conn = await pool.getConnection();
+    const rows = await conn.query(`
+      SELECT UserId, UserType, Name, BirthYear, ConnectedTo,
+             PhoneNumber, Deadline, Coin, GuardianContact,
+             CreatedAt, IsRegistered, TutorialIds
+      FROM UserInfo
     `);
     res.json(rows);
   } catch (err) {
     console.error('❌ getAllUserInfos 오류:', err);
-    res.status(500).json({ message: '서버 오류', error: err });
+    res.status(500).json({ message: '서버 오류', error: String(err) });
+  } finally {
+    if (conn) conn.release();
   }
 });
+
 
 
 
