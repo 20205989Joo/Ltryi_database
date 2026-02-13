@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha Redirect</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: #fff7ef;
+      color: #4b2b16;
+    }
+    main {
+      width: min(92vw, 460px);
+      padding: 22px;
+      border: 1px solid #efc6a2;
+      border-radius: 14px;
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 22px;
+    }
+    p {
+      margin: 0;
+      line-height: 1.45;
+    }
+    a {
+      color: #c94f00;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Redirecting...</h1>
+    <p id="status">잠시만 기다려 주세요.</p>
+    <p><a id="fallback-link" href="pleks/pleks-l1e1.html">이동이 안 되면 직접 클릭</a></p>
+  </main>
+
+  <script>
+    (function () {
+      // 매번 여기 주소만 바꾸면 됩니다.
+      const REDIRECT_TARGET = "pleks/pleks-l1e1.html";
+
+      const currentUrl = new URL(window.location.href);
+      const targetUrl = new URL(REDIRECT_TARGET, window.location.href);
+
+      // alpha_test.html로 들어온 쿼리 파라미터를 타겟으로 전달
+      for (const [key, value] of currentUrl.searchParams.entries()) {
+        if (!targetUrl.searchParams.has(key)) {
+          targetUrl.searchParams.append(key, value);
+        }
+      }
+
+      // 현재 hash가 있고 타겟 hash가 없으면 함께 전달
+      if (!targetUrl.hash && currentUrl.hash) {
+        targetUrl.hash = currentUrl.hash;
+      }
+
+      const fallbackLink = document.getElementById("fallback-link");
+      if (fallbackLink) fallbackLink.href = targetUrl.toString();
+
+      const isSameUrl =
+        targetUrl.origin === currentUrl.origin &&
+        targetUrl.pathname === currentUrl.pathname &&
+        targetUrl.search === currentUrl.search &&
+        targetUrl.hash === currentUrl.hash;
+
+      if (isSameUrl) {
+        const status = document.getElementById("status");
+        if (status) status.textContent = "REDIRECT_TARGET이 현재 페이지라서 이동하지 않았습니다.";
+        return;
+      }
+
+      window.location.replace(targetUrl.toString());
+    })();
+  </script>
+</body>
+</html>

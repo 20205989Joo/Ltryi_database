@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>미제출 학생 테스트</title>
+  <style>
+    body {
+      font-family: 'Arial';
+      padding: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #f17b2a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      background: #f4f4f4;
+      padding: 12px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 오늘 숙제 미제출 학생 확인</h2>
+  <button onclick="checkUnsubmitted()">불러오기</button>
+  <div id="result">여기에 결과가 표시됩니다.</div>
+
+  <script>
+    function checkUnsubmitted() {
+     fetch('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/unsubmitted-today')
+
+        .then(res => res.json())
+        .then(data => {
+          console.log("✅ 서버 응답:", data);
+          const resultDiv = document.getElementById('result');
+
+          if (!data.unsubmitted || data.unsubmitted.length === 0) {
+            resultDiv.textContent = '🎉 모두 숙제를 제출했습니다!';
+            return;
+          }
+
+          resultDiv.textContent = '⏰ 미제출 학생 목록:\n' + 
+            data.unsubmitted.map(u => `- ${u.userId} (마감: ${u.deadline})`).join('\n');
+        })
+        .catch(err => {
+          console.error("❌ 호출 실패:", err);
+          document.getElementById('result').textContent = '🚫 오류 발생: ' + err.message;
+        });
+    }
+  </script>
+</body>
+</html>

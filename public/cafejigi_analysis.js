@@ -163,8 +163,22 @@ window.summaryMain = async function () {
   `;
 
   const dialogueBox = document.getElementById('dialogueBox');
+
+  // ✅ 요약 모드일 때 대화창을 위아래로 확장해서 사용
+  //   - 위쪽: bar_bottom 시작 위치(309px)과 맞춤
+  //   - 아래쪽: 카페 바닥 근처까지 내려서 리스트/박스가 넉넉하게 보이도록
+  dialogueBox.style.top = '309px';      // bar_bottom 시작 위치
+  dialogueBox.style.bottom = '20px';    // cafe_int 바닥 근처까지
+  dialogueBox.style.left = '17px';      // 원래와 동일
+  dialogueBox.style.width = '313px';    // 원래와 동일
+  dialogueBox.style.minHeight = '0';
+  dialogueBox.style.maxHeight = 'none';
+  dialogueBox.style.overflowY = 'auto';
+
   dialogueBox.innerHTML = `
-    <div style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">📊 당신의 현재 단계는 ... </div>
+    <div style="font-size: 13px; font-weight: bold; margin-bottom: 4px;">
+      📊 당신의 현재 단계는 .
+    </div>
     <div style="display:flex; gap: 6px; justify-content: space-between; margin-bottom: 8px;">
       ${Object.entries(analysis).map(([s, d]) => {
         const subject = subjectLabel(s);

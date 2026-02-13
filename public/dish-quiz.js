@@ -12,10 +12,13 @@ let quizData = [];
 let selectedDay = '';
 let quizTitle = '';
 
+// 🔧 이 문제에서 이미 답을 처리했는지 여부
+let isAnswered = false;
+
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const key = params.get('key');
-  const id = params.get('id');
+  const id = params.get('id'); // 필요하면 나중에 사용
 
   if (!key) return alert('시험 key 정보가 없습니다.');
 
@@ -28,15 +31,20 @@ window.addEventListener('DOMContentLoaded', async () => {
   day = parts[3];
   console.log('✅ 파싱된 값:', { subcategory, level, day });
 
-  const res = await fetch(`${level}.xlsx`);
-  const data = await res.arrayBuffer();
-  const workbook = XLSX.read(data, { type: 'array' });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  quizData = XLSX.utils.sheet_to_json(sheet);
+  try {
+    const res = await fetch(`${level}.xlsx`);
+    const data = await res.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    quizData = XLSX.utils.sheet_to_json(sheet);
+  } catch (e) {
+    console.error(e);
+    alert('문제 파일을 불러오는 중 오류가 발생했습니다.');
+    return;
+  }
 
   renderInstruction();
- document.getElementById('back-btn')?.addEventListener('click', () => history.back());
-
+  document.getElementById('back-btn')?.addEventListener('click', () => history.back());
 });
 
 function renderInstruction() {
@@ -77,11 +85,14 @@ function startQuiz() {
   if (dayData.length === 0) return alert('해당 Day의 문제가 없습니다.');
 
   questions = dayData.map(entry => {
-    const wrongs = quizData.filter(q => q['Korean Meaning'] !== entry['Korean Meaning'])
-                            .sort(() => 0.5 - Math.random())
-                            .slice(0, 4)
-                            .map(q => q['Korean Meaning']);
+    const wrongs = quizData
+      .filter(q => q['Korean Meaning'] !== entry['Korean Meaning'])
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 4)
+      .map(q => q['Korean Meaning']);
+
     const options = [...wrongs, entry['Korean Meaning']].sort(() => 0.5 - Math.random());
+
     return {
       word: entry['Word'],
       answer: entry['Korean Meaning'],
@@ -95,23 +106,55 @@ function startQuiz() {
 }
 
 function renderQuestion() {
-  if (currentIndex >= questions.length) return showResultPopup();
+  // 🔧 이전 문제 타이머가 남아 있으면 정리
+  if (currentTimer) {
+    clearTimeout(currentTimer);
+    currentTimer = null;
+  }
+
+  if (currentIndex >= questions.length) {
+    return showResultPopup();
+  }
+
+  // 새 문제 시작 → 아직 답 안 함
+  isAnswered = false;
 
   const quizArea = document.getElementById('quiz-area');
   const q = questions[currentIndex];
 
   quizArea.innerHTML = `
-    <div style="font-weight:bold; font-size:18px; margin-bottom:10px;">${currentIndex + 1}. ${q.word}</div>
-    <div id="timer-bar" style="height: 8px; background: green; transition: width 3s linear; width: 100%;"></div>
+    <div style="font-weight:bold; font-size:18px; margin-bottom:10px;">
+      ${currentIndex + 1}. ${q.word}
+    </div>
+    <div id="timer-bar" style="
+      height: 8px;
+      background: green;
+      width: 100%;
+    "></div>
     <div style="margin-top:12px; display:flex; flex-direction:column; gap:6px;">
-      ${q.options.map((opt, i) => `<button class=\"quiz-btn\" onclick=\"checkAnswer('${opt.replace(/'/g, "\\'")}')\">${opt}</button>`).join('')}
+      ${q.options
+        .map(
+          (opt, i) =>
+            `<button class="quiz-btn" onclick="checkAnswer('${opt.replace(/'/g, "\\'")}')">${opt}</button>`
+        )
+        .join('')}
     </div>
     <div id="feedback" style="margin-top:12px; font-weight:bold;"></div>
   `;
 
   const bar = document.getElementById('timer-bar');
-  bar.offsetHeight;
-  bar.style.width = '0%';
+  if (bar) {
+    // 처음엔 꽉 찬 상태
+    bar.style.transition = 'none';
+    bar.style.width = '100%';
+
+    // 리플로우 강제
+    void bar.offsetWidth;
+
+    // 3초 동안 100% → 0%로 줄어드는 애니메이션
+    bar.style.transition = 'width 3s linear';
+    bar.style.width = '0%';
+  }
 
   currentTimer = setTimeout(() => {
     checkAnswer(null); // 시간 초과
@@ -119,8 +162,31 @@ function renderQuestion() {
 }
 
 function checkAnswer(selected) {
-  clearTimeout(currentTimer);
+  // 🔧 이미 이 문제 처리했으면 무시
+  if (isAnswered) return;
+  isAnswered = true;
+
+  // 🔧 타이머 중단
+  if (currentTimer) {
+    clearTimeout(currentTimer);
+    currentTimer = null;
+  }
+
+  // 🔧 타이머 바 현재 위치에서 얼리기
+  const bar = document.getElementById('timer-bar');
+  if (bar) {
+    const currentWidth = getComputedStyle(bar).width; // px 단위
+    bar.style.transition = 'none';
+    bar.style.width = currentWidth; // 그대로 고정
+    bar.style.opacity = '0.85'; // 살짝 톤 다운(선택 완료 느낌)
+  }
+
   const q = questions[currentIndex];
+  if (!q) {
+    // 방어 코드
+    return;
+  }
+
   const correct = q.answer === selected;
 
   results.push({
@@ -131,7 +197,15 @@ function checkAnswer(selected) {
   });
 
   const feedback = document.getElementById('feedback');
-  if (feedback) feedback.textContent = correct ? '정답입니다 ✅' : '오답입니다 ❌';
+  if (feedback) {
+    feedback.textContent = correct ? '정답입니다 ✅' : '오답입니다 ❌';
+  }
+
+  // 🔧 버튼 중복 클릭 방지
+  const buttons = document.querySelectorAll('#quiz-area .quiz-btn');
+  buttons.forEach(btn => {
+    btn.disabled = true;
+  });
 
   setTimeout(() => {
     currentIndex++;
@@ -140,6 +214,19 @@ function checkAnswer(selected) {
 }
 
 function showResultPopup() {
+  // 혹시 남아 있는 타이머 정리
+  if (currentTimer) {
+    clearTimeout(currentTimer);
+    currentTimer = null;
+  }
+  isAnswered = true;
+
+  // ✅ 점수 계산
+  const totalQuestions = results.length;
+  const correctCount = results.filter(r => r.correct).length;
+  const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+  const canSubmit = score >= 80;
+
   const resultObject = {
     quiztitle: quizTitle,
     subcategory,
@@ -164,39 +251,75 @@ function showResultPopup() {
         </tr>
       </thead>
       <tbody>
-        ${results.map(r => `
+        ${results
+          .map(
+            r => `
           <tr>
-            <td style='padding:6px; border-bottom: 1px solid #eee;'>${r.no}</td>
-            <td style='padding:6px; border-bottom: 1px solid #eee;'>${r.word}</td>
-            <td style='padding:6px; border-bottom: 1px solid #eee;'>${r.selected}</td>
-            <td style='padding:6px; border-bottom: 1px solid #eee;'>${r.correct ? '⭕' : '❌'}</td>
+            <td style="padding:6px; border-bottom: 1px solid #eee;">${r.no}</td>
+            <td style="padding:6px; border-bottom: 1px solid #eee;">${r.word}</td>
+            <td style="padding:6px; border-bottom: 1px solid #eee;">${r.selected}</td>
+            <td style="padding:6px; border-bottom: 1px solid #eee;">${r.correct ? '⭕' : '❌'}</td>
           </tr>
-        `).join('')}
+        `
+          )
+          .join('')}
       </tbody>
     </table>
   `;
 
   popup.innerHTML = `
     <div class="popup-content" id="result-content">
-      <div style="font-weight: bold; font-size:16px; margin-bottom: 12px;">📄 전체 시험지 결과</div>
-      <div id="result-detail" style="max-height: 300px; overflow-y: auto;">${table}</div>
-      <div style="display:flex; justify-content: space-between; gap: 10px; margin-top:20px;">
+      <div style="font-weight: bold; font-size:16px; margin-bottom: 8px;">📄 전체 시험지 결과</div>
+      <div style="margin-bottom: 8px; font-size: 14px;">
+        총 점수: <b>${score}점</b> (${correctCount} / ${totalQuestions})
+      </div>
+      ${
+        !canSubmit
+          ? `<div style="margin-bottom: 10px; font-size: 12px; color:#c62828;">
+               ⚠️ 80점 이상부터 제출할 수 있어요. 다시 한 번 풀어볼까요?
+             </div>`
+          : `<div style="margin-bottom: 10px; font-size: 12px; color:#2e7d32;">
+               ✅ 80점 이상입니다! 제출하러 갈 수 있어요.
+             </div>`
+      }
+      <div id="result-detail" style="max-height: 260px; overflow-y: auto; margin-bottom: 14px;">
+        ${table}
+      </div>
+      <div style="display:flex; justify-content: space-between; gap: 10px; margin-top:8px;">
         <button class="quiz-btn" onclick="restartQuiz()">🔁 재시험</button>
-        <button class="quiz-btn" onclick="returnToTray()">🍽 테이블로 돌아가기</button>
+        <button
+          class="quiz-btn"
+          id="submit-btn"
+          ${canSubmit ? '' : 'disabled'}
+          onclick="returnToTray()"
+        >
+          🍽 제출하러 가기
+        </button>
       </div>
     </div>
   `;
 
   popup.style.display = 'flex';
+
+  // 🔧 점수 미달 시 버튼 비주얼 비활성화 처리
+  const submitBtn = document.getElementById('submit-btn');
+  if (submitBtn && !canSubmit) {
+    submitBtn.style.opacity = '0.5';
+    submitBtn.style.cursor = 'not-allowed';
+  }
 }
 
 function restartQuiz() {
   window.location.reload();
 }
 
-
 function returnToTray() {
   const params = new URLSearchParams(window.location.search);
-  const userId = params.get('id');
-  window.location.href = `homework-tray.html?id=${userId}`;
+  const userId = params.get('id') || '';
+
+  // ✅ quizKey(=quizTitle)를 같이 들고 트레이로 복귀
+  const url = `homework-tray_v1.html?id=${encodeURIComponent(userId)}&quizKey=${encodeURIComponent(quizTitle)}`;
+
+  // ✅ 뒤로 가기로 다시 퀴즈로 못 돌아오게 history 교체
+  window.location.replace(url);
 }

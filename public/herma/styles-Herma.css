@@ -1,0 +1,254 @@
+/* =========================================
+   Herma (Ludibrium × Clocktower tone)
+   - 겉(제목/개념)은 노란 톤, 문제는 루디 톤
+   - JS 클래스명과 1:1 매칭 (lesson, exercise-box, set-wrapper, problem-card...)
+   - 원본 사이즈/간격 유지
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nanum+Pen+Script&display=swap');
+
+/* Palette */
+:root{
+  /* Book (yellow) */
+  --book-ink:#4d2b1f;
+  --book-yellow:#f5b342;
+  --book-yellow-deep:#e9b66c;
+  --book-paper:#fef7dd;
+
+  /* Ludibrium (clocktower) */
+  --ludi-ink:#1b2030;
+  --ludi-bg:#f4f8ff;
+  --ludi-card:#ffffff;
+  --ludi-blue:#2f6bff;
+  --ludi-blue-soft:#8bbbf5;
+  --ludi-blue-pale:#d6e4f0;
+  --ludi-cyan:#cdf0ee;
+  --ludi-purple:#8a6bff;
+  --ludi-steel:#9aa8c0;
+  --ludi-rule:#cce0f7;
+}
+
+/* ===== Base (원본 사이즈 유지) ===== */
+body{
+  font-family:'Gowun Batang', serif;
+  width:950px;
+  margin:0 auto;
+  position:relative;
+  color:var(--ludi-ink);
+}
+.main-page, #lesson-container{
+  width:794px;
+  margin:0 auto;
+  background:#fff;
+  padding:10px 40px;
+  box-shadow:0 0 20px rgba(123,162,194,.1);
+  border-radius:16px;
+  position:relative;
+}
+
+/* ===== Lesson 구획 ===== */
+.lesson{
+  margin-bottom:80px;
+  padding-bottom:40px;
+  border-bottom:2px dashed var(--ludi-rule);
+}
+
+/* 제목(겉/외부 → 노란 톤) */
+.lesson-title{
+  font-size:32px;
+  font-weight:bold;
+  color:#9b5e00;
+  margin:30px 0 30px;
+  border-left:12px solid var(--book-yellow);
+  padding-left:16px;
+  text-shadow:0 1px 0 rgba(255,255,255,.6);
+}
+
+/* ===== 개념 박스 (height 250px 유지) ===== */
+.exercise-box{
+  background:var(--book-paper);
+  border-left:8px solid var(--book-yellow);
+  padding:30px 20px;
+  height:250px;
+  border-radius:10px;
+  margin:20px 0 30px;
+  position:relative;
+}
+.exercise-number{
+  display:inline-block;
+  background-color:var(--book-yellow-deep);
+  color:var(--book-ink);
+  font-size:20px; font-weight:bold;
+  top:43px; padding:5px 15px;
+  border-radius:16px;
+  margin-bottom:14px; margin-top:-30px;
+  box-shadow:0 1px 3px rgba(0,0,0,.1);
+  position:absolute;
+}
+.exercise-title{
+  font-size:30px; font-weight:bold;
+  color:#9b5e00; text-align:left;
+  margin:10px 0 12px; margin-left:120px;
+}
+.exercise-sub{
+  font-size:20px; font-style:italic;
+  color:#5e3d20; margin:20px 0 10px; padding-left:284px;
+}
+.exercise-desc{
+  font-size:17px; line-height:1.8;
+  border-top:dashed 1px #5e3d20;
+  width:500px; margin-top:38px; padding-top:20px; margin-bottom:20px;
+  padding-left:20px; text-align:left; white-space:pre-line; position:relative;
+}
+.exercise-inner{ display:flex; justify-content:space-between; }
+.exercise-left{ flex:1; position:relative; }
+.exercise-format{
+  width:80px; background:#ffae191c;
+  border-left:2px dashed rgba(208,176,127,.7);
+  padding:30px 30px;
+  margin:-5px -10px 10px 30px;
+  border-radius:8px; font-size:14px; line-height:1.6; color:#5e3d20; white-space:pre-wrap;
+}
+
+/* ===== Page break ===== */
+.page-break{ page-break-after:always; }
+
+/* ===== 세트 박스 (문제 → 루디 톤) ===== */
+.set-wrapper{
+  background:var(--ludi-bg);
+  padding:60px 30px;
+  margin-bottom:10px;
+  border-radius:14px;
+  border:1px dashed var(--ludi-blue-soft);
+  box-shadow:0 4px 12px rgba(150,180,220,.15);
+}
+.set-header{
+  font-size:30px; font-weight:bold;
+  color:#325a8c;
+  margin-bottom:30px; margin-top:-30px;
+  border-left:6px solid var(--ludi-blue-soft);
+  padding-left:12px;
+}
+
+/* ===== 문제 리스트 2열 + 지그재그 ===== */
+.problem-list{
+  display:flex; flex-wrap:wrap;
+  justify-content:space-between; gap:6px;
+}
+.problem-card{
+  width:calc(48%);
+  background:var(--ludi-card);
+  border:1px solid var(--ludi-blue-pale);
+  border-radius:10px;
+  padding:12px 30px;
+  box-sizing:border-box;
+  position:relative;
+  transition:transform .2s ease;
+}
+.problem-card:nth-child(odd){
+  transform:translateY(-6px); background-color:var(--ludi-cyan);
+}
+.problem-card:nth-child(even){
+  transform:translateY(40px); background-color:#ffffff;
+}
+.problem-number{
+  position:absolute; top:10px; left:12px;
+  font-size:12px; color:#8a9aad; font-weight:bold;
+}
+.qbox{
+  font-size:17px; font-weight:bold;
+  margin:10px 0 8px;
+  color:#203250;
+  background:#eef3ff;
+  border-left:4px solid var(--ludi-purple);
+  padding:4px 8px; border-radius:6px;
+}
+.hint{
+  font-size:15px; color:rgba(58,74,108,.6);
+  background:#eef3ff; border-left:3px solid #9db7df;
+  padding:6px 10px; border-radius:6px; margin-top:10px;
+}
+
+/* 강조 */
+.emph-strong{ color:#ff5a4a; font-weight:bold; }
+.emph-soft{ color:#5c7cfa; font-style:italic; }
+.emph-note{ background:#fff3cd; padding:2px 6px; border-radius:4px; }
+
+/* 세트 구분선 */
+.set-divider{
+  margin:100px auto 20px; width:80%;
+  border-top:1px dashed #c7d9ee; opacity:.6; position:relative;
+}
+.set-divider::after{
+  content:""; position:absolute; left:0; right:0; top:-8px; height:14px;
+  background:
+    radial-gradient(circle at 7px 7px, var(--ludi-steel) 0 3px, transparent 3px 7px),
+    radial-gradient(circle at 28px 7px, var(--ludi-steel) 0 3px, transparent 3px 7px),
+    radial-gradient(circle at 49px 7px, var(--ludi-steel) 0 3px, transparent 3px 7px);
+  background-size:56px 14px; background-repeat:repeat-x; opacity:.35;
+}
+
+/* 손글씨 */
+.handwritten{
+  font-family:'Nanum Pen Script', cursive;
+  color:#325a8c; font-size:24px; margin-top:6px;
+}
+
+/* 동그라미 표식 */
+.mark-circle{
+  width:40px; height:40px; border:2px solid #325a8c; border-radius:50%;
+  display:inline-block; margin-right:6px; vertical-align:middle; position:absolute; top:-1px;
+}
+.mark-target{ position:relative; display:inline-block; }
+.circle-overlay{
+  position:absolute; inset:-2px;
+  border:2px solid #c04c36; border-radius:50%; pointer-events:none;
+}
+
+/* 내용 강조 텍스트 */
+.highlight{ color:#ce835a; font-weight:bold; font-size:18px; }
+
+/* ===== Wrap-up (DW) ===== */
+.wrapup-page{
+  width:100%; min-height:1000px;
+  page-break-after:always; background:#f9f9ff;
+  padding:48px 40px; border:2px dashed #aaa; margin:24px 0;
+}
+.wrapup-title{ font-size:28px; font-weight:bold; text-align:center; margin-bottom:32px; }
+.wrapup-problems{ font-size:18px; line-height:1.8; }
+.wrapup-problem{ margin-bottom:16px; }
+
+.DWwrapup-container{
+  background:#faf7f3; padding:20px; margin-bottom:30px;
+  border-radius:12px; box-shadow:0 0 8px rgba(120,100,80,.15);
+}
+.DWwrapup-title{
+  text-align:center; font-size:45px; font-weight:bold; color:#4e3825;
+  border-bottom:3px solid #f8a978; padding:70px; margin-bottom:20px;
+}
+.DWcolumns{ display:flex; flex-wrap:wrap; justify-content:space-between; }
+.DWquestion-card{
+  width:48%;
+  background:#fffaf2; border:2px solid #8ae381; border-left:8px solid #f8a978;
+  border-radius:12px; margin-bottom:18px; padding:12px 14px; box-sizing:border-box;
+}
+.DWquestion-number{ font-weight:bold; color:#4e3825; font-size:16px; margin-bottom:6px; }
+.DWinstruction{ color:#6a4b2d; font-size:14px; margin-bottom:8px; }
+.DWquestion-text{ color:#3d2b1c; font-size:16px; margin-bottom:12px; white-space:pre-wrap; }
+.DWanswer-area{
+  border-top:1px dashed #b08a66; padding-top:10px; height:22px; background:#fef3e7; border-radius:6px;
+}
+.DW-divider{
+  width:100%; text-align:center; font-size:14px; color:#c4a98d; margin:24px 0;
+  border-top:2px dashed #dec4aa; padding-top:10px; page-break-after:always;
+}
+
+/* A4 그리드 오버레이 (원본 유지) */
+#a4-grid-overlay{
+  position:absolute; top:0; min-height:130%;
+  pointer-events:none; z-index:9998;
+  background-image:
+    linear-gradient(to bottom, rgba(255,0,0,.15) 2px, transparent 1px),
+    linear-gradient(to right, rgba(255,0,0,.15) 2px, transparent 1px);
+  background-size:873px 1235px;
+}

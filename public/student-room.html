@@ -299,12 +299,12 @@
   }
 
   // 모든 테이블 → student-table로
-  tables.forEach(table => setupHoverAndClick(table, 'homework-tray.html'));
+  tables.forEach(table => setupHoverAndClick(table, 'homework-tray_v1.html'));
 
   // ░░ food tray 조건부 적용 ░░
   if (qordered && tray) {
     tray.style.display = 'block';
-    setupHoverAndClick(tray, 'homework-tray.html');
+    setupHoverAndClick(tray, 'homework-tray_v1.html');
   }
 
   // ✅ HWPlus가 있을 경우 receipt_icon 표시
@@ -374,6 +374,7 @@
 </script>
 
 <script src="kiosk_mainpopup.js"></script>
+<script src="day_manager.js"></script>
 <script src="kiosk_subpopup.js"></script>
 <script src="kiosk_receipt.js"></script>
 <script src="menulook.js"></script>

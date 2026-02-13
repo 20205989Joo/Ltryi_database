@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>iOS Tutorial ID Append Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+    input { padding: 6px; width: 250px; }
+    button { margin-top: 20px; padding: 8px 16px; background: #ffd95e; border: none; font-weight: bold; cursor: pointer; }
+    #result { margin-top: 16px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>iOS Tutorial ID Debugger</h2>
+  <label>🔐 User ID:
+    <input type="text" id="userIdInput" placeholder="예: student123">
+  </label>
+
+  <label>📌 Tutorial ID:
+    <input type="text" id="tutorialIdInput" placeholder="예: tutorial84759340">
+  </label>
+
+  <button onclick="sendAppendRequest()">🚀 서버에 추가 요청</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function sendAppendRequest() {
+      const userId = document.getElementById('userIdInput').value.trim();
+      const tutorialId = document.getElementById('tutorialIdInput').value.trim();
+      const resultBox = document.getElementById('result');
+
+      if (!userId || !tutorialId) {
+        resultBox.textContent = "❌ 모든 필드를 입력해주세요.";
+        return;
+      }
+
+      try {
+        const res = await fetch('https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/append-tutorial-id-fromios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, tutorialId })
+        });
+
+        const data = await res.json();
+        resultBox.textContent = `✅ 응답 코드: ${res.status}\n📦 응답 내용:\n${JSON.stringify(data, null, 2)}`;
+      } catch (err) {
+        resultBox.textContent = "🚨 오류 발생: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
