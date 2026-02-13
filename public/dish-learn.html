@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dish Learn</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+  <link rel="stylesheet" href="styles-wordlist.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      width: auto;
+      padding: 0;
+      margin: 0;
+      background: #f4f4f4;
+      background-image: none;
+    }
+
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #fffaf2;
+      z-index: 1;
+      box-sizing: border-box;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    #learn-scroll {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 564px;
+      overflow-y: auto;
+      box-sizing: border-box;
+      padding: 10px 10px 14px;
+      background: linear-gradient(to bottom, #e8f5e9, #c8e6c9);
+      background-image: url("https://www.transparenttextures.com/patterns/green-dust-and-scratches.png");
+    }
+
+    #learn-content {
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    #learn-content .card {
+      border-radius: 12px;
+      padding: 14px 12px;
+      border-width: 1.5px;
+      display: block;
+    }
+
+    #learn-content .card-watermark {
+      right: 8px;
+      top: 6px;
+      font-size: 18px;
+    }
+
+    #learn-content .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    #learn-content .word-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    #learn-content .card-top .word-title {
+      font-size: 24px;
+      line-height: 1.12;
+      margin: 0;
+      color: #2e7d32;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    #learn-content .pos {
+      font-size: 9px;
+      margin: 2px 0 0;
+      color: #5a7b58;
+      white-space: normal;
+      opacity: 0.82;
+      line-height: 1.2;
+    }
+
+    #learn-content .card-top .meaning {
+      flex: 1;
+      min-width: 36%;
+      margin-top: 2px;
+      font-size: 15px;
+      line-height: 1.35;
+      text-align: right;
+      color: #33691e;
+      font-weight: 700;
+      word-break: keep-all;
+    }
+
+    #learn-content .example-block {
+      margin-top: 6px;
+      padding-top: 5px;
+      border-top: 1px dashed #a5d6a7;
+    }
+
+    #learn-content .example-en {
+      font-size: 16px;
+      margin-bottom: 6px;
+      line-height: 1.45;
+      color: #2d2d2d;
+    }
+
+    #learn-content .example-kr {
+      font-size: 15px;
+      margin-bottom: 0;
+      line-height: 1.45;
+      color: #4c5f36;
+    }
+
+    #learn-content .title-card {
+      height: auto;
+      padding: 6px 8px;
+      margin-bottom: 0;
+    }
+
+    #learn-content .title-card .word-title {
+      font-size: 30px;
+    }
+
+    #learn-content .vine-divider img {
+      height: 24px;
+    }
+
+    #learn-content .vine-divider.title-divider {
+      margin: 2px 0 4px 0;
+      border-top-width: 3px;
+    }
+
+    #learn-content .vine-divider {
+      margin: 3px 0;
+    }
+
+    .learn-actions {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      box-sizing: border-box;
+      padding: 10px;
+      background: rgba(255, 250, 242, 0.95);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      display: flex;
+      gap: 8px;
+      z-index: 4;
+    }
+
+    .learn-btn {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      flex: 1;
+    }
+
+    .learn-btn.back {
+      background: #ececec;
+      color: #333;
+    }
+
+    .learn-btn.quiz {
+      background: #2e7d32;
+      color: #fff;
+    }
+
+    .learn-btn.mask {
+      background: #f5d57d;
+      color: #5b4a1f;
+    }
+
+    .learn-btn.mask.active {
+      background: #9aa3ab;
+      color: #fff;
+    }
+
+    #status {
+      text-align: center;
+      font-weight: 700;
+      color: #33691e;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+
+    .quick-tip {
+      position: fixed;
+      z-index: 9999;
+      padding: 6px 9px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.76);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.2;
+      pointer-events: none;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(2px);
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+    }
+
+    .quick-tip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -6px;
+      transform: translateX(-50%);
+      border-width: 6px 5px 0 5px;
+      border-style: solid;
+      border-color: rgba(0, 0, 0, 0.76) transparent transparent transparent;
+    }
+
+    .quick-tip.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .quick-tip.hide {
+      opacity: 0;
+      transform: translateY(-2px);
+    }
+
+    #learn-content .meaning {
+      cursor: pointer;
+    }
+
+    #learn-content .example-kr {
+      cursor: pointer;
+    }
+
+    #learn-content.hide-all .meaning,
+    #learn-content.hide-all .example-en,
+    #learn-content.hide-all .example-kr {
+      color: transparent !important;
+      text-shadow: none !important;
+      user-select: none;
+    }
+
+    #learn-content .card.hide-meaning-local .meaning,
+    #learn-content .card.hide-translation-local .example-kr {
+      color: transparent !important;
+      text-shadow: none !important;
+      user-select: none;
+    }
+
+    @media (max-width: 390px) {
+      #learn-content .card-top {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #learn-content .card-top .word-title {
+        font-size: 21px;
+      }
+
+      #learn-content .card-top .meaning {
+        min-width: 0;
+        text-align: left;
+        font-size: 14px;
+      }
+
+      #learn-content .example-en {
+        font-size: 15px;
+      }
+
+      #learn-content .example-kr {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="learn-scroll">
+        <div id="learn-content">
+          <div class="card title-card">
+            <div id="day-title" class="word-title">📘 Day 1</div>
+          </div>
+          <div class="vine-divider title-divider"></div>
+          <div id="status">카드를 불러오는 중...</div>
+          <div id="main"></div>
+        </div>
+      </div>
+
+      <div class="learn-actions">
+        <button id="back-btn" class="learn-btn back" type="button">돌아가기</button>
+        <button id="mask-btn" class="learn-btn mask" type="button" aria-pressed="false">뜻 가리기</button>
+        <button id="quiz-btn" class="learn-btn quiz" type="button">시험볼게요</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script>
+    (async function () {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get("id") || "";
+      const routingKey = params.get("key") || "quiz_Words_A1_Day1";
+      const dishQuizKey = params.get("dishQuizKey") || "Vocabulary_Words_A1_Day1_Lesson1_v1";
+
+      const levelMatch = routingKey.match(/_([ABC][12])_/i);
+      const dayMatch = routingKey.match(/Day(\d+)/i);
+      const level = levelMatch ? levelMatch[1].toUpperCase() : "A1";
+      const dayNo = dayMatch ? Number(dayMatch[1]) : 1;
+
+      const workbookFile = `${level}.xlsx`;
+      const statusEl = document.getElementById("status");
+      const mainEl = document.getElementById("main");
+      const dayTitleEl = document.getElementById("day-title");
+      const learnContentEl = document.getElementById("learn-content");
+      const maskBtn = document.getElementById("mask-btn");
+      if (dayTitleEl) dayTitleEl.textContent = `📘 Day ${dayNo}`;
+
+      let isMeaningHidden = false;
+      let hasShownQuickTip = false;
+
+      function setMeaningHidden(hidden) {
+        isMeaningHidden = !!hidden;
+        if (learnContentEl) {
+          learnContentEl.classList.toggle("hide-all", isMeaningHidden);
+          if (!isMeaningHidden) {
+            learnContentEl
+              .querySelectorAll(".card.hide-meaning-local, .card.hide-translation-local")
+              .forEach(card => {
+                card.classList.remove("hide-meaning-local", "hide-translation-local");
+              });
+          }
+        }
+        if (maskBtn) {
+          maskBtn.textContent = isMeaningHidden ? "뜻 보기" : "뜻 가리기";
+          maskBtn.setAttribute("aria-pressed", String(isMeaningHidden));
+          maskBtn.classList.toggle("active", isMeaningHidden);
+        }
+      }
+
+      function toggleMeaningHidden() {
+        setMeaningHidden(!isMeaningHidden);
+      }
+
+      function showQuickMeaningTip() {
+        if (hasShownQuickTip) return;
+        hasShownQuickTip = true;
+
+        const target = mainEl?.querySelector(".card .meaning");
+        if (!target) return;
+
+        const tip = document.createElement("div");
+        tip.className = "quick-tip";
+        tip.textContent = "누르면 숨겨집니다!";
+        document.body.appendChild(tip);
+
+        const place = () => {
+          const targetRect = target.getBoundingClientRect();
+          const tipRect = tip.getBoundingClientRect();
+          const margin = 8;
+
+          let left = targetRect.left + targetRect.width / 2 - tipRect.width / 2;
+          left = Math.max(margin, Math.min(window.innerWidth - tipRect.width - margin, left));
+
+          let top = targetRect.top - tipRect.height - 10;
+          top = Math.max(margin, top);
+
+          tip.style.left = `${Math.round(left)}px`;
+          tip.style.top = `${Math.round(top)}px`;
+        };
+
+        place();
+        requestAnimationFrame(() => {
+          tip.classList.add("show");
+        });
+
+        setTimeout(() => {
+          tip.classList.remove("show");
+          tip.classList.add("hide");
+        }, 900);
+
+        setTimeout(() => {
+          tip.remove();
+          window.removeEventListener("resize", place);
+        }, 1300);
+
+        window.addEventListener("resize", place, { passive: true });
+      }
+
+      function parseDayNumber(raw) {
+        if (raw === null || raw === undefined) return null;
+        const digits = String(raw).replace(/[^0-9]/g, "");
+        if (!digits) return null;
+        const n = Number(digits);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      try {
+        const resp = await fetch(workbookFile, { cache: "no-store" });
+        if (!resp.ok) throw new Error(`엑셀 로드 실패: ${resp.status}`);
+
+        const buffer = await resp.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+
+        const selected = rows
+          .filter(row => parseDayNumber(row["Day"]) === dayNo)
+          .slice(0, 20);
+
+        if (statusEl) {
+          statusEl.textContent = `${level} Day ${dayNo} · ${selected.length} cards`;
+        }
+
+        if (selected.length === 0) {
+          mainEl.innerHTML = '<div class="card"><div class="word-title">데이터가 없습니다.</div></div>';
+          return;
+        }
+
+        selected.forEach((row, idx) => {
+          if (idx > 0) {
+            const divider = document.createElement("div");
+            divider.className = "vine-divider";
+            divider.innerHTML = '<img src="vine-divider2.png" alt="vine" />';
+            mainEl.appendChild(divider);
+          }
+
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="card-watermark">${idx + 1}</div>
+            <div class="card-top">
+              <div class="word-wrap">
+                <div class="word-title">${escapeHtml(row["Word"])}</div>
+              </div>
+              <div class="meaning">${escapeHtml(row["Korean Meaning"])}</div>
+            </div>
+            <div class="pos">(${escapeHtml(row["Part of Speech"])})</div>
+            <div class="example-block">
+              <div class="example-en">${escapeHtml(row["Example Sentence"])}</div>
+              <div class="example-kr">${escapeHtml(row["예문"])}</div>
+            </div>
+          `;
+          mainEl.appendChild(card);
+        });
+
+        setTimeout(showQuickMeaningTip, 140);
+      } catch (error) {
+        console.error(error);
+        if (statusEl) statusEl.textContent = "카드를 불러오지 못했습니다.";
+        mainEl.innerHTML = '<div class="card"><div class="word-title">A1.xlsx를 확인해주세요.</div></div>';
+      }
+
+      document.getElementById("back-btn")?.addEventListener("click", () => {
+        history.back();
+      });
+
+      maskBtn?.addEventListener("click", toggleMeaningHidden);
+
+      mainEl?.addEventListener("click", (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const meaningEl = target.closest(".meaning");
+        if (meaningEl) {
+          const card = meaningEl.closest(".card");
+          if (card) card.classList.toggle("hide-meaning-local");
+          return;
+        }
+
+        const translationEl = target.closest(".example-kr");
+        if (translationEl) {
+          const card = translationEl.closest(".card");
+          if (card) card.classList.toggle("hide-translation-local");
+        }
+      });
+
+      document.getElementById("quiz-btn")?.addEventListener("click", () => {
+        const target = `dish-quiz.html?id=${encodeURIComponent(userId)}&key=${encodeURIComponent(dishQuizKey)}`;
+        window.location.href = target;
+      });
+    })();
+  </script>
+</body>
+</html>

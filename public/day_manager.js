@@ -32,6 +32,10 @@
       subjectToken: "Reading",
       subcategories: ["파편의 재구성"]
     },
+    "misc": {
+      subjectToken: "Misc",
+      subcategories: ["공사중"]
+    },
     "기타": {
       subjectToken: "Misc",
       subcategories: []
@@ -69,7 +73,9 @@
       subcategoryToken: "Grammar",
       storageFolder: "grammar",
       levels: {
-        "Basic": [1, 50]
+        "Basic": [1, 50],
+        "herma": [101, 200],
+        "pleks": [201, 300]
       }
     },
     "단계별 독해": {
@@ -85,12 +91,92 @@
       subcategoryToken: "Fragments",
       storageFolder: "fragments",
       levels: {}
+    },
+    "공사중": {
+      category: "misc",
+      subcategoryToken: "Words",
+      storageFolder: "words",
+      levels: {
+        "A1": [1, 1]
+      }
     }
   };
 
   // Alias map (legacy/alternate labels -> canonical subcategory)
   const SUBCATEGORY_ALIASES = {
-    "기초문법": "문법"
+    "기초문법": "문법",
+    "Herma": "문법",
+    "Pleks": "문법",
+    "herma": "문법",
+    "pleks": "문법"
+  };
+
+  // Custom lesson-page routing (for module-style web tests)
+  // - subcategory: canonical subcategory
+  // - level: level key in SUBCATEGORY_DEFINITIONS[subcategory].levels
+  // - path (optional): fixed page path (ex: dish-learn.html)
+  // - folder/filePrefix: route = {folder}/{filePrefix}-l{book}e{exercise}.html
+  // - episodesPerBook: day 1..N -> 1-1, 1-2 ... (N+1 -> 2-1)
+  const LESSON_PAGE_DEFINITIONS = {
+    "단어": {
+      "A1": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 100
+      },
+      "A2": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 100
+      },
+      "B1": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 100
+      },
+      "B2": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 100
+      },
+      "C1": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 100
+      }
+    },
+    "문법": {
+      "herma": {
+        folder: "herma",
+        filePrefix: "herma",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 50,
+        availableDays: [1]
+      },
+      "pleks": {
+        folder: "pleks",
+        filePrefix: "pleks",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 50,
+        availableDays: [1]
+      }
+    },
+    "공사중": {
+      "A1": {
+        path: "dish-learn.html",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 1,
+        availableDays: [1]
+      }
+    }
   };
 
   // =========================================================
@@ -219,7 +305,95 @@
     return {
       categories: clone(CATEGORY_DEFINITIONS),
       subcategories: clone(SUBCATEGORY_DEFINITIONS),
-      aliases: clone(SUBCATEGORY_ALIASES)
+      aliases: clone(SUBCATEGORY_ALIASES),
+      lessonPages: clone(LESSON_PAGE_DEFINITIONS)
+    };
+  }
+
+  function normalizeLevelName(level) {
+    if (level === null || level === undefined) return null;
+    return String(level).trim();
+  }
+
+  function getLessonPageDefinition(subcategory, level) {
+    const canonicalSub = resolveSubcategoryName(subcategory);
+    if (!canonicalSub) return null;
+
+    const levelName = normalizeLevelName(level);
+    if (!levelName) return null;
+
+    const defsByLevel = LESSON_PAGE_DEFINITIONS[canonicalSub];
+    if (!defsByLevel || typeof defsByLevel !== "object") return null;
+
+    if (defsByLevel[levelName]) {
+      return clone({
+        subcategory: canonicalSub,
+        level: levelName,
+        ...defsByLevel[levelName]
+      });
+    }
+
+    const lowered = levelName.toLowerCase();
+    for (const [defLevel, def] of Object.entries(defsByLevel)) {
+      if (String(defLevel).toLowerCase() === lowered) {
+        return clone({
+          subcategory: canonicalSub,
+          level: defLevel,
+          ...def
+        });
+      }
+    }
+
+    return null;
+  }
+
+  function getLessonPageRoute(subcategory, level, lessonNo) {
+    const def = getLessonPageDefinition(subcategory, level);
+    if (!def) return null;
+
+    const lesson = Number(lessonNo);
+    if (!isPositiveInt(lesson)) return null;
+
+    const canonicalSub = def.subcategory;
+    const levelName = def.level;
+    const day = getDay(canonicalSub, levelName, lesson);
+    if (!isPositiveInt(day)) return null;
+
+    const episodesPerBook = isPositiveInt(def.episodesPerBook) ? def.episodesPerBook : 50;
+    const startBook = isPositiveInt(def.startBook) ? def.startBook : 1;
+    const startExercise = isPositiveInt(def.startExercise) ? def.startExercise : 1;
+
+    if (Array.isArray(def.availableDays) && def.availableDays.length > 0) {
+      const allowed = def.availableDays.map(Number).filter(isPositiveInt);
+      if (!allowed.includes(day)) return null;
+    }
+
+    const dayOffset = day - 1;
+    const book = startBook + Math.floor(dayOffset / episodesPerBook);
+    const exercise = startExercise + (dayOffset % episodesPerBook);
+
+    const fixedPath = String(def.path || "").trim();
+    let path = fixedPath;
+    if (!path) {
+      const folder = String(def.folder || "").trim();
+      const filePrefix = String(def.filePrefix || "").trim();
+      if (!folder || !filePrefix) return null;
+      path = `${folder}/${filePrefix}-l${book}e${exercise}.html`;
+    }
+    const lessonTag = `${book}-${exercise}`;
+    const subToken = getSubcategoryToken(canonicalSub) || canonicalSub;
+    const quizKey = `quiz_${subToken}_${levelName}_Day${day}`;
+
+    return {
+      subcategory: canonicalSub,
+      level: levelName,
+      lessonNo: lesson,
+      day,
+      book,
+      exercise,
+      lessonTag,
+      path,
+      quizKey
     };
   }
 
@@ -440,11 +614,37 @@
       }
     }
 
+    for (const [subcategory, defsByLevel] of Object.entries(LESSON_PAGE_DEFINITIONS)) {
+      if (!SUBCATEGORY_DEFINITIONS[subcategory]) {
+        warnings.push(`Lesson page mapping uses unknown subcategory "${subcategory}"`);
+        continue;
+      }
+
+      for (const [level, def] of Object.entries(defsByLevel || {})) {
+        if (!SUBCATEGORY_DEFINITIONS[subcategory].levels?.[level]) {
+          warnings.push(`Lesson page mapping ${subcategory} > ${level} has no level range`);
+        }
+        if (!def || typeof def !== "object") {
+          warnings.push(`Lesson page mapping ${subcategory} > ${level} is invalid`);
+          continue;
+        }
+        const fixedPath = String(def.path || "").trim();
+        if (!fixedPath) {
+          if (!String(def.folder || "").trim()) {
+            warnings.push(`Lesson page mapping ${subcategory} > ${level} missing folder`);
+          }
+          if (!String(def.filePrefix || "").trim()) {
+            warnings.push(`Lesson page mapping ${subcategory} > ${level} missing filePrefix`);
+          }
+        }
+      }
+    }
+
     return warnings;
   }
 
   const api = {
-    version: "2.0.0",
+    version: "2.1.0",
 
     // Mapping/config getters
     getConfig,
@@ -459,6 +659,8 @@
     listCategories,
     listSubcategories,
     listLevels,
+    getLessonPageDefinition,
+    getLessonPageRoute,
 
     // Day/range getters
     getRanges,

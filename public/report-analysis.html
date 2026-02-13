@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles-frame.css">
   <link rel="stylesheet" href="styles-room.css">
+  <link rel="stylesheet" href="nav-buttons.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -248,6 +249,36 @@
       margin: 4px 0;
     }
 
+    .level-badge .badge.level-A1 {
+      background: #8d8d8d;
+      color: #fff;
+    }
+
+    .level-badge .badge.level-A2 {
+      background: #2f80ed;
+      color: #fff;
+    }
+
+    .level-badge .badge.level-B1 {
+      background: #27ae60;
+      color: #fff;
+    }
+
+    .level-badge .badge.level-B2 {
+      background: #f2994a;
+      color: #fff;
+    }
+
+    .level-badge .badge.level-C1 {
+      background: #eb5757;
+      color: #fff;
+    }
+
+    .level-badge .badge.level-C2 {
+      background: #7b1fa2;
+      color: #fff;
+    }
+
     .level-badge .rank {
       color: #555;
     }
@@ -279,6 +310,103 @@
       background: #ffe4c4;
       color: black;
       border-radius: 5px;
+    }
+
+    #back-to-room-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 30;
+    }
+
+    .recommend-wrap {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      gap: 8px;
+      font-size: 13px;
+      overflow: hidden;
+    }
+
+    .recommend-title {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .recommend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .recommend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(0, 0, 0, 0.36);
+      border-radius: 8px;
+      padding: 7px 8px;
+      line-height: 1.2;
+    }
+
+    .recommend-item-subject {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffe4c4;
+      min-width: 58px;
+      text-align: left;
+    }
+
+    .recommend-item-right {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      align-items: flex-end;
+      text-align: right;
+      flex: 1;
+    }
+
+    .recommend-item-line {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .recommend-item-key {
+      font-size: 11px;
+      color: #cfcfcf;
+      letter-spacing: 0.2px;
+    }
+
+    .recommend-item-level {
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .recommend-item-day {
+      font-size: 12px;
+      color: #f1f1f1;
+    }
+
+    .recommend-tip {
+      margin-top: 2px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 218, 121, 0.35);
+      background: rgba(255, 218, 121, 0.12);
+      padding: 7px 8px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: #fff3d4;
     }
 
     /* ================================
@@ -431,9 +559,18 @@
     }
   </style>
 </head>
-<body>
+  <body>
   <div class="main-page">
-    <div id="cafe_int"></div>
+    <div id="cafe_int">
+      <button
+        id="back-to-room-btn"
+        class="nav-mainhall-btn"
+        data-nav-mainhall="student-room.html"
+        data-nav-replace="true"
+      >
+        ⬅메인홀로 나가기
+      </button>
+    </div>
     <div id="bar_top"></div>
     <div id="bar_bottom"></div>
     <div id="cafe_jigi"></div>
@@ -455,6 +592,8 @@
   </div>
 
   <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="day_manager.js"></script>
+  <script src="nav-buttons.js"></script>
   <script src="cafejigi_menuguide.js"></script>
 </body>
 </html>

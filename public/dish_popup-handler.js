@@ -37,17 +37,109 @@ function hasCurriculumLevels(subcategory) {
   return Array.isArray(levels) && levels.length > 0;
 }
 
+function inferLevelIfNeeded(subcategory, level, lessonNo) {
+  const dm = getDayManager();
+  if (level) return level;
+  if (!dm || typeof dm.inferLevel !== "function") return null;
+
+  const lesson = Number(lessonNo);
+  if (!Number.isFinite(lesson)) return null;
+
+  const inferred = dm.inferLevel(subcategory, lesson);
+  return inferred?.level || null;
+}
+
+function getLessonRouteInfo(item) {
+  const dm = getDayManager();
+  if (!dm || typeof dm.getLessonPageRoute !== "function") return null;
+
+  const canonicalSubcategory = resolveSubcategory(item.Subcategory);
+  const lessonNo = Number(item.LessonNo);
+  const level = inferLevelIfNeeded(canonicalSubcategory, item.Level, lessonNo);
+  if (!canonicalSubcategory || !level || !Number.isFinite(lessonNo)) return null;
+
+  return dm.getLessonPageRoute(canonicalSubcategory, level, lessonNo);
+}
+
+function getLessonPageDefinitionForItem(item) {
+  const dm = getDayManager();
+  if (!dm || typeof dm.getLessonPageDefinition !== "function") return null;
+
+  const canonicalSubcategory = resolveSubcategory(item.Subcategory);
+  const lessonNo = Number(item.LessonNo);
+  const level = inferLevelIfNeeded(canonicalSubcategory, item.Level, lessonNo);
+  if (!canonicalSubcategory || !level) return null;
+
+  return dm.getLessonPageDefinition(canonicalSubcategory, level);
+}
+
+function buildTargetUrl(path, extraParams = {}) {
+  const current = new URL(window.location.href);
+  const target = new URL(path, current.href);
+
+  for (const [key, value] of current.searchParams.entries()) {
+    if (!target.searchParams.has(key)) {
+      target.searchParams.append(key, value);
+    }
+  }
+
+  for (const [key, value] of Object.entries(extraParams)) {
+    if (value !== null && value !== undefined && value !== "") {
+      target.searchParams.set(key, String(value));
+    }
+  }
+
+  if (!target.hash && current.hash) {
+    target.hash = current.hash;
+  }
+
+  return target.toString();
+}
+
+function renderCustomModulePreviewCard(title, routeInfo, fallbackDay = null, fallbackLevel = null) {
+  const lessonBadge = routeInfo?.lessonTag ? `${routeInfo.lessonTag}` : "준비중";
+  const dayNum = routeInfo?.day ?? fallbackDay ?? null;
+  const dayBadge = dayNum ? `Day ${dayNum}` : "";
+  const levelBadge = fallbackLevel ? ` · ${fallbackLevel}` : "";
+  const displayTitle = String(title || "학습").trim() || "학습";
+  return `
+    <div style="
+      margin-bottom: 10px;
+      height: 164px;
+      border-radius: 12px;
+      border: 1px solid #d4b393;
+      background: linear-gradient(145deg, #fff4df 0%, #ffe9cc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    ">
+      <div style="
+        position: absolute;
+        top: -18px;
+        right: -14px;
+        width: 88px;
+        height: 88px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.55);
+      "></div>
+      <div style="text-align:center; color:#7e3106;">
+        <div style="font-size: 40px; line-height: 1;">📚</div>
+        <div style="font-size: 15px; font-weight: 800; margin-top: 4px;">${displayTitle}</div>
+        <div style="font-size: 12px; opacity: 0.84; margin-top: 3px;">${lessonBadge}${dayBadge ? ` · ${dayBadge}` : ""}${levelBadge}</div>
+      </div>
+    </div>
+  `;
+}
+
 function buildFilename(item) {
   const dm = getDayManager();
   const canonicalSubcategory = resolveSubcategory(item.Subcategory);
   const category = resolveCategoryLabel(item, canonicalSubcategory);
 
   const lessonNo = Number(item.LessonNo);
-  let level = item.Level;
-  if (!level && dm && typeof dm.inferLevel === "function") {
-    const inferred = dm.inferLevel(canonicalSubcategory, lessonNo);
-    level = inferred?.level || null;
-  }
+  const level = inferLevelIfNeeded(canonicalSubcategory, item.Level, lessonNo);
 
   let day = null;
   if (dm && level && typeof dm.getDay === "function") {
@@ -130,6 +222,12 @@ window.showDishPopup = function (item) {
   const hw = item.Subcategory;
   const key = `downloaded_HW_${hw}_${item.Level}_${item.LessonNo}`;
   const downloaded = localStorage.getItem(key) === "true";
+  const lessonRouteInfo = getLessonRouteInfo(item);
+  const lessonPageDef = getLessonPageDefinitionForItem(item);
+  const isCustomLessonModule = !!lessonPageDef;
+  const fallbackDay = dm && typeof dm.getDay === "function"
+    ? dm.getDay(hw, item.Level, item.LessonNo)
+    : null;
 
   let content = `<div style="font-weight:bold; font-size: 15px; margin-bottom: 10px;">📥 ${hw}</div>`;
 
@@ -147,8 +245,20 @@ window.showDishPopup = function (item) {
     : "";
 
   const isRegularHW = hasCurriculumLevels(hw);
+  const isWordCategory = item.label === "단어";
+  const shouldUseWordSupabasePreview =
+    isCustomLessonModule && isWordCategory && !!previewImageURL;
 
-  if (isRegularHW && previewImageURL) {
+  if (shouldUseWordSupabasePreview) {
+    content += `
+      <div style="margin-bottom: 8px; height: 180px; overflow-y: auto; border: 1px solid #aaa; border-radius: 6px;">
+        <img src="${previewImageURL}" style="width: 100%;" />
+      </div>
+    `;
+  } else if (isCustomLessonModule) {
+    const previewTitle = item.Subcategory || item.label || "학습";
+    content += renderCustomModulePreviewCard(previewTitle, lessonRouteInfo, fallbackDay, item.Level);
+  } else if (isRegularHW && previewImageURL) {
     content += `
       <div style="margin-bottom: 8px; height: 180px; overflow-y: auto; border: 1px solid #aaa; border-radius: 6px;">
         <img src="${previewImageURL}" style="width: 100%;" />
@@ -156,7 +266,39 @@ window.showDishPopup = function (item) {
     `;
   }
 
-  if (isRegularHW) {
+  if (isCustomLessonModule) {
+    const quizResult = JSON.parse(localStorage.getItem("QuizResults") || "{}");
+    const customQuizKey = filename ? filename.replace(/\.pdf$/, "") : "";
+    const routeQuizKey = lessonRouteInfo?.quizKey || "";
+    const isDone =
+      quizResult.teststatus === "done" &&
+      (
+        (customQuizKey && quizResult.quiztitle === customQuizKey) ||
+        (routeQuizKey && quizResult.quiztitle === routeQuizKey)
+      );
+
+    if (lessonRouteInfo?.path) {
+      if (isDone) {
+        content += `
+          <div style="margin-bottom: 10px;">이미 시험을 완료했어요. 제출할 수 있어요.</div>
+          <div style="display: flex; gap: 6px; justify-content: center;">
+            <button class="room-btn" style="background: #2e7d32; flex: 1;" id="custom-quiz-btn">🔁 다시 학습/시험</button>
+            <button class="room-btn" style="background: #1976d2; flex: 1;" id="upload-btn">✅ 완료했어요</button>
+          </div>
+        `;
+      } else {
+        content += `
+          <div style="margin-bottom: 10px;">전용 학습 페이지로 이동합니다.</div>
+          <button class="room-btn" style="background: #f2c94c; color: #5a4300; width: 100%;" id="custom-quiz-btn">📒 외우러 갑시다!</button>
+        `;
+      }
+    } else {
+      content += `
+        <div style="margin-bottom: 10px;">해당 Day는 아직 준비 중입니다.</div>
+        <button class="room-btn" style="background: #b6b6b6; width: 100%; cursor:not-allowed;" disabled>📝 시험 준비중</button>
+      `;
+    }
+  } else if (isRegularHW) {
     const quizResult = JSON.parse(localStorage.getItem("QuizResults") || "{}");
     const quizKey = baseFile;
     const isDone = quizKey && quizResult.quiztitle === quizKey && quizResult.teststatus === "done";
@@ -304,6 +446,21 @@ window.showDishPopup = function (item) {
     const quizKey = buildFilename(item).replace(/\.pdf$/, "");
     window.location.href =
       `dish-quiz.html?id=${encodeURIComponent(userId || "")}&key=${encodeURIComponent(quizKey)}`;
+  });
+
+  popup.querySelector("#custom-quiz-btn")?.addEventListener("click", () => {
+    if (!lessonRouteInfo?.path) {
+      alert("연결된 학습 페이지를 찾지 못했습니다.");
+      return;
+    }
+
+    const dishQuizKey = filename ? filename.replace(/\.pdf$/, "") : "";
+    const targetUrl = buildTargetUrl(lessonRouteInfo.path, {
+      id: userId || "",
+      key: lessonRouteInfo.quizKey || "",
+      dishQuizKey
+    });
+    window.location.href = targetUrl;
   });
 
   popup.querySelector("#upload-btn")?.addEventListener("click", () => {

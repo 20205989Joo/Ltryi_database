@@ -134,6 +134,96 @@
   padding: 8px;
 }
 
+#levelSection {
+  display: block;
+}
+
+#levelSection .level-section-title {
+  margin-bottom: 6px;
+}
+
+#levelSection .level-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+#levelSection .menu-btn.level-btn {
+  width: 58px;
+  aspect-ratio: 1 / 1;
+  padding: 4px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  perspective: 300px;
+  transform-style: preserve-3d;
+  gap: 0;
+  white-space: normal;
+  line-height: 1;
+  font-size: 10px;
+  border-width: 1.5px;
+  border-style: solid;
+}
+
+#levelSection .menu-btn.level-btn .level-name {
+  position: relative;
+  z-index: 2;
+  transform: translateZ(8px);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.1;
+  max-width: 100%;
+  padding: 0 2px;
+}
+
+#levelSection .menu-btn.level-btn .level-rank {
+  position: absolute;
+  left: 50%;
+  top: 54%;
+  transform: translate(-50%, -50%) translateZ(-18px);
+  z-index: 1;
+  pointer-events: none;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 0.9;
+  color: rgba(0, 0, 0, 0.17);
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.72),
+    0 -1px 0 rgba(0, 0, 0, 0.08);
+}
+
+#levelSection .menu-btn.level-btn.has-rank .level-name {
+  font-size: 12px;
+}
+
+#levelSection .menu-btn.level-basic {
+  background: #cfe2ed;
+  border-color: #9db9c9;
+  color: #2e4e5e;
+}
+
+#levelSection .menu-btn.level-herma {
+  background: #e8ccd8;
+  border-color: #c7a0ae;
+  color: #5f3347;
+}
+
+#levelSection .menu-btn.level-pleks {
+  background: #e8dda2;
+  border-color: #c6b56a;
+  color: #5f4f11;
+}
+
+#levelSection .menu-btn.level-btn.active {
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.75), 0 0 0 2px rgba(90, 70, 20, 0.22);
+  transform: translateY(-1px);
+}
+
 
 
 /* ░░ 선택된 항목 표시 ░░ */

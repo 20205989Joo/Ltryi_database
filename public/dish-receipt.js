@@ -1,38 +1,28 @@
-// ✅ kiosk_receipt.js의 계산 기준 그대로 가져오기
-const RECEIPT_RANGES = {
-  '단어': {
-    'A1': [1, 45],
-    'A2': [46, 89],
-    'B1': [90, 130],
-    'B2': [131, 201],
-    'C1': [202, 266]
-  },
-  '연어': {
-    '900핵심연어': [1, 42]
-  },
-  '문법': {
-    'Basic': [1, 50]
-  },
-  '단계별 독해': {
-    'RCStepper': [1, 50]
-  }
-};
+function getDayManager() {
+  return window.DayManager || null;
+}
 
-function inferLevel(subcategory, level, lessonNo) {
-  const range = RECEIPT_RANGES?.[subcategory]?.[level];
-  if (!range) return null;
-  const [start, end] = range;
-  if (lessonNo >= start && lessonNo <= end) {
-    const day = lessonNo - start + 1;
-    return { start, day };
+function resolveSubcategoryName(subcategory) {
+  const dm = getDayManager();
+  if (!subcategory || !dm || typeof dm.resolveSubcategoryName !== "function") return subcategory;
+  return dm.resolveSubcategoryName(subcategory) || subcategory;
+}
+
+function getDayMeta(subcategory, level, lessonNo) {
+  const dm = getDayManager();
+  const canonicalSub = resolveSubcategoryName(subcategory);
+  const lesson = lessonNo != null ? Number(lessonNo) : null;
+  if (!dm || !level || lesson == null || Number.isNaN(lesson) || typeof dm.getDay !== "function") {
+    return { subcategory: canonicalSub, day: null };
   }
-  return null;
+  const day = dm.getDay(canonicalSub, level, lesson);
+  return { subcategory: canonicalSub, day };
 }
 
 function showReceiptFromQordered(latestLabel = null) {
-  if (!document.getElementById('receipt-animation-style')) {
-    const style = document.createElement('style');
-    style.id = 'receipt-animation-style';
+  if (!document.getElementById("receipt-animation-style")) {
+    const style = document.createElement("style");
+    style.id = "receipt-animation-style";
     style.innerHTML = `
       @keyframes receiptShadowPop {
         0% { box-shadow: 0 0 0px rgba(80, 200, 120, 0); }
@@ -42,12 +32,12 @@ function showReceiptFromQordered(latestLabel = null) {
     document.head.appendChild(style);
   }
 
-  const hwItems = JSON.parse(localStorage.getItem('HWPlus') || '[]');
-  const pending = JSON.parse(localStorage.getItem('PendingUploads') || '[]');
+  const hwItems = JSON.parse(localStorage.getItem("HWPlus") || "[]");
+  const pending = JSON.parse(localStorage.getItem("PendingUploads") || "[]");
 
-  const container = document.createElement('div');
-  container.id = 'temp-receipt';
-  container.className = 'receipt-box';
+  const container = document.createElement("div");
+  container.id = "temp-receipt";
+  container.className = "receipt-box";
   container.style = `
     position: absolute;
     top: 120px;
@@ -69,37 +59,47 @@ function showReceiptFromQordered(latestLabel = null) {
   `;
 
   let content = '<div class="receipt-title">📄 주문 영수증</div><div class="receipt-content">';
+  const latestCanonical = resolveSubcategoryName(latestLabel) || latestLabel;
 
   hwItems.forEach(entry => {
-    const isChecked = pending.some(p =>
-      (p.label === entry.Subcategory || p.Subcategory === entry.Subcategory) &&
-      (p.Level == null || p.Level === entry.Level) &&
-      (p.LessonNo == null || p.LessonNo === entry.LessonNo) &&
-      p.Status === 'readyToBeSent'
-    );
+    const entrySub = resolveSubcategoryName(entry.Subcategory) || entry.Subcategory;
+    const entryLevel = entry.Level ?? null;
+    const entryLessonNo = entry.LessonNo ?? null;
 
-    let line = '';
-    if (entry.Level && entry.LessonNo !== undefined) {
-      const meta = inferLevel(entry.Subcategory, entry.Level, entry.LessonNo);
-      const dayStr = meta ? `Day ${meta.day}` : `Lesson ${entry.LessonNo}`;
-      line = `${entry.Subcategory} > ${entry.Level} > ${dayStr}`;
+    const isChecked = pending.some(p => {
+      const pendingSub = resolveSubcategoryName(p.Subcategory) || p.Subcategory;
+      const sameSub = pendingSub === entrySub || p.label === entrySub;
+      const sameLevel = (p.Level ?? null) === entryLevel || p.Level == null;
+      const sameLesson = (p.LessonNo ?? null) === entryLessonNo || p.LessonNo == null;
+      return sameSub && sameLevel && sameLesson && p.Status === "readyToBeSent";
+    });
+
+    let line = "";
+    if (entryLevel && entryLessonNo !== undefined && entryLessonNo !== null) {
+      const meta = getDayMeta(entrySub, entryLevel, entryLessonNo);
+      const dayStr = meta.day != null ? `Day ${meta.day}` : `Lesson ${entryLessonNo}`;
+      line = `${entrySub} > ${entryLevel} > ${dayStr}`;
+    } else if (entryLevel) {
+      line = `${entrySub} > ${entryLevel}`;
     } else {
-      line = `${entry.Subcategory}`;
+      line = `${entrySub}`;
     }
 
-    const highlight = entry.Subcategory === latestLabel || (entry.Subcategory === "Customorder" && latestLabel === "Customorder");
+    const highlight =
+      entrySub === latestCanonical ||
+      (entrySub === "Customorder" && latestLabel === "Customorder");
     const style = `
-      ${isChecked ? 'color: green;' : ''}
-      ${highlight ? 'font-weight: bold; animation: flashText 0.5s linear 1;' : ''}
+      ${isChecked ? "color: green;" : ""}
+      ${highlight ? "font-weight: bold; animation: flashText 0.5s linear 1;" : ""}
     `;
 
-    content += `<div style="${style}">${line}${isChecked ? ' ✔️' : ''}</div>`;
+    content += `<div style="${style}">${line}${isChecked ? " ✔️" : ""}</div>`;
   });
 
-  content += '</div>';
+  content += "</div>";
   container.innerHTML = content;
 
-  document.querySelector('.main-page').appendChild(container);
+  document.querySelector(".main-page").appendChild(container);
 
   setTimeout(() => {
     container.style.opacity = 0;
@@ -107,8 +107,8 @@ function showReceiptFromQordered(latestLabel = null) {
   }, 3000);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('receipt_icon')?.addEventListener('click', () => {
+window.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("receipt_icon")?.addEventListener("click", () => {
     showReceiptFromQordered();
   });
 });

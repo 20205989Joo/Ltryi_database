@@ -6,6 +6,7 @@
   <title>오늘의 숙제 트레이</title>
   <link rel="stylesheet" href="styles-frame.css" />
   <link rel="stylesheet" href="styles-room.css" />
+  <link rel="stylesheet" href="nav-buttons.css" />
   <style>
     #cafe_int {
       position: absolute;
@@ -121,10 +122,6 @@
       bottom: 20px;
       left: 20px;
       z-index: 999;
-      background: #4caf50;
-    }
-    #back-to-room-btn:hover {
-      background: #388e3c;
     }
 
     /* ✅ 좌측 상단 '베이스 체커' 버튼 */
@@ -217,18 +214,19 @@
       </button>
 
       <!-- ✅ student-room.html로 돌아가기 버튼 -->
-      <button id="back-to-room-btn" class="room-btn"> ⬅메인홀로 나가기</button>
+      <button
+        id="back-to-room-btn"
+        class="nav-mainhall-btn"
+        data-nav-mainhall="student-room.html"
+        data-nav-replace="true"
+      >
+        ⬅메인홀로 나가기
+      </button>
     </div>
   </div>
 
+  <script src="nav-buttons.js"></script>
   <script>
-    // ⬅ 메인홀로 나가기
-    document.getElementById('back-to-room-btn').addEventListener('click', () => {
-      const userId = new URLSearchParams(window.location.search).get('id');
-      const targetUrl = userId ? `student-room.html?id=${encodeURIComponent(userId)}` : `student-room.html`;
-      window.location.replace(targetUrl); // ✅ 스택 비워서 뒤로가기 차단
-    });
-
     // ⬜ 베이스 체커로 이동 (현 아이디 그대로 전달)
     (function(){
       const BASE_CHECKER_URL = 'base_checker.html';

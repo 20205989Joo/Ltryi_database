@@ -20,6 +20,17 @@ function needsLevelAndDay(subcategory) {
   return levels.length > 0;
 }
 
+function getLevelVisual(subcategory, level) {
+  const canonicalSub = resolveSubcategoryName(subcategory);
+  if (canonicalSub !== '문법') return null;
+
+  const normalized = String(level || '').trim().toLowerCase();
+  if (normalized === 'basic') return { variant: 'basic', rank: '1' };
+  if (normalized === 'herma') return { variant: 'herma', rank: '2' };
+  if (normalized === 'pleks') return { variant: 'pleks', rank: '3' };
+  return null;
+}
+
 function setAddButtonEnabled(enabled) {
   const addBtn = document.getElementById('subPopupAddBtn');
   if (!addBtn) return;
@@ -178,18 +189,44 @@ function renderLevelOptions(temp) {
   }
 
   setAddButtonEnabled(false);
-  section.innerHTML = '난이도를 골라주세요:<br>';
+  section.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.className = 'level-section-title';
+  title.textContent = '난이도를 골라주세요:';
+  section.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'level-grid';
+  section.appendChild(grid);
+
   (levels || []).forEach(level => {
     const btn = document.createElement('button');
-    btn.className = 'menu-btn small';
-    btn.innerText = level;
+    btn.className = 'menu-btn small level-btn';
+
+    const visual = getLevelVisual(sub, level);
+    if (visual?.variant) btn.classList.add(`level-${visual.variant}`);
+
+    if (visual?.rank) {
+      btn.classList.add('has-rank');
+      const levelRank = document.createElement('span');
+      levelRank.className = 'level-rank';
+      levelRank.textContent = visual.rank;
+      btn.appendChild(levelRank);
+    }
+
+    const levelName = document.createElement('span');
+    levelName.className = 'level-name';
+    levelName.textContent = level;
+    btn.appendChild(levelName);
+
     btn.onclick = () => {
       temp.Level = level;
       document.querySelectorAll('#levelSection .menu-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       renderLessonOptions(temp);
     };
-    section.appendChild(btn);
+    grid.appendChild(btn);
   });
 }
 

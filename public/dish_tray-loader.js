@@ -229,9 +229,29 @@ window.addEventListener('DOMContentLoaded', () => {
       const target = qordered.find(item => {
         try {
           const filename = window.buildFilename(item);
-          if (!filename) return false;
-          const keyWithoutExt = filename.replace(/\.pdf$/, '');
-          return keyWithoutExt === autoQuizKey;
+          if (filename) {
+            const keyWithoutExt = filename.replace(/\.pdf$/, '');
+            if (keyWithoutExt === autoQuizKey) return true;
+          }
+
+          const dm = getDayManager();
+          if (dm && typeof dm.getLessonPageRoute === 'function') {
+            const canonicalSub = resolveSubcategoryName(item.Subcategory);
+            const lessonNo = item.LessonNo != null ? Number(item.LessonNo) : null;
+            const resolvedLevel =
+              item.Level ?? (
+                typeof dm.inferLevel === 'function' && lessonNo != null
+                  ? dm.inferLevel(canonicalSub, lessonNo)?.level ?? null
+                  : null
+              );
+
+            if (canonicalSub && resolvedLevel && lessonNo != null) {
+              const route = dm.getLessonPageRoute(canonicalSub, resolvedLevel, lessonNo);
+              if (route?.quizKey && route.quizKey === autoQuizKey) return true;
+            }
+          }
+
+          return false;
         } catch (e) {
           console.warn('🚫 buildFilename 실패:', e);
           return false;
