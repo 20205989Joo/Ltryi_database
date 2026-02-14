@@ -1360,6 +1360,154 @@ app.get('/api/getAllUserInfos', async (req, res) => {
   }
 });
 
+// LIVE -> AFTERCLASS
+app.post('/api/LiveToAfterclass_send', async (req, res) => {
+  const {
+    UserId,
+    LiveSchedule,
+    SessionNo = 1,
+    QLevel,
+    QYear,
+    QMonth,
+    ServedFileURL
+  } = req.body || {};
+
+  if (
+    !UserId ||
+    !LiveSchedule ||
+    !QLevel ||
+    QYear === undefined ||
+    QMonth === undefined ||
+    !ServedFileURL
+  ) {
+    return res.status(400).json({ message: '필수 필드가 누락되었습니다.' });
+  }
+
+  const parsedSessionNo = Number(SessionNo);
+  const parsedQYear = Number(QYear);
+  const parsedQMonth = Number(QMonth);
+
+  if (
+    Number.isNaN(parsedSessionNo) ||
+    Number.isNaN(parsedQYear) ||
+    Number.isNaN(parsedQMonth)
+  ) {
+    return res.status(400).json({ message: 'SessionNo, QYear, QMonth는 숫자여야 합니다.' });
+  }
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const insertQuery = `
+      INSERT INTO LiveSessionAS
+      (UserId, LiveSchedule, SessionNo, QLevel, QYear, QMonth, ServedFileURL)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const result = await conn.query(insertQuery, [
+      String(UserId),
+      LiveSchedule,
+      parsedSessionNo,
+      String(QLevel),
+      parsedQYear,
+      parsedQMonth,
+      String(ServedFileURL)
+    ]);
+
+    res.status(200).json({
+      success: true,
+      LSASId: result?.insertId ?? null
+    });
+  } catch (err) {
+    console.error('LiveToAfterclass_send 오류:', err);
+    res.status(500).json({ message: '저장 실패', error: String(err?.message || err) });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
+app.get('/api/LiveToAfterclass_receive', async (req, res) => {
+  const userId = req.query.userId || req.query.UserId;
+  const liveSchedule = req.query.liveSchedule || req.query.LiveSchedule; // yyyy-mm-dd or datetime
+  const sessionNoRaw = req.query.sessionNo || req.query.SessionNo;
+  const qLevel = req.query.qLevel || req.query.QLevel;
+  const qYearRaw = req.query.qYear || req.query.QYear;
+  const qMonthRaw = req.query.qMonth || req.query.QMonth;
+  const limitRaw = req.query.limit;
+
+  if (!userId) {
+    return res.status(400).json({ message: 'userId(UserId)가 필요합니다.' });
+  }
+
+  const params = [String(userId)];
+  let query = `
+    SELECT
+      LSASId, UserId, LiveSchedule, SessionNo, QLevel, QYear, QMonth, ServedFileURL, UpdatedAt
+    FROM LiveSessionAS
+    WHERE UserId = ?
+  `;
+
+  if (liveSchedule) {
+    query += ` AND DATE(LiveSchedule) = DATE(?)`;
+    params.push(liveSchedule);
+  }
+
+  if (sessionNoRaw !== undefined) {
+    const n = Number(sessionNoRaw);
+    if (Number.isNaN(n)) {
+      return res.status(400).json({ message: 'sessionNo(SessionNo)는 숫자여야 합니다.' });
+    }
+    query += ` AND SessionNo = ?`;
+    params.push(n);
+  }
+
+  if (qLevel) {
+    query += ` AND QLevel = ?`;
+    params.push(String(qLevel));
+  }
+
+  if (qYearRaw !== undefined) {
+    const n = Number(qYearRaw);
+    if (Number.isNaN(n)) {
+      return res.status(400).json({ message: 'qYear(QYear)는 숫자여야 합니다.' });
+    }
+    query += ` AND QYear = ?`;
+    params.push(n);
+  }
+
+  if (qMonthRaw !== undefined) {
+    const n = Number(qMonthRaw);
+    if (Number.isNaN(n)) {
+      return res.status(400).json({ message: 'qMonth(QMonth)는 숫자여야 합니다.' });
+    }
+    query += ` AND QMonth = ?`;
+    params.push(n);
+  }
+
+  let limit = 50;
+  if (limitRaw !== undefined) {
+    const n = Number(limitRaw);
+    if (Number.isNaN(n)) {
+      return res.status(400).json({ message: 'limit은 숫자여야 합니다.' });
+    }
+    limit = Math.min(Math.max(n, 1), 500);
+  }
+
+  query += ` ORDER BY UpdatedAt DESC, LSASId DESC LIMIT ?`;
+  params.push(limit);
+
+  let conn;
+  try {
+    conn = await pool.getConnection();
+    const rows = await conn.query(query, params);
+    res.status(200).json(rows);
+  } catch (err) {
+    console.error('LiveToAfterclass_receive 오류:', err);
+    res.status(500).json({ message: '조회 실패', error: String(err?.message || err) });
+  } finally {
+    if (conn) conn.release();
+  }
+});
+
 
 
 
