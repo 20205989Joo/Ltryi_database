@@ -1369,18 +1369,27 @@ app.post('/api/LiveToAfterclass_send', async (req, res) => {
     QLevel,
     QYear,
     QMonth,
-    ServedFileURL
+    ServedFileURL,
+    PayloadJson,
+    Bucket
   } = req.body || {};
 
-  if (
-    !UserId ||
-    !LiveSchedule ||
-    !QLevel ||
-    QYear === undefined ||
-    QMonth === undefined ||
-    !ServedFileURL
-  ) {
-    return res.status(400).json({ message: '필수 필드가 누락되었습니다.' });
+  const receivedKeys = Object.keys(req.body || {});
+  const missing = [];
+  if (!UserId) missing.push('UserId');
+  if (!LiveSchedule) missing.push('LiveSchedule');
+  if (!QLevel) missing.push('QLevel');
+  if (QYear === undefined) missing.push('QYear');
+  if (QMonth === undefined) missing.push('QMonth');
+  if (!ServedFileURL && PayloadJson === undefined) missing.push('ServedFileURL|PayloadJson');
+
+  if (missing.length > 0) {
+    console.warn('[LiveToAfterclass_send] missing fields:', missing, 'received keys:', receivedKeys);
+    return res.status(400).json({
+      message: '필수 필드가 누락되었습니다.',
+      missing,
+      receivedKeys
+    });
   }
 
   const parsedSessionNo = Number(SessionNo);
@@ -1393,6 +1402,46 @@ app.post('/api/LiveToAfterclass_send', async (req, res) => {
     Number.isNaN(parsedQMonth)
   ) {
     return res.status(400).json({ message: 'SessionNo, QYear, QMonth는 숫자여야 합니다.' });
+  }
+
+  const bucket = String(Bucket || 'hw-images');
+  let finalServedFileURL = ServedFileURL ? String(ServedFileURL) : '';
+
+  // If URL is not provided, upload JSON payload to Supabase first and use its public URL.
+  if (!finalServedFileURL) {
+    if (PayloadJson === undefined) {
+      return res.status(400).json({ message: 'ServedFileURL 또는 PayloadJson 중 하나는 필요합니다.' });
+    }
+
+    let jsonText = '';
+    if (typeof PayloadJson === 'string') {
+      try {
+        // Normalize as valid JSON text if possible.
+        jsonText = JSON.stringify(JSON.parse(PayloadJson), null, 2);
+      } catch (_e) {
+        jsonText = PayloadJson;
+      }
+    } else {
+      jsonText = JSON.stringify(PayloadJson, null, 2);
+    }
+
+    const nowStamp = Date.now();
+    const safeUser = safeSupabaseKey(String(UserId));
+    const safeLevel = safeSupabaseKey(String(QLevel));
+    const storagePath = `live-json/${safeUser}_${safeLevel}_${parsedQYear}_${parsedQMonth}_s${parsedSessionNo}_${nowStamp}.json`;
+
+    const { error: upErr } = await supabase.storage
+      .from(bucket)
+      .upload(storagePath, Buffer.from(jsonText, 'utf-8'), {
+        contentType: 'application/json; charset=utf-8',
+        upsert: false
+      });
+
+    if (upErr) {
+      return res.status(500).json({ message: 'Supabase 업로드 실패', error: String(upErr.message || upErr) });
+    }
+
+    finalServedFileURL = `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${storagePath}`;
   }
 
   let conn;
@@ -1410,12 +1459,13 @@ app.post('/api/LiveToAfterclass_send', async (req, res) => {
       String(QLevel),
       parsedQYear,
       parsedQMonth,
-      String(ServedFileURL)
+      String(finalServedFileURL)
     ]);
 
     res.status(200).json({
       success: true,
-      LSASId: result?.insertId ?? null
+      LSASId: result?.insertId ?? null,
+      ServedFileURL: finalServedFileURL
     });
   } catch (err) {
     console.error('LiveToAfterclass_send 오류:', err);
