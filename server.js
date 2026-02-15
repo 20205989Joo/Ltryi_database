@@ -16,18 +16,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public'));
 
-app.use(cors()); // CORS를 모든 요청에 대해 허용
-
-function jsonSafe(value) {
-  if (typeof value === 'bigint') return value.toString();
-  if (Array.isArray(value)) return value.map(jsonSafe);
-  if (value && typeof value === 'object') {
-    const out = {};
-    for (const [k, v] of Object.entries(value)) out[k] = jsonSafe(v);
-    return out;
-  }
-  return value;
-}
+app.use(cors());
 
 const { createClient } = require('@supabase/supabase-js');
 
@@ -1564,7 +1553,7 @@ app.get('/api/LiveToAfterclass_receive', async (req, res) => {
   try {
     conn = await pool.getConnection();
     const rows = await conn.query(query, params);
-    res.status(200).json(jsonSafe(rows));
+    res.status(200).json(rows);
   } catch (err) {
     console.error('LiveToAfterclass_receive 오류:', err);
     res.status(500).json({ message: '조회 실패', error: String(err?.message || err) });
