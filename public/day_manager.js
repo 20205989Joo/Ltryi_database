@@ -156,8 +156,7 @@
         filePrefix: "herma",
         startBook: 1,
         startExercise: 1,
-        episodesPerBook: 50,
-        availableDays: [1]
+        episodesPerBook: 50
       },
       "pleks": {
         folder: "pleks",
