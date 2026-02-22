@@ -4,7 +4,7 @@
 
   var state = {
     enabled: true,
-    limit: 20,
+    limit: 4,
     wrappedBuild: false,
     wrappedStart: false,
     timerId: null,
