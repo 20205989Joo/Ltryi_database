@@ -13,11 +13,116 @@
     window.location.reload();
   }
 
-  function defaultReturnToTray(quizTitle) {
+  function parseDayNumber(dayValue) {
+    const raw = String(dayValue || "").trim();
+    if (!raw) return null;
+    const m = raw.match(/(\d+)/);
+    if (!m) return null;
+    const n = Number(m[1]);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+
+  function parseLessonNoFromDishQuizKey(dishQuizKey) {
+    const raw = String(dishQuizKey || "").trim();
+    if (!raw) return null;
+    const m = raw.match(/Lesson(\d+)/i);
+    if (!m) return null;
+    const n = Number(m[1]);
+    return Number.isInteger(n) && n > 0 ? n : null;
+  }
+
+  function normalizeHermaSubcategory(raw) {
+    const value = String(raw || "").trim();
+    if (!value) return "문법";
+    if (/^grammar$/i.test(value)) return "문법";
+    return value;
+  }
+
+  function buildOneUpUrl(filename, extraParams) {
+    const target = new URL(`../${filename}`, window.location.href);
+    const params = extraParams || {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        target.searchParams.set(key, String(value));
+      }
+    });
+    return target.toString();
+  }
+
+  function tryQueueDoneInWebAndGoSubmit(payload) {
+    const info = payload || {};
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("id") || "";
-    const url = `homework-tray_v1.html?id=${encodeURIComponent(userId)}&quizKey=${encodeURIComponent(quizTitle || "")}`;
-    window.location.replace(url);
+    const dishQuizKey = params.get("dishQuizKey") || "";
+
+    const canonicalSub = normalizeHermaSubcategory(info.subcategory);
+    const level = String(info.level || "herma").trim() || "herma";
+    const dayNum = parseDayNumber(info.day);
+
+    let lessonNo = parseLessonNoFromDishQuizKey(dishQuizKey);
+    if (!lessonNo && dayNum && /^herma$/i.test(level)) {
+      // Herma lessons are currently mapped to 101+ day in the grammar range.
+      lessonNo = 100 + dayNum;
+    }
+
+    if (!(Number.isInteger(lessonNo) && lessonNo > 0)) {
+      return false;
+    }
+
+    const key = "PendingUploads";
+    let existing = [];
+    try {
+      existing = JSON.parse(localStorage.getItem(key) || "[]");
+      if (!Array.isArray(existing)) existing = [];
+    } catch (_) {
+      existing = [];
+    }
+
+    existing = existing.filter((entry) => {
+      if (!entry || typeof entry !== "object") return true;
+      const sameUser = String(entry.UserId || "") === userId;
+      const sameSub = String(entry.Subcategory || "") === canonicalSub;
+      const sameLevel = String(entry.Level || "") === level;
+      const sameLesson = Number(entry.LessonNo) === lessonNo;
+      return !(sameUser && sameSub && sameLevel && sameLesson);
+    });
+
+    existing.push({
+      UserId: userId,
+      Subcategory: canonicalSub,
+      Level: level,
+      HWType: "doneinweb",
+      LessonNo: lessonNo,
+      Status: "readyToBeSent",
+      Score: null,
+      orderedFileURL: null,
+      servedFileURL: null,
+      timestamp: new Date().toISOString(),
+      comment: "웹시험 완료(herma)",
+      feedbackcomment: null
+    });
+
+    localStorage.setItem(key, JSON.stringify(existing));
+    window.location.replace(buildOneUpUrl("homework-submit.html", { id: userId }));
+    return true;
+  }
+
+  function defaultReturnToTray(payload) {
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("id") || "";
+    const quizTitle = typeof payload === "string" ? payload : (payload?.quizTitle || "");
+
+    if (payload && typeof payload === "object") {
+      const queued = tryQueueDoneInWebAndGoSubmit(payload);
+      if (queued) return;
+    }
+
+    window.location.replace(
+      buildOneUpUrl("homework-tray_v1.html", {
+        id: userId,
+        quizKey: quizTitle || ""
+      })
+    );
   }
 
   function show(options) {
@@ -49,7 +154,7 @@
     window.restartQuiz = typeof opts.onRestart === "function" ? opts.onRestart : defaultRestart;
     window.returnToTray = typeof opts.onSubmit === "function"
       ? opts.onSubmit
-      : () => defaultReturnToTray(quizTitle);
+      : () => defaultReturnToTray({ quizTitle, subcategory, level, day });
 
     const table = `
       <table style="width:100%; border-collapse: collapse; font-size: 13px;">
