@@ -2,6 +2,28 @@
 // Same structure and wording as dish-quiz.js result popup.
 
 (function () {
+  function readQuizResultsMap() {
+    try {
+      const raw = localStorage.getItem("QuizResultsMap");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function storeQuizResultWithMap(resultObject) {
+    localStorage.setItem("QuizResults", JSON.stringify(resultObject));
+
+    const quizKey = String(resultObject?.quiztitle || resultObject?.quizTitle || "").trim();
+    if (!quizKey) return;
+
+    const map = readQuizResultsMap();
+    map[quizKey] = resultObject;
+    localStorage.setItem("QuizResultsMap", JSON.stringify(map));
+  }
+
   function computeScore(results) {
     const totalQuestions = results.length;
     const correctCount = results.filter((r) => r.correct).length;
@@ -58,6 +80,7 @@
     const canonicalSub = normalizeHermaSubcategory(info.subcategory);
     const level = String(info.level || "herma").trim() || "herma";
     const dayNum = parseDayNumber(info.day);
+    const quizKey = String(info.quizTitle || info.quiztitle || "").trim();
 
     let lessonNo = parseLessonNoFromDishQuizKey(dishQuizKey);
     if (!lessonNo && dayNum && /^herma$/i.test(level)) {
@@ -80,6 +103,10 @@
 
     existing = existing.filter((entry) => {
       if (!entry || typeof entry !== "object") return true;
+      const entryQuizKey = String(entry.QuizKey || "").trim();
+      if (quizKey && entryQuizKey) {
+        return !(String(entry.UserId || "") === userId && entryQuizKey === quizKey);
+      }
       const sameUser = String(entry.UserId || "") === userId;
       const sameSub = String(entry.Subcategory || "") === canonicalSub;
       const sameLevel = String(entry.Level || "") === level;
@@ -91,6 +118,7 @@
       UserId: userId,
       Subcategory: canonicalSub,
       Level: level,
+      QuizKey: quizKey || null,
       HWType: "doneinweb",
       LessonNo: lessonNo,
       Status: "readyToBeSent",
@@ -150,7 +178,7 @@
       testspecific: results,
     };
 
-    localStorage.setItem("QuizResults", JSON.stringify(resultObject));
+    storeQuizResultWithMap(resultObject);
 
     const popupId = opts.popupId || "result-popup";
     const popup = document.getElementById(popupId);

@@ -243,21 +243,30 @@ window.addEventListener('DOMContentLoaded', () => {
     const canonicalSub = resolveSubcategoryName(subcategory);
     const level = entry.Level ?? null;
     const lessonNo = entry.LessonNo ?? null;
+    const quizKey = entry.QuizKey ? String(entry.QuizKey).trim() : null;
 
     // 같은 유저 / 같은 과목+레벨+LessonNo 인 기존 pending 제거
-    existing = existing.filter(e =>
-      !(
+    existing = existing.filter(e => {
+      const sameUser = e.UserId === userId;
+      if (!sameUser) return true;
+
+      const existingQuizKey = e.QuizKey ? String(e.QuizKey).trim() : null;
+      if (quizKey && existingQuizKey) {
+        return existingQuizKey !== quizKey;
+      }
+
+      return !(
         resolveSubcategoryName(e.Subcategory) === canonicalSub &&
         (e.Level ?? null) === level &&
-        (e.LessonNo ?? null) === lessonNo &&
-        e.UserId === userId
-      )
-    );
+        (e.LessonNo ?? null) === lessonNo
+      );
+    });
 
     const newEntry = {
       UserId: userId,
       Subcategory: canonicalSub,
       Level: level,
+      QuizKey: quizKey,
       HWType: entry.HWType || 'pdf사진',
       LessonNo: lessonNo,
       Status: 'readyToBeSent',

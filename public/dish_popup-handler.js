@@ -187,6 +187,48 @@ function buildFilename(item) {
 
 window.buildFilename = buildFilename;
 
+function readQuizResultsMap() {
+  try {
+    const raw = localStorage.getItem("QuizResultsMap");
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function readLegacyQuizResult() {
+  try {
+    const raw = localStorage.getItem("QuizResults");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function getStoredQuizResultByKey(quizKey) {
+  const key = String(quizKey || "").trim();
+  if (!key) return null;
+
+  const map = readQuizResultsMap();
+  const fromMap = map[key];
+  if (fromMap && typeof fromMap === "object") return fromMap;
+
+  const legacy = readLegacyQuizResult();
+  if (!legacy) return null;
+
+  const legacyKey = String(legacy.quiztitle || legacy.quizTitle || "").trim();
+  return legacyKey === key ? legacy : null;
+}
+
+function isStoredQuizDoneForKey(quizKey) {
+  const result = getStoredQuizResultByKey(quizKey);
+  return !!(result && result.teststatus === "done");
+}
+
 window.showDishPopup = function (item) {
   const cafeInt = document.getElementById("cafe_int");
   if (!cafeInt) {
@@ -328,15 +370,12 @@ window.showDishPopup = function (item) {
   }
 
   if (isCustomLessonModule) {
-    const quizResult = JSON.parse(localStorage.getItem("QuizResults") || "{}");
     const customQuizKey = filename ? filename.replace(/\.pdf$/, "") : "";
     const routeQuizKey = lessonRouteInfo?.quizKey || "";
-    const isDone =
-      quizResult.teststatus === "done" &&
-      (
-        (customQuizKey && quizResult.quiztitle === customQuizKey) ||
-        (routeQuizKey && quizResult.quiztitle === routeQuizKey)
-      );
+    const isDone = !!(
+      (routeQuizKey && isStoredQuizDoneForKey(routeQuizKey)) ||
+      (customQuizKey && isStoredQuizDoneForKey(customQuizKey))
+    );
 
     if (lessonRouteInfo?.path) {
       if (isDone) {
@@ -360,9 +399,8 @@ window.showDishPopup = function (item) {
       `;
     }
   } else if (isRegularHW) {
-    const quizResult = JSON.parse(localStorage.getItem("QuizResults") || "{}");
     const quizKey = baseFile;
-    const isDone = quizKey && quizResult.quiztitle === quizKey && quizResult.teststatus === "done";
+    const isDone = !!(quizKey && isStoredQuizDoneForKey(quizKey));
 
     if (isDone) {
       content += `
@@ -528,6 +566,10 @@ window.showDishPopup = function (item) {
     const isWord = item.label === "단어";
     const levelKey = String(item.Level || "").trim().toLowerCase();
     const isWebGrammarModule = levelKey === "herma" || levelKey === "pleks";
+    const resolvedLevelForPending = inferLevelIfNeeded(item.Subcategory, item.Level, item.LessonNo);
+    const pendingQuizKey = isCustomLessonModule
+      ? (lessonRouteInfo?.quizKey || (filename ? filename.replace(/\.pdf$/, "") : ""))
+      : (baseFile || "");
     const hwType = (isWord || isWebGrammarModule) ? "doneinweb" : "pdf사진";
 
     console.log("✅ [제출] 라벨:", item.label);
@@ -536,6 +578,8 @@ window.showDishPopup = function (item) {
 
     window.storePendingHomework({
       Subcategory: item.Subcategory,
+      Level: resolvedLevelForPending || item.Level || null,
+      QuizKey: pendingQuizKey || null,
       HWType: hwType,
       LessonNo: item.LessonNo,
       Status: "readyToBeSent",

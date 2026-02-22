@@ -2,6 +2,28 @@
 // Generic result popup table for Pleks quizzes.
 
 (function () {
+  function readQuizResultsMap() {
+    try {
+      const raw = localStorage.getItem("QuizResultsMap");
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function storeQuizResultWithMap(resultObject) {
+    localStorage.setItem("QuizResults", JSON.stringify(resultObject));
+
+    const quizKey = String(resultObject?.quiztitle || resultObject?.quizTitle || "").trim();
+    if (!quizKey) return;
+
+    const map = readQuizResultsMap();
+    map[quizKey] = resultObject;
+    localStorage.setItem("QuizResultsMap", JSON.stringify(map));
+  }
+
   function computeScore(results) {
     const totalQuestions = results.length;
     const correctCount = results.filter((r) => r.correct).length;
@@ -16,8 +38,10 @@
   function defaultReturnToTray(quizTitle) {
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("id") || "";
-    const url = `homework-tray_v1.html?id=${encodeURIComponent(userId)}&quizKey=${encodeURIComponent(quizTitle || "")}`;
-    window.location.replace(url);
+    const target = new URL("../homework-tray_v1.html", window.location.href);
+    if (userId) target.searchParams.set("id", userId);
+    if (quizTitle) target.searchParams.set("quizKey", quizTitle || "");
+    window.location.replace(target.toString());
   }
 
   function escapeHtml(str) {
@@ -49,7 +73,7 @@
       teststatus: "done",
       testspecific: results,
     };
-    localStorage.setItem("QuizResults", JSON.stringify(resultObject));
+    storeQuizResultWithMap(resultObject);
 
     const popupId = opts.popupId || "result-popup";
     const popup = document.getElementById(popupId);

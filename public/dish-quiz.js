@@ -15,6 +15,28 @@ let quizTitle = '';
 // 🔧 이 문제에서 이미 답을 처리했는지 여부
 let isAnswered = false;
 
+function readQuizResultsMap() {
+  try {
+    const raw = localStorage.getItem('QuizResultsMap');
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch (_) {
+    return {};
+  }
+}
+
+function storeQuizResultWithMap(resultObject) {
+  localStorage.setItem('QuizResults', JSON.stringify(resultObject));
+
+  const quizKey = String(resultObject?.quiztitle || resultObject?.quizTitle || '').trim();
+  if (!quizKey) return;
+
+  const map = readQuizResultsMap();
+  map[quizKey] = resultObject;
+  localStorage.setItem('QuizResultsMap', JSON.stringify(map));
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   const params = new URLSearchParams(window.location.search);
   const key = params.get('key');
@@ -236,7 +258,7 @@ function showResultPopup() {
     testspecific: results
   };
 
-  localStorage.setItem('QuizResults', JSON.stringify(resultObject));
+  storeQuizResultWithMap(resultObject);
 
   const popup = document.getElementById('result-popup');
 

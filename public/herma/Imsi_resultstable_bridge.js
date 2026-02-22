@@ -55,7 +55,18 @@
     }
   }
 
-  function readQuizResultsFromStorage() {
+  function readQuizResultsMap() {
+    try {
+      var raw = window.localStorage && window.localStorage.getItem("QuizResultsMap");
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function readLegacyQuizResultsFromStorage() {
     try {
       var raw = window.localStorage && window.localStorage.getItem("QuizResults");
       if (!raw) return null;
@@ -65,6 +76,22 @@
     } catch (_) {
       return null;
     }
+  }
+
+  function readQuizResultsFromStorage() {
+    var currentKey = getCurrentQuizKey();
+    if (currentKey) {
+      var map = readQuizResultsMap();
+      var fromMap = map[currentKey];
+      if (fromMap && typeof fromMap === "object") return fromMap;
+    }
+
+    var legacy = readLegacyQuizResultsFromStorage();
+    if (!legacy) return null;
+    if (!currentKey) return legacy;
+
+    var legacyKey = String(legacy.quizTitle || legacy.quiztitle || "").trim();
+    return legacyKey === currentKey ? legacy : null;
   }
 
   function buildTrayUrlForCurrentQuiz() {

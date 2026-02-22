@@ -200,6 +200,131 @@ window.addEventListener('DOMContentLoaded', async () => {
     return FALLBACK_SUBCATEGORY_TOKEN[canonicalSub] || canonicalSub;
   }
 
+  function readQuizResultsMap() {
+    try {
+      const raw = localStorage.getItem('QuizResultsMap');
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function writeQuizResultsMap(mapObj) {
+    localStorage.setItem('QuizResultsMap', JSON.stringify(mapObj || {}));
+  }
+
+  function readLegacyQuizResult() {
+    try {
+      const raw = localStorage.getItem('QuizResults');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === 'object' ? parsed : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getQuizResultKey(quiz) {
+    return String(quiz?.quiztitle || quiz?.quizTitle || '').trim();
+  }
+
+  function isDoneQuizResult(quiz) {
+    return !!(quiz && typeof quiz === 'object' && quiz.teststatus === 'done');
+  }
+
+  function matchesQuizExpected(quiz, expected) {
+    if (!quiz || !expected) return false;
+    return (
+      quiz.subcategory === expected.subcategory &&
+      quiz.level === expected.level &&
+      quiz.day === expected.day
+    );
+  }
+
+  function getQuizResultByKey(quizKey) {
+    const key = String(quizKey || '').trim();
+    if (!key) return null;
+
+    const map = readQuizResultsMap();
+    const mapQuiz = map[key];
+    if (mapQuiz && typeof mapQuiz === 'object') {
+      return { quiz: mapQuiz, key, source: 'map' };
+    }
+
+    const legacy = readLegacyQuizResult();
+    if (legacy && getQuizResultKey(legacy) === key) {
+      return { quiz: legacy, key, source: 'legacy' };
+    }
+
+    return null;
+  }
+
+  function findQuizResultByExpected(expected) {
+    if (!expected) return null;
+
+    const map = readQuizResultsMap();
+    for (const [key, quiz] of Object.entries(map)) {
+      if (!isDoneQuizResult(quiz)) continue;
+      if (matchesQuizExpected(quiz, expected)) {
+        return { quiz, key, source: 'map-expected' };
+      }
+    }
+
+    const legacy = readLegacyQuizResult();
+    if (isDoneQuizResult(legacy) && matchesQuizExpected(legacy, expected)) {
+      return { quiz: legacy, key: getQuizResultKey(legacy), source: 'legacy-expected' };
+    }
+
+    return null;
+  }
+
+  function getDoneInWebQuizBundle(item, canonicalSub, meta) {
+    const metaInfo = meta || getLevelDayMeta(canonicalSub, item.Level, item.LessonNo);
+    const expected = {
+      subcategory: getSubcategoryToken(canonicalSub),
+      level: metaInfo.level ?? null,
+      day: metaInfo.day != null ? `Day${metaInfo.day}` : null
+    };
+
+    const pendingQuizKey = String(item.QuizKey || '').trim();
+    if (pendingQuizKey) {
+      const byKey = getQuizResultByKey(pendingQuizKey);
+      if (byKey && isDoneQuizResult(byKey.quiz)) {
+        return { ...byKey, expected, matchedBy: 'quizKey' };
+      }
+    }
+
+    const byExpected = findQuizResultByExpected(expected);
+    if (byExpected) {
+      return { ...byExpected, expected, matchedBy: 'expected' };
+    }
+
+    return { quiz: null, key: pendingQuizKey || '', source: '', expected, matchedBy: '' };
+  }
+
+  function removeSubmittedQuizResult(quizKey) {
+    const key = String(quizKey || '').trim();
+    if (key) {
+      const map = readQuizResultsMap();
+      if (Object.prototype.hasOwnProperty.call(map, key)) {
+        delete map[key];
+        writeQuizResultsMap(map);
+        console.log(`🧹 QuizResultsMap 제거 완료: ${key}`);
+      }
+    }
+
+    const legacy = readLegacyQuizResult();
+    if (!legacy) return;
+
+    const legacyKey = getQuizResultKey(legacy);
+    if (!key || (legacyKey && legacyKey === key)) {
+      localStorage.removeItem('QuizResults');
+      console.log('🧹 QuizResults(legacy) 정리 완료');
+    }
+  }
+
   // === 제출 대기 카드 렌더링 ===
   if (!pendingList) {
     console.warn('❌ pendingList 요소가 없습니다.');
@@ -222,17 +347,21 @@ window.addEventListener('DOMContentLoaded', async () => {
 
       // 디버그: doneinweb 매칭 확인용
       if (item.HWType === 'doneinweb') {
-        const quizRaw = localStorage.getItem('QuizResults');
-        if (quizRaw) {
-          const result = JSON.parse(quizRaw);
-          const expectedDayStr = day != null ? `Day${day}` : null;
-          const expectedSub = getSubcategoryToken(canonicalSub);
+        const bundle = getDoneInWebQuizBundle(item, canonicalSub, { level, day });
+        if (bundle.quiz) {
           console.log('🔍 로드시 비교 로그 →', {
-            expected: { subcategory: expectedSub, level, day: expectedDayStr },
-            actual: { subcategory: result.subcategory, level: result.level, day: result.day }
+            quizKey: item.QuizKey || bundle.key || '',
+            matchedBy: bundle.matchedBy,
+            expected: bundle.expected,
+            actual: {
+              subcategory: bundle.quiz.subcategory,
+              level: bundle.quiz.level,
+              day: bundle.quiz.day,
+              quiztitle: bundle.quiz.quiztitle || bundle.quiz.quizTitle
+            }
           });
         } else {
-          console.warn(`❌ QuizResults 없음 – ${item.Subcategory}`);
+          console.warn(`❌ QuizResults/QuizResultsMap 없음 – ${item.Subcategory}`);
         }
       }
 
@@ -312,31 +441,34 @@ window.addEventListener('DOMContentLoaded', async () => {
       try {
         // === 1) 웹에서 푼 시험 (doneinweb) ===
         if (item.HWType === 'doneinweb') {
-          const quizRaw = localStorage.getItem('QuizResults');
-          if (!quizRaw) {
+          const meta = getLevelDayMeta(canonicalSub, item.Level, item.LessonNo);
+          const metaLevel = meta.level ?? null;
+          const bundle = getDoneInWebQuizBundle(item, canonicalSub, meta);
+          const quiz = bundle.quiz;
+          const expected = bundle.expected;
+
+          if (!quiz) {
             failMessages.push(`❌ ${item.Subcategory}: 시험 결과 없음`);
             continue;
           }
 
-          const quiz = JSON.parse(quizRaw);
-          const meta = getLevelDayMeta(canonicalSub, item.Level, item.LessonNo);
-          const metaLevel = meta.level ?? null;
-          const day = meta.day ?? null;
+          const expectedMatch = matchesQuizExpected(quiz, expected);
+          if (!expectedMatch) {
+            if (bundle.matchedBy === 'quizKey') {
+              console.warn('QuizKey matched but metadata differs; continuing submit.', {
+                expected,
+                actual: quiz,
+                quizKey: bundle.key
+              });
+            } else {
+              console.warn(`❌ 매칭 실패 – 제출 생략`, { expected, actual: quiz });
+              failMessages.push(`❌ ${item.Subcategory}: 시험 결과와 숙제 정보가 일치하지 않아 제출 생략`);
+              continue;
+            }
+          }
 
-          const expectedSub = getSubcategoryToken(canonicalSub);
-          const expected = {
-            subcategory: expectedSub,
-            level: metaLevel,
-            day: day != null ? `Day${day}` : null
-          };
-
-          if (
-            quiz.subcategory !== expected.subcategory ||
-            quiz.level !== expected.level ||
-            quiz.day !== expected.day
-          ) {
-            console.warn(`❌ 매칭 실패 – 제출 생략`, { expected, actual: quiz });
-            failMessages.push(`❌ ${item.Subcategory}: 시험 결과와 숙제 정보가 일치하지 않아 제출 생략`);
+          if (!Array.isArray(quiz.testspecific) || quiz.testspecific.length === 0) {
+            failMessages.push(`❌ ${item.Subcategory}: 시험 결과 상세 없음`);
             continue;
           }
 
@@ -378,8 +510,7 @@ window.addEventListener('DOMContentLoaded', async () => {
               return !(entryLevel === targetLevel && entryNo === targetNo);
             });
 
-            localStorage.removeItem('QuizResults');
-            console.log('🧹 QuizResults 초기화 완료');
+            removeSubmittedQuizResult(bundle.key || getQuizResultKey(quiz));
             successMessages.push(`✅ ${item.Subcategory} 제출 완료 (URL: ${result.url || 'N/A'})`);
 
             // diligence
