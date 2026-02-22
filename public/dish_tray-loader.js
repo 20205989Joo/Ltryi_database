@@ -46,6 +46,48 @@ window.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function isDisposableTool(subcategory) {
+    return (
+      subcategory === '베이스 체커' ||
+      subcategory === '셀프 단어시험' ||
+      subcategory === '모의고사 전용도구'
+    );
+  }
+
+  function removeHwPlusEntry(target) {
+    const list = JSON.parse(localStorage.getItem('HWPlus') || '[]');
+    const targetSub = resolveSubcategoryName(target.Subcategory);
+    const targetLevel = target.Level ?? null;
+    const targetLessonNo = target.LessonNo ?? null;
+
+    let removed = false;
+    const next = [];
+
+    list.forEach(entry => {
+      const entrySub = resolveSubcategoryName(entry.Subcategory);
+      const entryLevel = entry.Level ?? null;
+      const entryLessonNo = entry.LessonNo ?? null;
+
+      const same =
+        entrySub === targetSub &&
+        entryLevel === targetLevel &&
+        entryLessonNo === targetLessonNo;
+
+      if (!removed && same) {
+        removed = true;
+        return;
+      }
+
+      next.push(entry);
+    });
+
+    if (removed) {
+      localStorage.setItem('HWPlus', JSON.stringify(next));
+    }
+
+    return removed;
+  }
+
   // ✅ 공통 "완료됨" 처리 (부제목에 붙이기)
   function disableDish(dish) {
     dish.style.pointerEvents = 'none';
@@ -101,6 +143,8 @@ window.addEventListener('DOMContentLoaded', () => {
       subtitleText = `${level}`;
     } else if (item.LessonNo != null) {
       subtitleText = `Day ${item.LessonNo}`;
+    } else if (isDisposableTool(canonicalSub)) {
+      subtitleText = '바로 사용';
     }
 
     // ✅ 내부 컨테이너 만들기 (세로 정렬 강제)
@@ -133,6 +177,37 @@ window.addEventListener('DOMContentLoaded', () => {
     // ✅ 폰트 크기 자동 조절 – 제목에만 적용
     if (typeof window.adjustFontSize === 'function') {
       window.adjustFontSize(titleEl);
+    }
+
+    if (isDisposableTool(canonicalSub)) {
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.textContent = '✕';
+      removeBtn.title = '상차림에서 빼기';
+      removeBtn.style.position = 'absolute';
+      removeBtn.style.top = '2px';
+      removeBtn.style.right = '2px';
+      removeBtn.style.width = '18px';
+      removeBtn.style.height = '18px';
+      removeBtn.style.border = '1px solid rgba(80, 40, 20, 0.5)';
+      removeBtn.style.borderRadius = '999px';
+      removeBtn.style.background = 'rgba(255, 248, 238, 0.95)';
+      removeBtn.style.color = '#7a2f0f';
+      removeBtn.style.fontSize = '11px';
+      removeBtn.style.fontWeight = '800';
+      removeBtn.style.lineHeight = '1';
+      removeBtn.style.padding = '0';
+      removeBtn.style.cursor = 'pointer';
+      removeBtn.style.zIndex = '8';
+
+      removeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const removed = removeHwPlusEntry(item);
+        if (!removed) return;
+        dish.remove();
+      });
+
+      dish.appendChild(removeBtn);
     }
 
     // ✅ 이미 완료된 접시인지 PendingUploads 기준으로 체크

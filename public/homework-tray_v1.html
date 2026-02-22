@@ -89,21 +89,6 @@
       background: #e0611e;
     }
 
-    .receipt-icon {
-      width: 40px;
-      height: 40px;
-      position: absolute;
-      bottom: 20px;
-      right: 20px;
-      transform: translateX(-50%);
-      background: white;
-      border-radius: 10px;
-      padding: 4px;
-      box-shadow: 0 0 6px rgba(0,0,0,0.2);
-      z-index: 15;
-      cursor: pointer;
-    }
-
     .dish .done-label {
       font-size: 11px;
       color: #666;
@@ -124,55 +109,11 @@
       z-index: 999;
     }
 
-    /* ✅ 좌측 상단 '베이스 체커' 버튼 */
-    #base-check-btn{
-      position: fixed;
-      top: 30px;
-      left: 30px;
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: #ffffff;
-      border: 1px solid #d7b79b;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 16px;
-      color: #7e3106;
-      cursor: pointer;
-      z-index: 1000;
-    }
-    #base-check-btn:active{ transform: translateY(1px); }
-
-    /* ✅ 좌측 상단 'Self Word Test' 버튼 (베이스 체커 오른쪽) */
-    #self-test-btn{
-      position: fixed;
-      top: 30px;
-      left: 84px;            /* 베이스 체커 오른쪽에 딱 붙도록 */
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: #ffffff;
-      border: 1px solid #d7b79b;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      font-size: 14px;
-      color: #7e3106;
-      cursor: pointer;
-      z-index: 1000;
-    }
-    #self-test-btn:active{ transform: translateY(1px); }
-
     /* ✅ 좌측 상단 'Sample Test' 버튼 (Self Word Test 오른쪽) */
     #sample-test-btn{
       position: fixed;
       top: 30px;
-      left: 138px;
+      left: 30px;
       width: 44px;
       height: 44px;
       border-radius: 10px;
@@ -194,14 +135,9 @@
 <body>
   <div class="main-page">
     <div id="cafe_int">
-      <!-- ✅ 베이스 체커 버튼 -->
-      <button id="base-check-btn" title="베이스 체커">B</button>
-      <!-- ✅ Self Word Test 버튼 -->
-      <button id="self-test-btn" title="Self Word Test">S</button>
       <!-- ✅ Sample Test 버튼 -->
       <button id="sample-test-btn" title="Sample Test">T</button>
 
-      <img id="receipt_icon" class="receipt-icon" src="receipt_icon.png" alt="영수증 아이콘">
       <div class="round_table">
         <div class="tray_surface" id="tray-area">
           <!-- JS가 .dish 요소 삽입 -->
@@ -223,38 +159,11 @@
         ⬅메인홀로 나가기
       </button>
     </div>
+    <img id="receipt_icon" class="nav-floating-icon nav-floating-icon--receipt-room" src="receipt_icon.png" alt="영수증 아이콘">
   </div>
 
   <script src="nav-buttons.js"></script>
   <script>
-    // ⬜ 베이스 체커로 이동 (현 아이디 그대로 전달)
-    (function(){
-      const BASE_CHECKER_URL = 'base_checker.html';
-      const btn = document.getElementById('base-check-btn');
-      if(!btn) return;
-      btn.addEventListener('click', () => {
-        const userId = new URLSearchParams(location.search).get('id');
-        const href = userId
-          ? `${BASE_CHECKER_URL}?id=${encodeURIComponent(userId)}`
-          : BASE_CHECKER_URL;
-        location.href = href;
-      });
-    })();
-
-    // ⬜ Self Word Test로 이동 (현 아이디 그대로 전달)
-    (function(){
-      const SELF_TEST_URL = 'self_wordtest_module.html';
-      const btn = document.getElementById('self-test-btn');
-      if(!btn) return;
-      btn.addEventListener('click', () => {
-        const userId = new URLSearchParams(location.search).get('id');
-        const href = userId
-          ? `${SELF_TEST_URL}?id=${encodeURIComponent(userId)}`
-          : SELF_TEST_URL;
-        location.href = href;
-      });
-    })();
-
     // ⬜ Sample Test로 이동 (현 아이디 그대로 전달)
     (function(){
       const SAMPLE_TEST_URL = 'alpha_test.html';

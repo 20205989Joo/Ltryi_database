@@ -55,3 +55,26 @@
   transform: translateY(1px);
   filter: brightness(0.97);
 }
+
+/* Shared floating icon UI (receipt/menu utilities) */
+.nav-floating-icon {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+  z-index: 15;
+  cursor: pointer;
+}
+
+.nav-floating-icon--receipt-room {
+  bottom: 30px;
+  right: 60px;
+}
+
+.nav-floating-icon--receipt-tray {
+  bottom: 30px;
+  right: 60px;
+}

@@ -31,6 +31,19 @@ function inferLevel(subcategory, level, lessonNo) {
   };
 }
 
+let redirectTimerId = null;
+
+function clearRedirectTimer() {
+  if (!redirectTimerId) return;
+  clearTimeout(redirectTimerId);
+  redirectTimerId = null;
+}
+
+function cleanupRedirectUI() {
+  document.getElementById('redirect-toast')?.remove();
+  document.getElementById('redirect-overlay')?.remove();
+}
+
 // ✅ 최종 주문 처리 (주문 담기 버튼)
 window.handleFinalOrder = function () {
   const MAX_LIMIT = 6;
@@ -98,7 +111,7 @@ window.handleFinalOrder = function () {
     const icon = document.createElement('img');
     icon.src = 'receipt_icon.png';
     icon.id = 'receipt_icon';
-    icon.className = 'receipt-icon';
+    icon.className = 'nav-floating-icon nav-floating-icon--receipt-room';
     icon.onclick = () => window.showReceiptFromHWPlus(); // 나중에 보는 영수증
     document.querySelector('.main-page').appendChild(icon);
   }
@@ -112,10 +125,11 @@ window.handleFinalOrder = function () {
 function showReceiptAgain(text, options = {}) {
   const { autoRedirect = false } = options;
 
+  clearRedirectTimer();
+  cleanupRedirectUI();
+
   const existing = document.getElementById('temp-receipt');
   if (existing) existing.remove();
-  const existingToast = document.getElementById('redirect-toast');
-  if (existingToast) existingToast.remove();
 
   const host = document.querySelector('.main-page') || document.body;
 
@@ -142,24 +156,32 @@ function showReceiptAgain(text, options = {}) {
   `;
   host.appendChild(receipt);
 
-  let redirectTimerId = null;
-
   // ░░ 자동 이동 토스트 (autoRedirect=true일 때만) ░░
   if (autoRedirect) {
+    const overlay = document.createElement('div');
+    overlay.id = 'redirect-overlay';
+    overlay.style.position = 'absolute';
+    overlay.style.inset = '0';
+    overlay.style.background = 'rgba(0, 0, 0, 0.45)';
+    overlay.style.zIndex = '16';
+    overlay.style.pointerEvents = 'auto';
+    host.appendChild(overlay);
+
     const toast = document.createElement('div');
     toast.id = 'redirect-toast';
-    toast.style.position = 'fixed';
+    toast.style.position = 'absolute';
     toast.style.left = '50%';
     toast.style.top = '50%';
     toast.style.transform = 'translate(-50%, -50%)';
-    toast.style.background = 'rgba(0, 0, 0, 0.82)';
+    toast.style.background = 'rgba(20, 20, 20, 0.9)';
     toast.style.color = '#fff';
-    toast.style.padding = '10px 18px';
-    toast.style.borderRadius = '14px';
+    toast.style.padding = '12px 20px';
+    toast.style.borderRadius = '16px';
     toast.style.fontSize = '13px';
-    toast.style.zIndex = '9999';
+    toast.style.zIndex = '18';
     toast.style.textAlign = 'center';
-    toast.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+    toast.style.border = '1px solid rgba(255, 220, 150, 0.4)';
+    toast.style.boxShadow = '0 0 0 1px rgba(255, 220, 150, 0.22), 0 0 18px rgba(255, 200, 100, 0.28), 0 10px 24px rgba(0,0,0,0.45)';
     toast.innerHTML = `
       <div style="margin-bottom: 6px;">☕ 테이블로 이동합니다...</div>
       <div style="
@@ -191,6 +213,7 @@ function showReceiptAgain(text, options = {}) {
     const userId = urlParams.get('id');
     redirectTimerId = setTimeout(() => {
       const target = `homework-tray_v1.html${userId ? `?id=${encodeURIComponent(userId)}` : ''}`;
+      clearRedirectTimer();
       window.location.href = target;
     }, 1500);
   }
@@ -205,10 +228,10 @@ function showReceiptAgain(text, options = {}) {
 
     const toast = document.getElementById('redirect-toast');
     if (toast) toast.remove();
+    const overlay = document.getElementById('redirect-overlay');
+    if (overlay) overlay.remove();
 
-    if (redirectTimerId) {
-      clearTimeout(redirectTimerId);
-    }
+    clearRedirectTimer();
 
     alert('🗑 주문이 취소되었습니다!');
     // 여기서는 student-room 그대로 유지 (테이블로 이동 취소)
@@ -245,3 +268,10 @@ window.showReceiptFromHWPlus = function () {
   // autoRedirect: false → 그냥 보기만
   showReceiptAgain(receiptText, { autoRedirect: false });
 };
+
+window.addEventListener('DOMContentLoaded', cleanupRedirectUI);
+window.addEventListener('pageshow', cleanupRedirectUI);
+window.addEventListener('pagehide', () => {
+  clearRedirectTimer();
+  cleanupRedirectUI();
+});

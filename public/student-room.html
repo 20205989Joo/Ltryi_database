@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="styles-frame.css" />
   <link rel="stylesheet" href="styles-room.css" />
   <link rel="stylesheet" href="kiosk_screen.css" />
+  <link rel="stylesheet" href="nav-buttons.css" />
   <style>
     #cafe_int {
       position: absolute;
@@ -206,24 +207,13 @@
 }
 
 #sub-popup .menu-btn.active:not(.level-btn) {
-  background-color: #ffddb0;
-  border: 2px solid #ff9900;
+  background: linear-gradient(180deg, #fffdf9 0%, #ffe6ca 100%);
+  border: 1.5px solid #f17b2a;
   color: #7e3106;
-  font-weight: bold;
-}
-
-.receipt-icon {
-  width: 40px;
-  height: 40px;
-  position: absolute;
-  bottom: 30px;
-  right: 60px;
-  background: white;
-  border-radius: 10px;
-  padding: 4px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-  z-index: 15;
-  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 0 0 1px rgba(241, 123, 42, 0.26);
+  font-weight: 800;
 }
 
 .menulook-icon {
@@ -298,25 +288,33 @@
     });
   }
 
+  function bindTrayAsTableNavigation() {
+    if (!tray) return;
+    if (tray.dataset.tableNavBound === 'true') return;
+    setupHoverAndClick(tray, 'homework-tray_v1.html');
+    tray.dataset.tableNavBound = 'true';
+  }
+
   // 모든 테이블 → student-table로
   tables.forEach(table => setupHoverAndClick(table, 'homework-tray_v1.html'));
 
   // ░░ food tray 조건부 적용 ░░
   if (qordered && tray) {
     tray.style.display = 'block';
-    setupHoverAndClick(tray, 'homework-tray_v1.html');
+    bindTrayAsTableNavigation();
   }
 
   // ✅ HWPlus가 있을 경우 receipt_icon 표시
   const hwPlus = JSON.parse(localStorage.getItem('HWPlus') || '[]');
   if (hwPlus.length > 0) {
     if (tray) tray.style.display = 'block';
+    bindTrayAsTableNavigation();
 
     if (!document.getElementById('receipt_icon')) {
       const icon = document.createElement('img');
       icon.src = 'receipt_icon.png';
       icon.id = 'receipt_icon';
-      icon.className = 'receipt-icon';
+      icon.className = 'nav-floating-icon nav-floating-icon--receipt-room';
       icon.onclick = () => showReceiptFromHWPlus();
       document.querySelector('.main-page').appendChild(icon);
     }

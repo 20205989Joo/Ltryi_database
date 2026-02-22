@@ -8,6 +8,36 @@
     observer: null
   };
 
+  function getCurrentParams() {
+    try {
+      return new URLSearchParams(window.location.search || "");
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function getCurrentQuizKey() {
+    var sp = getCurrentParams();
+    if (!sp) return "";
+    return String(sp.get("key") || "").trim();
+  }
+
+  function getCurrentUserId() {
+    var sp = getCurrentParams();
+    if (!sp) return "";
+    return String(sp.get("id") || "").trim();
+  }
+
+  function getNavigationType() {
+    try {
+      var entries = window.performance && typeof window.performance.getEntriesByType === "function"
+        ? window.performance.getEntriesByType("navigation")
+        : null;
+      if (entries && entries[0] && entries[0].type) return String(entries[0].type);
+    } catch (_) {}
+    return "";
+  }
+
   function hasDishQuizCallInSource(fn) {
     try {
       return /DishQuizResultsTable/.test(String(fn));
@@ -35,6 +65,45 @@
     } catch (_) {
       return null;
     }
+  }
+
+  function buildTrayUrlForCurrentQuiz() {
+    try {
+      var quiz = readQuizResultsFromStorage();
+      var userId = getCurrentUserId();
+      var quizKey = getCurrentQuizKey() || (quiz && (quiz.quizTitle || quiz.quiztitle) ? (quiz.quizTitle || quiz.quiztitle) : "");
+      var target = new URL("../homework-tray_v1.html", window.location.href);
+      if (userId) target.searchParams.set("id", userId);
+      if (quizKey) target.searchParams.set("quizKey", quizKey);
+      return target.toString();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function shouldRedirectBackForwardToTray(evt) {
+    var navType = getNavigationType();
+    var isBackForward = navType === "back_forward" || !!(evt && evt.persisted);
+    if (!isBackForward) return false;
+
+    var quizKey = getCurrentQuizKey();
+    if (!quizKey) return false;
+
+    var quiz = readQuizResultsFromStorage();
+    if (!quiz || quiz.teststatus !== "done") return false;
+
+    var storedKey = String(quiz.quizTitle || quiz.quiztitle || "").trim();
+    if (!storedKey) return false;
+    return storedKey === quizKey;
+  }
+
+  function handlePageShow(evt) {
+    if (!shouldRedirectBackForwardToTray(evt)) return;
+    var url = buildTrayUrlForCurrentQuiz();
+    if (!url) return;
+    try {
+      window.location.replace(url);
+    } catch (_) {}
   }
 
   function normalizePayloadFromStorage(quiz) {
@@ -131,6 +200,11 @@
   }
 
   function start() {
+    if (!window.__imsiResultBridgePageShowBound) {
+      window.__imsiResultBridgePageShowBound = true;
+      window.addEventListener("pageshow", handlePageShow);
+    }
+
     runHooks();
 
     var root = document.documentElement || document.body;
