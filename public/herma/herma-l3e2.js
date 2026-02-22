@@ -13,7 +13,7 @@ const TARGET_LESSON = 3;
 const TARGET_EXERCISE = 2;
 const TARGET_EXERCISE_LABEL = "2";
 const SOURCE_EXERCISE_ODD = 2;  // old 3-2
-const SOURCE_EXERCISE_EVEN = 3; // old 3-3
+const SOURCE_EXERCISE_EVEN = 22; // old 3-3
 
 let subcategory = "Grammar";
 let level = "Basic";

@@ -9,7 +9,7 @@
 
 const EXCEL_FILE = "LTRYI-herma-lesson-questions.xlsx";
 const TARGET_LESSON = 3;
-const TARGET_EXERCISE = 6;
+const TARGET_EXERCISE = 4;
 const TARGET_EXERCISE_LABEL = "4";
 
 let subcategory = "Grammar";

@@ -12,8 +12,8 @@ const EXCEL_FILE = "LTRYI-herma-lesson-questions.xlsx";
 const TARGET_LESSON = 3;
 const TARGET_EXERCISE = 3;
 const TARGET_EXERCISE_LABEL = "3";
-const SOURCE_EXERCISE_ODD = 4;
-const SOURCE_EXERCISE_EVEN = 5;
+const SOURCE_EXERCISE_ODD = 3;
+const SOURCE_EXERCISE_EVEN = 32;
 
 let subcategory = "Grammar";
 let level = "Basic";
