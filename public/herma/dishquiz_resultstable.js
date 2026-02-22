@@ -49,7 +49,7 @@
     return target.toString();
   }
 
-  function tryQueueDoneInWebAndGoSubmit(payload) {
+  function tryQueueDoneInWebAndGoTray(payload) {
     const info = payload || {};
     const params = new URLSearchParams(window.location.search);
     const userId = params.get("id") || "";
@@ -103,7 +103,12 @@
     });
 
     localStorage.setItem(key, JSON.stringify(existing));
-    window.location.replace(buildOneUpUrl("homework-submit.html", { id: userId }));
+    window.location.replace(
+      buildOneUpUrl("homework-tray_v1.html", {
+        id: userId,
+        quizKey: info.quizTitle || ""
+      })
+    );
     return true;
   }
 
@@ -113,7 +118,7 @@
     const quizTitle = typeof payload === "string" ? payload : (payload?.quizTitle || "");
 
     if (payload && typeof payload === "object") {
-      const queued = tryQueueDoneInWebAndGoSubmit(payload);
+      const queued = tryQueueDoneInWebAndGoTray(payload);
       if (queued) return;
     }
 
