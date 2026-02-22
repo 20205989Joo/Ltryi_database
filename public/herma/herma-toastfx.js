@@ -1,3 +1,4 @@
+// ver1.1_26.02.22
 /* herma-toastfx.js
  * - ES module 없이 전역(window)에 HermaToastFX 노출
  * - #cafe_int 내부 상단에 토스트 + 컨페티

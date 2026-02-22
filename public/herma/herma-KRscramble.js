@@ -1,3 +1,4 @@
+// ver1.1_26.02.22
 // herma-KRscramble.js
 // Reusable Korean scramble UI renderer.
 

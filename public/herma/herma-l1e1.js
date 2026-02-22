@@ -1,4 +1,5 @@
-﻿// herma-l1e1.js
+// ver1.1_26.02.22
+// herma-l1e1.js
 // ------------------------------------------------------------
 // Herma L1-E1
 // 1단계: A/B 문장 + 힌트 → 합친 문장 타이핑
@@ -242,18 +243,18 @@ function renderComposeStage() {
   currentRecord = null;
 
   area.innerHTML = `
-    <div class="q-label">${currentIndex + 1} / ${questions.length} (Q${q.qNumber})</div>
+    <div class="q-label">Q. ${currentIndex + 1} / ${questions.length}</div>
 
     <div class="box" style="margin-bottom:10px;">
       <div style="font-weight:900; color:#7e3106; margin-bottom:6px;">문장 A</div>
       <div class="sentence">${escapeHtml(q.A || "(파싱 실패)")}</div>
 
-      <div style="font-weight:900; color:#7e3106; margin-top:10px; margin-bottom:6px;">문장 B</div>
-      <div class="sentence">${escapeHtml(q.B || q.rawQuestion)}</div>
-
-      <div style="margin-top:10px;">
-        <span class="pill">힌트: ${escapeHtml(q.hint || "—")}</span>
+      <div style="margin-top:10px; margin-bottom:10px;">
+        <span class="pill" style="background:#fff;">\uC5F0\uACB0: ${escapeHtml(q.hint || "—")}</span>
       </div>
+
+      <div style="font-weight:900; color:#7e3106; margin-bottom:6px;">문장 B</div>
+      <div class="sentence">${escapeHtml(q.B || q.rawQuestion)}</div>
     </div>
 
     <div style="
@@ -278,7 +279,7 @@ function renderComposeStage() {
           padding:0;
           margin:0;
         "
-        placeholder="한 문장으로 합쳐서 쓰세요"></textarea>
+        placeholder="\uD55C \uBB38\uC7A5\uC73C\uB85C \uD569\uCCD0\uC11C \uC4F0\uC138\uC694&#10;(ex. She likes apples and she likes oranges)"></textarea>
 
       <div style="flex:0 0 auto; font-weight:900; font-size:22px; color:#7e3106; padding-bottom:2px;">.</div>
     </div>
@@ -309,8 +310,8 @@ function autoGradeEnglish(isBlur) {
     return;
   }
 
-  const userForCompare = stripTrailingPeriod(userRaw);
-  const modelForCompare = stripTrailingPeriod(q.modelEnglish);
+  const userForCompare = normalizeEnglishForCompare(userRaw);
+  const modelForCompare = normalizeEnglishForCompare(q.modelEnglish);
   const isCorrect = (userForCompare === modelForCompare);
 
   const prev = lastEnCorrect;
@@ -376,7 +377,7 @@ function renderTranslateStage() {
   }));
 
   area.innerHTML = `
-    <div class="q-label">${currentIndex + 1} / ${questions.length} (Q${q.qNumber})</div>
+    <div class="q-label">Q. ${currentIndex + 1} / ${questions.length}</div>
 
     <div class="box" style="margin-bottom:10px;">
       <div class="sentence">${escapeHtml((currentRecord?.selectedEn || "").trim() ? (currentRecord.selectedEn.trim() + ".") : "(무응답)")}</div>
@@ -414,6 +415,34 @@ function renderTranslateUI() {
   const answerLine = document.getElementById("answer-line");
   const bankArea = document.getElementById("bank-area");
   const remainInfo = document.getElementById("remain-info");
+  const guideHtml = "\uC870\uAC01\uC744 \uB20C\uB7EC \uC21C\uC11C\uB300\uB85C \uCC44\uC6CC\uC8FC\uC138\uC694.<br>\uB9C8\uC9C0\uB9C9 \uC870\uAC01\uC744 \uB204\uB974\uBA74 \uCDE8\uC18C\uB429\uB2C8\uB2E4.";
+
+  if (window.HermaFinalStage?.renderKoreanScramble) {
+    const handled = window.HermaFinalStage.renderKoreanScramble({
+      answerLineEl: answerLine,
+      bankAreaEl: bankArea,
+      remainInfoEl: remainInfo,
+      selectedTokens,
+      bankTokens,
+      isKoLocked,
+      onSelectToken: (tok) => {
+        if (isKoLocked) return;
+        const idx = bankTokens.findIndex((x) => x.id === tok.id);
+        if (idx >= 0) {
+          const [moved] = bankTokens.splice(idx, 1);
+          selectedTokens.push(moved);
+        }
+      },
+      onUnselectLast: () => {
+        if (isKoLocked) return;
+        const popped = selectedTokens.pop();
+        if (popped) bankTokens.push(popped);
+      },
+      rerender: () => renderTranslateUI(),
+      guideHtml
+    });
+    if (handled) return;
+  }
 
   if (window.HermaKRScramble?.render) {
     window.HermaKRScramble.render({
@@ -514,8 +543,8 @@ function goNext() {
     const inputEl = document.getElementById("user-en");
     const userRaw = (inputEl?.value || "").trim();
 
-    const userForCompare = stripTrailingPeriod(userRaw);
-    const modelForCompare = stripTrailingPeriod(q.modelEnglish);
+    const userForCompare = normalizeEnglishForCompare(userRaw);
+    const modelForCompare = normalizeEnglishForCompare(q.modelEnglish);
     const enOk = (userRaw.length > 0 && userForCompare === modelForCompare);
 
     results.push({
@@ -598,6 +627,10 @@ function extractKorean(modelAnswer) {
 
 function stripTrailingPeriod(s) {
   return String(s || "").trim().replace(/\.\s*$/, "").trim();
+}
+
+function normalizeEnglishForCompare(s) {
+  return stripTrailingPeriod(s).replace(/\s+/g, " ").trim().toLowerCase();
 }
 
 /**

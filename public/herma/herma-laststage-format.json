@@ -1,0 +1,65 @@
+{
+  "format_id": "herma-laststage-v1",
+  "purpose": "Unified Laststage format for both Laststage-FinalSentence and Laststage-KRTokens.",
+  "excel_cell_syntax": {
+    "rule": "tag::text | tag::text | ...",
+    "segment_delimiter": "|",
+    "tag_text_delimiter": "::",
+    "whitespace": "trim around each segment"
+  },
+  "allowed_tags": [
+    "plain",
+    "link",
+    "linkbox",
+    "a",
+    "b",
+    "c",
+    "ab",
+    "pair"
+  ],
+  "legacy_alias_to_normalized": {
+    "a+b": "ab",
+    "A+B": "ab",
+    "A": "a",
+    "B": "b",
+    "C": "c",
+    "PAIR": "pair",
+    "PLAIN": "plain",
+    "LINK": "link",
+    "HINT": "linkbox",
+    "WHO": "linkbox",
+    "THAT": "linkbox"
+  },
+  "tag_meaning": {
+    "plain": "No emphasis/underline.",
+    "link": "Connector token (and, because, so, etc).",
+    "linkbox": "Connector shown as a rounded inline box (ex: who/that).",
+    "a": "A-part emphasis.",
+    "b": "B-part emphasis.",
+    "c": "C-part emphasis.",
+    "ab": "A+B combined emphasis (same tone).",
+    "pair": "Parallel pair emphasis (L1E3-style)."
+  },
+  "recommended_usage": {
+    "l1e2": "Use a/b/c/link/plain. Avoid ab unless needed.",
+    "l1e3": "Use pair/link/plain (or a/b if you want explicit split).",
+    "l2e1": "Use a/linkbox/b/plain for English final sentence; a/b/plain for Korean tokens.",
+    "l6e2_l6e3": "Use ab/c (or a/b/c if code later supports separate A/B tones)."
+  },
+  "examples": {
+    "final_sentence_l1e2": "a::She stayed home | link::because | b::it was raining.",
+    "kr_tokens_l1e2": "a::그녀는 집에 있었다 | b::비가 왔기 때문에.",
+    "final_sentence_l1e3": "plain::I | pair::washed the dishes | link::and | pair::cleaned the kitchen.",
+    "kr_tokens_l1e3": "plain::나는 | pair::설거지를 | plain::하고 | pair::부엌을 청소했다.",
+    "final_sentence_l2e1": "a::I met a girl | linkbox::who | b::was crying.",
+    "kr_tokens_l2e1": "a::나는 | b::울고 | b::있는 | a::한 | a::소녀를 | a::만났다.",
+    "final_sentence_l6e2": "ab::The rise in prices and the increase in unemployment | c::caused serious problems.",
+    "kr_tokens_l6e2": "ab::가격 상승과 실업률 증가는 | c::심각한 문제를 일으켰다."
+  },
+  "validation_rules": [
+    "Each segment should match: <tag>::<non-empty text>.",
+    "At least one segment is required.",
+    "Do not leave dangling delimiters.",
+    "Prefer explicit tags for every segment (no implicit fallback)."
+  ]
+}
