@@ -45,7 +45,8 @@ let expectedMeaningB = "m2";
 
 const UI_DROP_MEANING = "\uB9DE\uB294 \uB73B\uC740 \uC5B4\uB290\uAC78\uAE4C\uC694!";
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

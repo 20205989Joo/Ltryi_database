@@ -42,7 +42,8 @@ let wbPicked = [];
 let wbLocked = false; // 정답 후 잠금
 let correctKo = "";
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

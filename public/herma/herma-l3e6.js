@@ -34,7 +34,8 @@ const UI_STAGE1_TAP_KEY = "\uC911\uC694\uD55C \uD55C \uB2E8\uC5B4\uAC00 \uB0A8\u
 const UI_STAGE2_INPUT = "\uC774\uC81C \uAC19\uC740 \uB73B\uC758 \uB3D9\uC0AC 1\uB2E8\uC5B4\uB97C \uC785\uB825\uD574\uBCF4\uC138\uC694!";
 const UI_VERB_PH = "\uB3D9\uC0AC 1\uB2E8\uC5B4\uB9CC \uC785\uB825 (\uC608: decided)";
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

@@ -52,7 +52,8 @@ let bankTokens = [];
 let selectedTokens = [];
 
 // ---------- boot ----------
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles(); // ✅ L2E4 스타일 그대로

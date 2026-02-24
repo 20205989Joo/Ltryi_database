@@ -52,7 +52,8 @@ let frontMoved = false;
 let frontDragActive = false;
 let handleSpawned = false;
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

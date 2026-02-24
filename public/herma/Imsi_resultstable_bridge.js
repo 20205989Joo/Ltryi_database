@@ -28,6 +28,34 @@
     return String(sp.get("id") || "").trim();
   }
 
+  function isRound2Route() {
+    var sp = getCurrentParams();
+    if (!sp) return false;
+    if (String(sp.get("round2") || "").trim() === "1") return true;
+    if (String(sp.get("round2Script") || "").trim()) return true;
+    var key = String(sp.get("key") || "").trim();
+    return /_round2$/i.test(key);
+  }
+
+  function hasRound2ScriptTagForCurrentPage() {
+    try {
+      var path = String(window.location.pathname || "");
+      var file = path.split("/").pop() || "";
+      var m = file.match(/^herma-(l\d+e\d+)\.html$/i);
+      if (!m) return false;
+      var slug = String(m[1]).toLowerCase();
+      var expected = "herma-" + slug + "_round2.js";
+      return !!document.querySelector('script[src$="' + expected + '"]');
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function isLearnToRound2Context() {
+    if (isRound2Route()) return false;
+    return hasRound2ScriptTagForCurrentPage();
+  }
+
   function getNavigationType() {
     try {
       var entries = window.performance && typeof window.performance.getEntriesByType === "function"
@@ -80,13 +108,19 @@
 
   function readQuizResultsFromStorage() {
     var currentKey = getCurrentQuizKey();
+    var legacy = readLegacyQuizResultsFromStorage();
+
     if (currentKey) {
+      if (legacy && typeof legacy === "object") {
+        var legacyKeyFirst = String(legacy.quizTitle || legacy.quiztitle || "").trim();
+        if (legacyKeyFirst === currentKey) return legacy;
+      }
+
       var map = readQuizResultsMap();
       var fromMap = map[currentKey];
       if (fromMap && typeof fromMap === "object") return fromMap;
     }
 
-    var legacy = readLegacyQuizResultsFromStorage();
     if (!legacy) return null;
     if (!currentKey) return legacy;
 
@@ -210,6 +244,10 @@
     }
 
     var wrapped = function () {
+      if (isLearnToRound2Context()) {
+        if (tryShowResultsTable()) return;
+      }
+
       var out = original.apply(this, arguments);
       tryShowResultsTable();
       return out;

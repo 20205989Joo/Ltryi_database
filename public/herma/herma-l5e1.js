@@ -101,7 +101,8 @@ const ORIG_KO_BY_QUESTION = {
   "The police found the missing child.": "\uacbd\ucc30\uc774 \uc2e4\uc885\ub41c \uc544\uc774\ub97c \ucc3e\uc544\ub0c8\uc2b5\ub2c8\ub2e4.",
 };
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

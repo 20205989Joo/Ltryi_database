@@ -70,9 +70,15 @@ let nominalOpen = false;
 const UI_INST_FLIP = "\uB4A4\uC9D1\uC5B4\uBCF4\uC138\uC694";
 const UI_INST_REDUCE_SAME = "\uAC19\uC740 \uAC83\uC744 \uC57D\uBD84\uD574\uBCF4\uC138\uC694";
 const UI_INST_DRAG = "\uB4DC\uB798\uADF8\uD574\uBCF4\uC138\uC694";
+const STAGE_ADVANCE_DELAY_MS = 480;
+let stageAdvanceTimerId = null;
+const TOAST_OK = "\uC815\uB2F5!";
+const TOAST_NO = "\uC624\uB2F5...";
 
 /* ------------------------------ init ------------------------------ */
 window.addEventListener("DOMContentLoaded", async () => {
+  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();
@@ -758,6 +764,28 @@ function startQuiz() {
   renderQuestion();
 }
 
+function clearStageAdvanceTimer() {
+  if (!stageAdvanceTimerId) return;
+  clearTimeout(stageAdvanceTimerId);
+  stageAdvanceTimerId = null;
+}
+
+function queueStageAdvance(fn) {
+  clearStageAdvanceTimer();
+  stageAdvanceTimerId = setTimeout(() => {
+    stageAdvanceTimerId = null;
+    if (typeof fn === "function") fn();
+  }, STAGE_ADVANCE_DELAY_MS);
+}
+
+function syncActionButtonsVisibility() {
+  const show = !!stage3Shown;
+  const submitBtn = document.getElementById("submit-btn");
+  const nextBtn = document.getElementById("next-btn");
+  if (submitBtn) submitBtn.classList.toggle("hidden", !show);
+  if (nextBtn) nextBtn.classList.toggle("hidden", !show);
+}
+
 /* ================== Main Render ================== */
 function renderQuestion() {
   const area = document.getElementById("quiz-area");
@@ -779,6 +807,7 @@ function renderQuestion() {
   moveHistory = [];
   nominalActiveSlotIndex = 0;
   nominalHasFirstDrag = false;
+  clearStageAdvanceTimer();
   stopNominalDragTipArcHint();
   stopReduceDragTipArcHint();
   abFlipDefaultHeight = 0;
@@ -851,8 +880,9 @@ function renderQuestion() {
   `;
 
   renderInstruction();
-  renderABView();     // 원문 화면 렌더
-  wireABDelegation(); // A 클릭 / It 클릭 위임
+  renderABView();
+  syncActionButtonsVisibility();
+  wireABDelegation();
   deferCaptureABFlipDefaultHeight();
 }
 
@@ -913,7 +943,7 @@ function renderABView(){
 
   ab.innerHTML = `
     <div class="ab-row">
-      <div class="ab-card">
+      <div class="ab-card done joined-glow">
         ${finalHtml}
       </div>
     </div>
@@ -926,7 +956,7 @@ function renderInstruction(){
   const text = document.getElementById("instruction-text");
   if (!box || !text) return;
 
-  if (stage2Ok) {
+  if (stage3Shown) {
     box.classList.add("hidden");
     return;
   }
@@ -1112,13 +1142,13 @@ function openNominalInPlace(){
     nominalFlipCleanupTimer = null;
   }
 
-  const submitBtn = document.getElementById("submit-btn");
-  if (submitBtn) submitBtn.classList.add("hidden");
+  syncActionButtonsVisibility();
 
   stopReduceDragTipArcHint();
   nominalOpen = true;
   nominalActiveSlotIndex = 0;
   nominalHasFirstDrag = false;
+  clearStageAdvanceTimer();
   stopNominalDragTipArcHint();
 
   nv.innerHTML = `
@@ -1147,8 +1177,7 @@ function closeNominalInPlace(){
   const abBox = document.getElementById("ab-box");
   if (!ab || !nv) return;
 
-  const submitBtn = document.getElementById("submit-btn");
-  if (submitBtn && !isAnswered) submitBtn.classList.remove("hidden");
+  syncActionButtonsVisibility();
 
   stopNominalDragTipArcHint();
   nominalOpen = false;
@@ -1173,7 +1202,7 @@ function maybeAutoCompleteStage1(){
   if (built === target) {
     stage1Ok = true;
     stopNominalDragTipArcHint();
-    if (window.HermaToastFX) window.HermaToastFX.show("ok", "정답!");
+    if (window.HermaToastFX) window.HermaToastFX.show("ok", TOAST_OK);
 
     setTimeout(() => {
       closeNominalInPlace();
@@ -1622,7 +1651,7 @@ function onItClicked(itEl){
   stageReduceOk = true;
 
   renderABView();
-  if (window.HermaToastFX) window.HermaToastFX.show("ok", "정답!");
+  if (window.HermaToastFX) window.HermaToastFX.show("ok", TOAST_OK);
 }
 
 function onReduceDragDone(){
@@ -1630,10 +1659,13 @@ function onReduceDragDone(){
   stopReduceDragTipArcHint();
   stage2Ok = true;
   renderABView();
-  if (window.HermaToastFX) window.HermaToastFX.show("ok", "정답!");
-  ensureStage3();
-  const submitBtn = document.getElementById("submit-btn");
-  if (submitBtn) submitBtn.disabled = false;
+  if (window.HermaToastFX) window.HermaToastFX.show("ok", TOAST_OK);
+  queueStageAdvance(() => {
+    ensureStage3();
+    const submitBtn = document.getElementById("submit-btn");
+    if (submitBtn) submitBtn.disabled = false;
+    syncActionButtonsVisibility();
+  });
 }
 
 function renderBWithItClickable(b, reduced = false){
@@ -1653,6 +1685,7 @@ function renderBWithItClickable(b, reduced = false){
 function ensureStage3(){
   if (stage3Shown) {
     renderKorBank();
+    syncActionButtonsVisibility();
     return;
   }
 
@@ -1687,6 +1720,7 @@ function ensureStage3(){
   })));
   korSelectedTokens = [];
   renderKorBank();
+  syncActionButtonsVisibility();
 }
 
 function renderKorBank(){
@@ -1791,7 +1825,7 @@ function submitAnswer(){
 
   const correct = stage1Ok && stage2Ok && stage3Ok;
   if (!correct) {
-    if (window.HermaToastFX) window.HermaToastFX.show("no", "오답…");
+    if (window.HermaToastFX) window.HermaToastFX.show("no", TOAST_NO);
     return;
   }
 
@@ -1809,13 +1843,14 @@ function submitAnswer(){
 
   const feedback = document.getElementById("feedback-area");
   if (feedback) feedback.innerHTML = "";
-  if (window.HermaToastFX) window.HermaToastFX.show("ok", "정답!");
+  if (window.HermaToastFX) window.HermaToastFX.show("ok", TOAST_OK);
 
   const submitBtn = document.getElementById("submit-btn");
   if (submitBtn) submitBtn.disabled = true;
 }
 
 function goNext(){
+  clearStageAdvanceTimer();
   if (!isAnswered){
     const q = questions[currentIndex];
     const built = buildUserSubjectPhrase();

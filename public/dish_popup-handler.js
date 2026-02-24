@@ -106,7 +106,9 @@ function buildTargetUrl(path, extraParams = {}) {
   }
 
   for (const [key, value] of Object.entries(extraParams)) {
-    if (value !== null && value !== undefined && value !== "") {
+    if (value === null || value === undefined || value === "") {
+      target.searchParams.delete(key);
+    } else {
       target.searchParams.set(key, String(value));
     }
   }
@@ -187,6 +189,42 @@ function buildFilename(item) {
 
 window.buildFilename = buildFilename;
 
+function clearDishRedirectToastTimer() {
+  const timerId = window.__dishRedirectToastTimerId;
+  if (!timerId) return;
+  clearTimeout(timerId);
+  window.__dishRedirectToastTimerId = null;
+}
+
+function cleanupDishRedirectToastUI() {
+  document.getElementById("redirect-toast")?.remove();
+}
+
+function cleanupDishRedirectToastAndTimer() {
+  clearDishRedirectToastTimer();
+  cleanupDishRedirectToastUI();
+}
+
+function bindDishRedirectToastLifecycleCleanup() {
+  if (window.__dishRedirectToastLifecycleBound) return;
+  window.__dishRedirectToastLifecycleBound = true;
+
+  window.addEventListener("pagehide", cleanupDishRedirectToastAndTimer);
+  window.addEventListener("popstate", cleanupDishRedirectToastAndTimer);
+  window.addEventListener("pageshow", (evt) => {
+    if (evt?.persisted) {
+      cleanupDishRedirectToastAndTimer();
+      return;
+    }
+    try {
+      const nav = performance.getEntriesByType?.("navigation")?.[0];
+      if (nav?.type === "back_forward") cleanupDishRedirectToastAndTimer();
+    } catch (_) {}
+  });
+}
+
+bindDishRedirectToastLifecycleCleanup();
+
 function readQuizResultsMap() {
   try {
     const raw = localStorage.getItem("QuizResultsMap");
@@ -224,9 +262,25 @@ function getStoredQuizResultByKey(quizKey) {
   return legacyKey === key ? legacy : null;
 }
 
+function normalizeQuizKeyAlias(quizKey) {
+  const raw = String(quizKey || "").trim();
+  if (!raw) return [];
+  const aliases = new Set([raw]);
+  if (/_round2$/i.test(raw)) {
+    aliases.add(raw.replace(/_round2$/i, ""));
+  } else {
+    aliases.add(`${raw}_round2`);
+  }
+  return Array.from(aliases);
+}
+
 function isStoredQuizDoneForKey(quizKey) {
-  const result = getStoredQuizResultByKey(quizKey);
-  return !!(result && result.teststatus === "done");
+  const aliases = normalizeQuizKeyAlias(quizKey);
+  for (const key of aliases) {
+    const result = getStoredQuizResultByKey(key);
+    if (result && result.teststatus === "done") return true;
+  }
+  return false;
 }
 
 window.showDishPopup = function (item) {
@@ -484,8 +538,7 @@ window.showDishPopup = function (item) {
   popup.innerHTML = content;
 
   function showRedirectToast() {
-    const existing = document.getElementById("redirect-toast");
-    if (existing) existing.remove();
+    cleanupDishRedirectToastAndTimer();
 
     const toast = document.createElement("div");
     toast.id = "redirect-toast";
@@ -557,7 +610,9 @@ window.showDishPopup = function (item) {
     const targetUrl = buildTargetUrl(lessonRouteInfo.path, {
       id: userId || "",
       key: lessonRouteInfo.quizKey || "",
-      dishQuizKey
+      dishQuizKey,
+      round2: null,
+      round2Script: null
     });
     window.location.href = targetUrl;
   });
@@ -591,7 +646,9 @@ window.showDishPopup = function (item) {
 
     showRedirectToast();
 
-    setTimeout(() => {
+    window.__dishRedirectToastTimerId = setTimeout(() => {
+      window.__dishRedirectToastTimerId = null;
+      cleanupDishRedirectToastUI();
       window.location.href =
         `homework-submit.html?id=${encodeURIComponent(userId || "")}`;
     }, 2000);
@@ -622,7 +679,9 @@ window.showDishPopup = function (item) {
 
     showRedirectToast();
 
-    setTimeout(() => {
+    window.__dishRedirectToastTimerId = setTimeout(() => {
+      window.__dishRedirectToastTimerId = null;
+      cleanupDishRedirectToastUI();
       window.location.href =
         `homework-submit.html?id=${encodeURIComponent(userId || "")}`;
     }, 2000);

@@ -49,7 +49,8 @@ const KR_LABEL_ORIGINAL = "\uC6D0\uBB38\uC7A5";
 const KR_LABEL_FLIPPED = "\uB4A4\uC9D1\uC73C\uBA74...";
 const KR_HINT_TAP = "\uC870\uAC01\uC744 \uC21C\uC11C\uB300\uB85C \uB204\uB974\uC138\uC694 / \uB9C8\uC9C0\uB9C9 \uC870\uAC01\uC744 \uB204\uB974\uBA74 \uB418\uB3CC\uC544\uAC00\uC694";
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

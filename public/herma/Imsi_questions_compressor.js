@@ -2,6 +2,9 @@
 (function () {
   "use strict";
 
+  var FLOW_STORAGE_KEY = "HermaRound2FlowMap";
+  var DEFAULT_RELEARN_LIMIT = 6;
+
   var state = {
     enabled: true,
     limit: 4,
@@ -10,7 +13,10 @@
     timerId: null,
     observer: null,
     appliedCount: 0,
-    lastAppliedSize: 0
+    lastAppliedSize: 0,
+    flowEnforced: false,
+    round2Mode: false,
+    relearnShuffleApplied: false
   };
 
   function readQueryLimit() {
@@ -25,6 +31,74 @@
       var n = Number(raw);
       if (isFinite(n) && n > 0) state.limit = Math.floor(n);
     } catch (_) {}
+  }
+
+  function getCurrentParamsSafe() {
+    try {
+      return new URLSearchParams(window.location.search || "");
+    } catch (_) {
+      return new URLSearchParams();
+    }
+  }
+
+  function normalizeQuizKey(key) {
+    return String(key || "").trim();
+  }
+
+  function toBaseQuizKey(key) {
+    return normalizeQuizKey(key).replace(/_round2$/i, "");
+  }
+
+  function getCurrentQuizKeyFromQuery() {
+    var sp = getCurrentParamsSafe();
+    return normalizeQuizKey(sp.get("key") || "");
+  }
+
+  function isRound2Mode() {
+    var sp = getCurrentParamsSafe();
+    var key = getCurrentQuizKeyFromQuery();
+    if (/_round2$/i.test(key)) return true;
+    return String(sp.get("round2") || "").trim() === "1";
+  }
+
+  function readFlowMap() {
+    try {
+      var raw = localStorage.getItem(FLOW_STORAGE_KEY);
+      if (!raw) return {};
+      var parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function getFlowStateForCurrentQuiz() {
+    var baseKey = toBaseQuizKey(getCurrentQuizKeyFromQuery());
+    if (!baseKey) return null;
+    var map = readFlowMap();
+    var entry = map[baseKey];
+    return entry && typeof entry === "object" ? entry : null;
+  }
+
+  function applyFlowOverride() {
+    state.flowEnforced = false;
+    state.round2Mode = isRound2Mode();
+    state.relearnShuffleApplied = false;
+
+    if (state.round2Mode) {
+      state.enabled = false;
+      return;
+    }
+
+    var entry = getFlowStateForCurrentQuiz();
+    if (!entry || !entry.requireRelearn) return;
+
+    var minLearn = Number(entry.minLearnCount || DEFAULT_RELEARN_LIMIT);
+    if (!(isFinite(minLearn) && minLearn > 0)) minLearn = DEFAULT_RELEARN_LIMIT;
+
+    state.enabled = true;
+    state.limit = Math.floor(minLearn);
+    state.flowEnforced = true;
   }
 
   function getQuestionsArraySafe() {
@@ -47,6 +121,23 @@
     } catch (_) {}
   }
 
+  function shuffleInPlace(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = tmp;
+    }
+  }
+
+  function shouldShuffleForRelearn() {
+    if (!state.flowEnforced) return false;
+    if (state.round2Mode) return false;
+    var cap = Number(state.limit || 0);
+    if (!(cap > 0)) return false;
+    return cap >= DEFAULT_RELEARN_LIMIT;
+  }
+
   function applyQuestionCap() {
     if (!state.enabled) return false;
     var arr = getQuestionsArraySafe();
@@ -54,6 +145,11 @@
     var cap = Number(state.limit || 20);
     if (!(cap > 0)) return false;
     if (arr.length <= cap) return false;
+
+    if (shouldShuffleForRelearn() && !state.relearnShuffleApplied) {
+      shuffleInPlace(arr);
+      state.relearnShuffleApplied = true;
+    }
 
     arr.splice(cap);
     clampCurrentIndexSafe(arr);
@@ -133,7 +229,9 @@
           limit: state.limit,
           questionsLength: arr ? arr.length : null,
           appliedCount: state.appliedCount,
-          lastAppliedSize: state.lastAppliedSize
+          lastAppliedSize: state.lastAppliedSize,
+          flowEnforced: state.flowEnforced,
+          round2Mode: state.round2Mode
         };
       }
     };
@@ -141,6 +239,7 @@
 
   function start() {
     readQueryLimit();
+    applyFlowOverride();
     runHooks();
     exposeApi();
 

@@ -48,7 +48,8 @@ let currentPattern = ""; // IF_IT_IS | IF_YOU_ARE | REL_BE | REL_VERB | UNKNOWN
 const SIMPLE_INSTRUCTION = "\uac19\uc740 \uc758\ubbf8\uac00 \ub418\ub3c4\ub85d, \uc904\uc5ec\ubcf4\uc138\uc694!";
 
 // ---------- boot ----------
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

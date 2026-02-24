@@ -83,7 +83,8 @@ const REVERSE_KO_ORDER = new Set([
   "as soon as"
 ]);
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   if (window.HermaToastFX) window.HermaToastFX.init({ hostId: "cafe_int", top: 10 });
 
   injectStyles();      // ✅ 기존 UI는 그대로, 필요한 클래스만 추가

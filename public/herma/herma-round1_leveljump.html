@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Herma Round1 Level Jump</title>
+
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fff4e7;
+      z-index: 1;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #quiz-area {
+      width: 90%;
+      height: 470px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: #fff;
+      border: 2px dashed #ccc;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    #back-btn {
+      margin-top: 10px;
+      width: 100%;
+      height: 40px;
+      background: #7e3106;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .sheet-box {
+      border: 1px solid #cd9f7f;
+      border-radius: 10px;
+      padding: 12px;
+      background: linear-gradient(180deg, #fffdf9 0%, #fff3e7 100%);
+      box-shadow: 0 1px 0 #ffffff inset;
+      box-sizing: border-box;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .sheet-head {
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #7e3106;
+      border-bottom: 1px dashed #d7b293;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+      font-weight: 900;
+    }
+
+    .guide {
+      font-size: 12px;
+      color: #6a3b1f;
+      line-height: 1.55;
+      margin-bottom: 10px;
+    }
+
+    .lesson-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .lesson-row {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      align-items: center;
+      column-gap: 6px;
+      min-height: 48px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .lesson-tag {
+      width: 20px;
+      min-width: 20px;
+      font-size: 10px;
+      font-weight: 900;
+      color: #7e3106;
+      text-align: center;
+    }
+
+    .hex-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      width: 100%;
+      min-width: 0;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 2px;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .hex-row::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    .hex-row::-webkit-scrollbar-thumb {
+      background: #cfa17f;
+      border-radius: 999px;
+    }
+
+    .hex-btn {
+      --hex-rot: 30deg;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #c78656;
+      clip-path: polygon(25% 6.7%, 75% 6.7%, 100% 50%, 75% 93.3%, 25% 93.3%, 0% 50%);
+      font-weight: 900;
+      font-size: 8px;
+      color: #5c2c12;
+      cursor: pointer;
+      transition: transform 0.08s ease, box-shadow 0.08s ease;
+      box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset;
+      line-height: 1;
+      transform: rotate(var(--hex-rot));
+      background: linear-gradient(180deg, #ffd7ac 0%, #f7bf88 100%);
+    }
+
+    .hex-btn:hover {
+      transform: rotate(var(--hex-rot)) translateY(-1px);
+      box-shadow: 0 0 0 2px #a55323 inset;
+    }
+
+    .hex-btn.is-active {
+      box-shadow: 0 0 0 2px #7e3106 inset;
+      transform: rotate(var(--hex-rot)) translateY(-1px);
+    }
+
+    .hex-main {
+      display: inline-block;
+      transform: rotate(-30deg);
+    }
+
+    .status-line {
+      margin-top: 10px;
+      border-top: 1px dashed #d7b293;
+      padding-top: 8px;
+      font-size: 12px;
+      color: #6a3b1f;
+      min-height: 18px;
+    }
+
+    .tour-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .tour-btn {
+      flex: 1;
+      height: 34px;
+      border: 1px solid #a46135;
+      border-radius: 8px;
+      background: #f2c79d;
+      color: #5b2e13;
+      font-weight: 900;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .tour-btn:hover {
+      background: #efbb88;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="quiz-area"></div>
+      <button id="back-btn" type="button">Back</button>
+    </div>
+  </div>
+
+  <script src="herma-round1_leveljump.js"></script>
+</body>
+</html>

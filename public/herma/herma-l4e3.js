@@ -24,7 +24,8 @@ const UI_TOP_INSTRUCTION = "\uBE48\uCE78\uC758 \uB2E8\uC5B4\uB97C A\uC5D0\uC11C 
 const UI_LABEL_SENTENCE_A = "\uBB38\uC7A5 A";
 const UI_LABEL_SENTENCE_B = "\uBB38\uC7A5 B";
 
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles();

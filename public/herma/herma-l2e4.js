@@ -58,7 +58,8 @@ let tokensB = [];
 let mixRendered = false;
 
 // ---------- boot ----------
-window.addEventListener("DOMContentLoaded", async () => {
+window.addEventListener("DOMContentLoaded", async () => {  var __r2_guard = (new URLSearchParams(window.location.search || "")).get("round2") === "1";
+  if (__r2_guard) return;
   applyQueryParams();
   wireBackButton();
   injectStyles(); // ✅ E3 스타일 그대로 + 필요한 것만 아주 조금 추가
