@@ -1,15 +1,15 @@
-﻿// ver1.1_26.02.22
-/* pleks-toastfx.js
- * - ES module 없이 전역(window)에 PleksToastFX 노출
+// ver1.1_26.02.22
+/* herma-toastfx.js
+ * - ES module 없이 전역(window)에 HermaToastFX 노출
  * - #cafe_int 내부 상단에 토스트 + 컨페티
  *
  * 사용:
- *   PleksToastFX.show("ok", "정답!");   // 🎉 + confetti
- *   PleksToastFX.show("no", "오답…");   // ⚠️ + shake
+ *   HermaToastFX.show("ok", "정답!");   // 🎉 + confetti
+ *   HermaToastFX.show("no", "오답…");   // ⚠️ + shake
  *
  * 옵션:
- *   PleksToastFX.init({ hostId: "cafe_int", top: 10 });
- *   PleksToastFX.setCooldown(320);
+ *   HermaToastFX.init({ hostId: "cafe_int", top: 10 });
+ *   HermaToastFX.setCooldown(320);
  */
 
 (function () {
@@ -54,7 +54,7 @@
     // style
     const st = document.createElement("style");
     st.textContent = `
-      .pleks-toast-wrap{
+      .herma-toast-wrap{
         position:absolute;
         left:50%;
         top:${state.top}px;
@@ -62,7 +62,7 @@
         z-index:9999;
         pointer-events:none;
       }
-      .pleks-toast{
+      .herma-toast{
         min-width:240px;
         max-width:320px;
         padding:12px 14px;
@@ -79,43 +79,43 @@
         transition:opacity 140ms ease, transform 180ms ease;
         will-change:transform, opacity;
       }
-      .pleks-toast.show{ opacity:1; transform:translateY(0) scale(1); }
-      .pleks-toast.ok{ background:linear-gradient(180deg, #2e7d32, #1b5e20); }
-      .pleks-toast.no{ background:linear-gradient(180deg, #c62828, #8e1b1b); }
+      .herma-toast.show{ opacity:1; transform:translateY(0) scale(1); }
+      .herma-toast.ok{ background:linear-gradient(180deg, #2e7d32, #1b5e20); }
+      .herma-toast.no{ background:linear-gradient(180deg, #c62828, #8e1b1b); }
 
-      .pleks-toast .badge{
+      .herma-toast .badge{
         width:28px;height:28px;border-radius:999px;
         display:inline-flex;align-items:center;justify-content:center;
         background:rgba(255,255,255,0.22);flex:0 0 auto;
         color:#fff !important;
       }
-      .pleks-toast .msg{ font-size:14px; line-height:1.2; word-break:keep-all; color:#fff !important; }
+      .herma-toast .msg{ font-size:14px; line-height:1.2; word-break:keep-all; color:#fff !important; }
 
-      @keyframes PleksShake{
+      @keyframes hermaShake{
         0%{ transform:translateY(0) translateX(0); }
         25%{ transform:translateY(0) translateX(-6px); }
         50%{ transform:translateY(0) translateX(6px); }
         75%{ transform:translateY(0) translateX(-4px); }
         100%{ transform:translateY(0) translateX(0); }
       }
-      .pleks-toast.shake{ animation:PleksShake 260ms ease; }
+      .herma-toast.shake{ animation:hermaShake 260ms ease; }
 
-      .pleks-confetti-layer{
+      .herma-confetti-layer{
         position:absolute; left:0; top:0;
         width:100%; height:100%;
         pointer-events:none;
         z-index:9998;
         overflow:hidden;
       }
-      .pleks-confetti{
+      .herma-confetti{
         position:absolute;
         width:8px; height:10px;
         border-radius:2px;
         opacity:0.95;
         transform:translateY(-10px) rotate(0deg);
-        animation:PleksConfettiFall var(--dur) ease-out forwards;
+        animation:hermaConfettiFall var(--dur) ease-out forwards;
       }
-      @keyframes PleksConfettiFall{
+      @keyframes hermaConfettiFall{
         0%{ transform:translate(var(--x), -20px) rotate(0deg); opacity:0; }
         10%{ opacity:1; }
         100%{ transform:translate(calc(var(--x) + var(--dx)), 160px) rotate(var(--rot)); opacity:0; }
@@ -125,19 +125,19 @@
 
     // wrap
     state.wrap = document.createElement("div");
-    state.wrap.className = "pleks-toast-wrap";
+    state.wrap.className = "herma-toast-wrap";
     state.wrap.innerHTML = `
-      <div class="pleks-toast" id="pleks-toast">
-        <div class="badge" id="pleks-toast-badge">🎉</div>
-        <div class="msg" id="pleks-toast-msg">정답!</div>
+      <div class="herma-toast" id="herma-toast">
+        <div class="badge" id="herma-toast-badge">🎉</div>
+        <div class="msg" id="herma-toast-msg">정답!</div>
       </div>
     `;
     host.appendChild(state.wrap);
 
     // confetti layer
     const layer = document.createElement("div");
-    layer.className = "pleks-confetti-layer";
-    layer.id = "pleks-confetti-layer";
+    layer.className = "herma-confetti-layer";
+    layer.id = "herma-confetti-layer";
     host.appendChild(layer);
   }
 
@@ -151,9 +151,9 @@
     state.lastAt = now;
     state.lastKind = kind;
 
-    const toast = document.getElementById("pleks-toast");
-    const badge = document.getElementById("pleks-toast-badge");
-    const msg = document.getElementById("pleks-toast-msg");
+    const toast = document.getElementById("herma-toast");
+    const badge = document.getElementById("herma-toast-badge");
+    const msg = document.getElementById("herma-toast-msg");
     if (!toast || !badge || !msg) return;
 
     toast.classList.remove("ok", "no", "shake", "show");
@@ -176,7 +176,7 @@
   }
 
   function burstConfetti(countOverride) {
-    const layer = document.getElementById("pleks-confetti-layer");
+    const layer = document.getElementById("herma-confetti-layer");
     if (!layer) return;
 
     const host = layer.parentElement;
@@ -187,7 +187,7 @@
 
     for (let i = 0; i < count; i++) {
       const p = document.createElement("div");
-      p.className = "pleks-confetti";
+      p.className = "herma-confetti";
 
       const x = (rect.width * 0.5) + (Math.random() * 120 - 60);
       const dx = (Math.random() * 180 - 90) + "px";
@@ -213,13 +213,10 @@
   }
 
   // 전역 노출
-  window.PleksToastFX = {
+  window.HermaToastFX = {
     init,
     setCooldown,
     show,
     burstConfetti,
   };
-  window.pleksToastFX = window.PleksToastFX;
 })();
-
-

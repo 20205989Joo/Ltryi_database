@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pleks L5-E2</title>
+
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fffaf2;
+      z-index: 1;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #quiz-area {
+      width: 90%;
+      height: 470px;
+      overflow-y: auto;
+      background: #fff;
+      border: 2px dashed #ccc;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    #back-btn {
+      margin-top: 10px;
+      width: 100%;
+      height: 40px;
+      background: #7e3106;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .quiz-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      font-size: 14px;
+      background: #f17b2a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .quiz-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pill {
+      display: inline-block;
+      font-size: 12px;
+      background: #fff3e0;
+      border: 1px solid #e9c7a7;
+      color: #7e3106;
+      padding: 4px 8px;
+      border-radius: 999px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      font-weight: 900;
+    }
+
+    .box {
+      background: #fff3e0;
+      border: 1px solid #e9c7a7;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .q-label {
+      font-weight: 900;
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #7e3106;
+    }
+
+    .sentence {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.55;
+      font-size: 14px;
+      word-break: keep-all;
+    }
+
+    .tap-sentence {
+      line-height: 1.85;
+      font-size: 15px;
+      user-select: none;
+    }
+
+    .tap-tok {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 8px;
+      margin: 1px 1px;
+      transition: background-color .14s ease, box-shadow .14s ease;
+      cursor: pointer;
+    }
+
+    .tap-tok.k-A {
+      background: rgba(255, 224, 188, 0.95);
+      box-shadow: inset 0 0 0 1px rgba(208, 120, 38, 0.35);
+    }
+
+    .tap-tok.k-B {
+      background: rgba(198, 232, 255, 0.95);
+      box-shadow: inset 0 0 0 1px rgba(58, 127, 176, 0.35);
+    }
+
+    .tap-tok.k-X {
+      background: rgba(255, 224, 188, 0.95);
+      box-shadow: inset 0 0 0 1px rgba(208, 120, 38, 0.35);
+    }
+
+    .tap-tok.k-Y {
+      background: rgba(198, 232, 255, 0.95);
+      box-shadow: inset 0 0 0 1px rgba(58, 127, 176, 0.35);
+    }
+
+    .tap-prompt {
+      margin-top: 10px;
+      min-height: 22px;
+      font-size: 14px;
+      font-weight: 900;
+      color: #7e3106;
+    }
+
+    .typeb-sentence {
+      line-height: 1.9;
+      font-size: 14px;
+      user-select: none;
+    }
+
+    .typeb-tok {
+      display: inline;
+      color: #353535;
+    }
+
+    .typeb-src {
+      display: inline-block;
+      border-radius: 8px;
+      padding: 1px 6px;
+      margin: 1px 1px;
+      cursor: grab;
+      border: 1px solid rgba(160, 120, 90, 0.25);
+      background: rgba(255, 244, 226, 0.9);
+      font-weight: 900;
+      transition: box-shadow .12s ease, transform .12s ease;
+    }
+
+    .typeb-src.k-B,
+    .typeb-src.k-Y {
+      background: rgba(224, 241, 255, 0.95);
+      border-color: rgba(58, 127, 176, 0.4);
+    }
+
+    .typeb-src.selected {
+      box-shadow: 0 0 0 2px rgba(241, 123, 42, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .abxy-wrap {
+      margin-top: 10px;
+      border: 1px dashed #d7bca6;
+      border-radius: 12px;
+      padding: 10px;
+      background: #fffcf8;
+    }
+
+    .abxy-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .abxy-eq {
+      color: #7e3106;
+      font-weight: 900;
+      font-size: 14px;
+      flex: 0 0 auto;
+    }
+
+    .abxy-slot {
+      flex: 1;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed #c8b39f;
+      border-radius: 10px;
+      background: #fff;
+      color: #8a7a6e;
+      font-size: 13px;
+      font-weight: 800;
+      padding: 4px 8px;
+      box-sizing: border-box;
+      text-align: center;
+      line-height: 1.25;
+      user-select: none;
+      transition: all .12s ease;
+    }
+
+    .abxy-slot.filled {
+      color: #3a2a20;
+      border-style: solid;
+      font-weight: 900;
+    }
+
+    .abxy-slot.k-A,
+    .abxy-slot.k-X {
+      background: rgba(255, 224, 188, 0.95);
+      border-color: rgba(208, 120, 38, 0.45);
+    }
+
+    .abxy-slot.k-B,
+    .abxy-slot.k-Y {
+      background: rgba(198, 232, 255, 0.95);
+      border-color: rgba(58, 127, 176, 0.45);
+    }
+
+    .abxy-bank {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .abxy-chip {
+      border: 1px solid #d2b69a;
+      border-radius: 999px;
+      background: #fff;
+      color: #65361d;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1.25;
+      cursor: grab;
+      user-select: none;
+      transition: all .12s ease;
+    }
+
+    .abxy-chip.selected {
+      border-color: #f17b2a;
+      box-shadow: 0 0 0 2px rgba(241, 123, 42, 0.15);
+      background: #fff5eb;
+    }
+
+    .abxy-chip.used {
+      opacity: .24;
+      pointer-events: none;
+    }
+
+    .pick-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .pick-pill {
+      display: inline-flex;
+      min-width: 28px;
+      justify-content: center;
+      align-items: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid #d7bca6;
+      background: #fff;
+      color: #7e3106;
+      font-size: 12px;
+      font-weight: 900;
+      transition: all .14s ease;
+      user-select: none;
+    }
+
+    .pick-pill.active {
+      border-color: #f17b2a;
+      background: #fff3e6;
+      box-shadow: 0 0 0 2px rgba(241, 123, 42, 0.16);
+    }
+
+    .pick-pill.done {
+      border-color: #6fa847;
+      background: #edf9e4;
+      color: #355e18;
+    }
+
+    .field-row {
+      margin-top: 8px;
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-key {
+      font-weight: 900;
+      color: #7e3106;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .field-input {
+      width: 100%;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      box-sizing: border-box;
+      outline: none;
+      background: #fff;
+    }
+
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .choice-btn {
+      text-align: left;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      color: #222;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .choice-btn.active {
+      border-color: #f17b2a;
+      box-shadow: inset 0 0 0 2px rgba(241, 123, 42, 0.2);
+      background: #fff8f2;
+      font-weight: 900;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn-row .quiz-btn {
+      flex: 1;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 900;
+    }
+
+    .feedback.ok {
+      color: #2e7d32;
+    }
+
+    .feedback.bad {
+      color: #c62828;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="quiz-area"></div>
+      <button id="back-btn">돌아가기</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="pleks-toastfx.js"></script>
+  <script src="dishquiz_resultstable.js"></script>
+  <script src="pleks-l5e2.js?v=20260226_07"></script>
+  <script src="Pleks-Alpha_tester.js"></script>
+</body>
+</html>

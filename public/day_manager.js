@@ -73,9 +73,10 @@
       subcategoryToken: "Grammar",
       storageFolder: "grammar",
       levels: {
-        "Basic": [1, 50],
+        // "Basic": [1, 50],
         "herma": [101, 200],
-        "pleks": [201, 300]
+        "pleks": [301, 317],
+        "aisth": [1, 37]
       }
     },
     "단계별 독해": {
@@ -108,7 +109,9 @@
     "Herma": "문법",
     "Pleks": "문법",
     "herma": "문법",
-    "pleks": "문법"
+    "pleks": "문법",
+    "Aisth": "문법",
+    "aisth": "문법"
   };
 
   // Custom lesson-page routing (for module-style web tests)
@@ -191,7 +194,71 @@
         startBook: 1,
         startExercise: 1,
         episodesPerBook: 50,
-        availableDays: [1]
+        dayPathMap: {
+          1: "pleks/pleks-l1e1.html",
+          2: "pleks/pleks-l1e2.html",
+          3: "pleks/pleks-l2e1.html",
+          4: "pleks/pleks-l2e2.html",
+          5: "pleks/pleks-l2e3.html",
+          6: "pleks/pleks-l3e1.html",
+          7: "pleks/pleks-l3e2.html",
+          8: "pleks/pleks-l3e3.html",
+          9: "pleks/pleks-l3e4.html",
+          10: "pleks/pleks-l3e4_refactoring.html",
+          11: "pleks/pleks-l4e1_refactoring.html",
+          12: "pleks/pleks-l4e2_refactoring.html",
+          13: "pleks/pleks-l4e3_refactoring.html",
+          14: "pleks/pleks-l5e1.html",
+          15: "pleks/pleks-l5e2.html",
+          16: "pleks/pleks-l5e3.html",
+          17: "pleks/pleks-l5e4.html"
+        }
+      },
+      "aisth": {
+        folder: "aisth",
+        filePrefix: "aisth",
+        startBook: 1,
+        startExercise: 1,
+        episodesPerBook: 50,
+        dayPathMap: {
+          1: "aisth/aisth-l1e1.html",
+          2: "aisth/aisth-l1e2.html",
+          3: "aisth/aisth-l1e3.html",
+          4: "aisth/aisth-l1e4.html",
+          5: "aisth/aisth-l2e1.html",
+          6: "aisth/aisth-l2e2.html",
+          7: "aisth/aisth-l2e3.html",
+          8: "aisth/aisth-l3e1.html",
+          9: "aisth/aisth-l3e2.html",
+          10: "aisth/aisth-l3e3.html",
+          11: "aisth/aisth-l3e4.html",
+          12: "aisth/aisth-l3e5.html",
+          13: "aisth/aisth-l4e1.html",
+          14: "aisth/aisth-l4e2.html",
+          15: "aisth/aisth-l4e3.html",
+          16: "aisth/aisth-l5e1.html",
+          17: "aisth/aisth-l5e2.html",
+          18: "aisth/aisth-l5e3.html",
+          19: "aisth/aisth-l5e4.html",
+          20: "aisth/aisth-l6e1.html",
+          21: "aisth/aisth-l6e2.html",
+          22: "aisth/aisth-l6e3.html",
+          23: "aisth/aisth-l6e4.html",
+          24: "aisth/aisth-l6e5.html",
+          25: "aisth/aisth-l7e1.html",
+          26: "aisth/aisth-l7e2.html",
+          27: "aisth/aisth-l7e3.html",
+          28: "aisth/aisth-l7e4.html",
+          29: "aisth/aisth-l7e5.html",
+          30: "aisth/aisth-l8e1.html",
+          31: "aisth/aisth-l8e2.html",
+          32: "aisth/aisth-l8e3.html",
+          33: "aisth/aisth-l8e4.html",
+          34: "aisth/aisth-l8e5.html",
+          35: "aisth/aisth-l8e6.html",
+          36: "aisth/aisth-l8e7.html",
+          37: "aisth/aisth-l9e1.html"
+        }
       }
     },
     "공사중": {

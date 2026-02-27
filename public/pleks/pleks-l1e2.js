@@ -1,22 +1,20 @@
-// pleks-l1e1.js
-// L1-E1: Block ordering quiz (Korean prompt -> English blocks reorder)
+// pleks-l1e2.js
+// L1-E2: Block ordering quiz (without Korean prompt)
 
 const EXCEL_FILE = "LTRYI-pleks-lesson-questions.xlsx";
 const DESC_FILE = "LTRYI-pleks-lesson-desc.xlsx";
 
 const TARGET_LESSON = 1;
-const TARGET_EXERCISE = 1;
+const TARGET_EXERCISE = 2;
 const MAX_QUESTIONS = 0; // 0 = no limit
-const FLEXIBLE_ADJACENT_SWAP_BY_QNUMBER = {
-  // canonical block order index pairs (0-based)
-  1: [[2, 3]], // in the 19th century <-> in the countryside
-};
+const NO_KOREAN_PROMPT = "(한국어 없이 맞춰보세요!)";
+const FLEXIBLE_ADJACENT_SWAP_BY_QNUMBER = {};
 
 // doneinweb-compatible metadata
 let subcategory = "Grammar";
 let level = "Basic";
-let day = "301";
-let quizTitle = "quiz_Grammar_Basic_301";
+let day = "302";
+let quizTitle = "quiz_Grammar_Basic_302";
 let userId = "";
 
 // runtime state
@@ -232,7 +230,7 @@ function renderIntro() {
 
   area.innerHTML = `
     <div class="box">
-      <div style="font-size:18px; font-weight:900; color:#7e3106; margin-bottom:8px;">Pleks L1-E1</div>
+      <div style="font-size:18px; font-weight:900; color:#7e3106; margin-bottom:8px;">Pleks L1-E2</div>
 
       <div style="margin-bottom:10px;">
         <span class="pill">Lesson ${TARGET_LESSON}</span>
@@ -249,7 +247,7 @@ function renderIntro() {
       </div>
 
       <div style="font-size:13px; line-height:1.65; color:#333;">
-        한국어 문장을 보고 영어 블록을 순서대로 조립하세요.<br/>
+        한국어 없이 영어 블록을 순서대로 조립하세요.<br/>
         정답일 때만 <b>다음</b> 버튼이 활성화됩니다.
       </div>
 
@@ -295,7 +293,7 @@ function renderQuestion() {
     <div class="q-label">${currentIndex + 1} / ${questions.length} (Q${q.qNumber})</div>
 
     <div class="box" style="margin-bottom:10px;">
-      <div class="sentence">${escapeHtml(q.koreanPrompt || "(한국어 문장 없음)")}</div>
+      <div class="sentence">${escapeHtml(NO_KOREAN_PROMPT)}</div>
     </div>
 
     <div class="box" style="margin-bottom:10px;">
@@ -432,8 +430,8 @@ function submitCurrent() {
     upsertResult({
       no: currentIndex + 1,
       qNumber: q.qNumber,
-      word: `Pleks L1-E1 / Q${q.qNumber}`,
-      question: q.koreanPrompt,
+      word: `Pleks L1-E2 / Q${q.qNumber}`,
+      question: NO_KOREAN_PROMPT,
       selected: selectedSentence || "무응답",
       correct: false,
       modelAnswer: q.answerEnglish,
@@ -446,8 +444,8 @@ function submitCurrent() {
   upsertResult({
     no: currentIndex + 1,
     qNumber: q.qNumber,
-    word: `Pleks L1-E1 / Q${q.qNumber}`,
-    question: q.koreanPrompt,
+    word: `Pleks L1-E2 / Q${q.qNumber}`,
+    question: NO_KOREAN_PROMPT,
     selected: selectedSentence || "무응답",
     correct: true,
     modelAnswer: q.answerEnglish,
@@ -470,8 +468,8 @@ function goNext() {
     upsertResult({
       no: currentIndex + 1,
       qNumber: q.qNumber,
-      word: `Pleks L1-E1 / Q${q.qNumber}`,
-      question: q.koreanPrompt,
+      word: `Pleks L1-E2 / Q${q.qNumber}`,
+      question: NO_KOREAN_PROMPT,
       selected: selectedSentence || "무응답",
       correct: false,
       modelAnswer: q.answerEnglish,
@@ -499,8 +497,8 @@ function showResultPopup() {
       found || {
         no: i + 1,
         qNumber: q.qNumber,
-        word: `Pleks L1-E1 / Q${q.qNumber}`,
-        question: q.koreanPrompt,
+        word: `Pleks L1-E2 / Q${q.qNumber}`,
+        question: NO_KOREAN_PROMPT,
         selected: "무응답",
         correct: false,
         modelAnswer: q.answerEnglish,

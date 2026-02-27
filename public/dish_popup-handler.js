@@ -620,7 +620,7 @@ window.showDishPopup = function (item) {
   popup.querySelector("#upload-btn")?.addEventListener("click", () => {
     const isWord = item.label === "단어";
     const levelKey = String(item.Level || "").trim().toLowerCase();
-    const isWebGrammarModule = levelKey === "herma" || levelKey === "pleks";
+    const isWebGrammarModule = ["herma", "pleks", "aisth"].includes(levelKey);
     const resolvedLevelForPending = inferLevelIfNeeded(item.Subcategory, item.Level, item.LessonNo);
     const pendingQuizKey = isCustomLessonModule
       ? (lessonRouteInfo?.quizKey || (filename ? filename.replace(/\.pdf$/, "") : ""))

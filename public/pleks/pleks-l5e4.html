@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pleks L5-E4</title>
+
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fffaf2;
+      z-index: 1;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #quiz-area {
+      width: 90%;
+      height: 470px;
+      overflow-y: auto;
+      background: #fff;
+      border: 2px dashed #ccc;
+      padding: 12px;
+      border-radius: 12px;
+    }
+
+    #back-btn {
+      margin-top: 10px;
+      width: 100%;
+      height: 40px;
+      background: #7e3106;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .quiz-btn {
+      display: inline-block;
+      padding: 8px 16px;
+      font-size: 14px;
+      background: #f17b2a;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .quiz-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .box {
+      background: #fff3e0;
+      border: 1px solid #e9c7a7;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .q-label {
+      font-weight: 900;
+      font-size: 16px;
+      margin-bottom: 10px;
+      color: #7e3106;
+    }
+
+    .sentence {
+      background: rgba(126, 49, 6, 0.04);
+      border: 1px solid rgba(126, 49, 6, 0.2);
+      border-radius: 12px;
+      padding: 12px;
+      line-height: 1.6;
+      font-size: 14px;
+      font-weight: 700;
+      word-break: keep-all;
+      color: #5b2d10;
+    }
+
+    .choice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .choice-btn {
+      text-align: left;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px;
+      background: #fff;
+      color: #222;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .choice-btn.active {
+      border-color: #f17b2a;
+      box-shadow: inset 0 0 0 2px rgba(241, 123, 42, 0.2);
+      background: #fff8f2;
+      font-weight: 900;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn-row .quiz-btn {
+      flex: 1;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="quiz-area"></div>
+      <button id="back-btn">Back</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="pleks-toastfx.js"></script>
+  <script src="dishquiz_resultstable.js"></script>
+  <script src="pleks-l5e4.js?v=20260226_01"></script>
+  <script src="Pleks-Alpha_tester.js"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pleks L3-E3</title>
+
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+
+  <style>
+    #cafe_int{
+      position:absolute;
+      width:340px;
+      height:626px;
+      top:50%;
+      left:50%;
+      transform:translate(-50%, -50%);
+      border-radius:20px;
+      overflow:hidden;
+      background-color:#fffaf2;
+      z-index:1;
+      padding:16px;
+      box-sizing:border-box;
+    }
+
+    #quiz-area{
+      width:90%;
+      height:470px;
+      overflow-y:auto;
+      background:#ffffff;
+      border:2px dashed #ccc;
+      padding:12px;
+      border-radius:12px;
+    }
+
+    #back-btn{
+      margin-top:10px;
+      width:100%;
+      height:40px;
+      background:#7e3106;
+      color:#fff;
+      border:none;
+      border-radius:8px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .quiz-btn{
+      display:inline-block;
+      padding:10px 14px;
+      font-size:14px;
+      background:#f17b2a;
+      color:#fff;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:900;
+      letter-spacing:-0.2px;
+    }
+    .quiz-btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+    .pill{
+      display:inline-block;
+      font-size:12px;
+      background:#fff3e0;
+      border:1px solid #e9c7a7;
+      color:#7e3106;
+      padding:4px 8px;
+      border-radius:999px;
+      margin-right:6px;
+      margin-bottom:6px;
+      font-weight:900;
+    }
+
+    .box{
+      background:#fff3e0;
+      border:1px solid #e9c7a7;
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+
+    .q-label{
+      font-weight:900;
+      font-size:16px;
+      margin-bottom:10px;
+      color:#7e3106;
+    }
+
+    .sentence{
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:12px;
+      padding:12px;
+      line-height:1.58;
+      font-size:14px;
+      word-break:keep-all;
+    }
+
+    .tok{
+      display:inline-block;
+      margin-right:4px;
+      margin-bottom:5px;
+      padding:1px 4px;
+      border-radius:6px;
+      transition:background .12s ease, box-shadow .12s ease;
+    }
+
+    .tok.ext-a{ background:#ffe8b9; }
+    .tok.base-a{
+      background:#ffc861;
+      box-shadow:inset 0 0 0 1px rgba(173,106,0,0.45);
+      font-weight:900;
+    }
+    .tok.ext-b{ background:#dceeff; }
+    .tok.base-b{
+      background:#98c8ff;
+      box-shadow:inset 0 0 0 1px rgba(40,90,156,0.45);
+      font-weight:900;
+    }
+    .tok.overlap{
+      background:linear-gradient(120deg, #ffc861 0%, #ffc861 50%, #98c8ff 50%, #98c8ff 100%);
+      box-shadow:inset 0 0 0 1px rgba(84,84,84,0.35);
+      font-weight:900;
+    }
+
+    .chunk-picks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
+    .chunk-btn{
+      border:1px solid rgba(126,49,6,0.24);
+      border-radius:999px;
+      background:#fff;
+      color:#7e3106;
+      font-size:13px;
+      font-weight:900;
+      padding:6px 10px;
+      cursor:pointer;
+    }
+    .chunk-btn:disabled{
+      opacity:0.7;
+      cursor:default;
+    }
+    .chunk-btn.caught-a{
+      background:#ffc861;
+      border-color:#b57400;
+      color:#3b2a1e;
+    }
+    .chunk-btn.caught-b{
+      background:#98c8ff;
+      border-color:#3e7dc4;
+      color:#1f3350;
+    }
+
+    .capture-list{
+      margin-top:8px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .capture-item{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+
+    .chip{
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      padding:5px 9px;
+      border:1px solid rgba(0,0,0,0.14);
+      background:#fff;
+      color:#40352d;
+    }
+    .chip.base-a{ background:#ffc861; border-color:#b57400; }
+    .chip.ext-a{ background:#ffe8b9; border-color:#ddb875; }
+    .chip.base-b{ background:#98c8ff; border-color:#3e7dc4; }
+    .chip.ext-b{ background:#dceeff; border-color:#8cb2de; }
+
+    .token-wrap{
+      min-height:52px;
+      display:flex;
+      flex-wrap:wrap;
+      column-gap:8px;
+      row-gap:5px;
+      align-items:flex-start;
+    }
+
+    .token-btn{
+      border:1px solid #e1b991;
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:13px;
+      font-weight:900;
+      cursor:pointer;
+      transition:transform .08s ease;
+    }
+    .token-btn:active{ transform:scale(0.98); }
+    .token-btn:disabled{ opacity:0.55; cursor:not-allowed; transform:none; }
+    .token-btn.bank{ background:#fff; color:#7e3106; }
+    .token-btn.answer{ background:#ffe7cd; color:#7e3106; border-color:#cfa886; }
+
+    .placeholder{
+      color:#888;
+      font-size:12px;
+      line-height:1.5;
+      padding-top:2px;
+      font-weight:900;
+    }
+
+    .hidden{ display:none !important; }
+
+    .status{
+      min-height:16px;
+      margin-top:8px;
+      font-size:12px;
+      font-weight:900;
+      color:#7e3106;
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .btn-row .quiz-btn{ flex:1; }
+  </style>
+</head>
+
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="quiz-area"></div>
+      <button id="back-btn">돌아가기</button>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="pleks-toastfx.js"></script>
+  <script src="dishquiz_resultstable.js"></script>
+  <script src="pleks-l3e3.js"></script>
+</body>
+</html>
