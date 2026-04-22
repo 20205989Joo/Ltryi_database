@@ -208,6 +208,129 @@ function injectRuntimeStyles() {
 
     .result-ok { color: #2e7d32; font-weight: 900; }
     .result-bad { color: #c62828; font-weight: 900; }
+
+    .l14-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .l14-kind-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 24px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .l14-kind-label.is-adj {
+      background: rgba(255, 247, 228, 0.98);
+      color: #7e5a06;
+    }
+
+    .l14-kind-label.is-adv {
+      background: rgba(235, 243, 255, 0.98);
+      color: #2b67c7;
+    }
+
+    .l14-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .l14-chip.is-verb {
+      border-color: #f1c18e;
+      background: #fff;
+      color: #7e3106;
+    }
+
+    .l14-chip.is-adv {
+      border-color: rgba(43, 103, 199, 0.24);
+      background: rgba(235, 243, 255, 0.98);
+      color: #2b67c7;
+    }
+
+    .l14-chip.is-adj {
+      border-color: rgba(255, 187, 74, 0.26);
+      background: rgba(255, 247, 228, 0.98);
+      color: #7e5a06;
+    }
+
+    .l14-do-chip {
+      position: relative;
+      overflow: visible;
+    }
+
+    .l14-do-chip::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: calc(100% + 10px);
+      height: calc(100% + 10px);
+      transform: translate(-50%, -50%);
+      border: 2px solid #2b67c7;
+      border-radius: 999px;
+      animation: lip-mark-ring 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .l14-example-sentence {
+      background: #fff;
+      border: 1px solid #ead4bd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #3c2d22;
+      word-break: keep-all;
+    }
+
+    .l14-focus-adj {
+      background: rgba(255, 208, 90, 0.38);
+      border-radius: 6px;
+      padding: 0 3px;
+      box-shadow: inset 0 0 0 1px rgba(160, 110, 0, 0.18);
+      color: #7e5a06;
+      font-weight: 900;
+    }
+
+    .l14-focus-adv {
+      background: rgba(43, 103, 199, 0.12);
+      border-radius: 6px;
+      padding: 0 3px;
+      box-shadow: inset 0 0 0 1px rgba(43, 103, 199, 0.18);
+      color: #2b67c7;
+      font-weight: 900;
+    }
+
+    .l14-ly {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.5em;
+      margin-left: 1px;
+      border-radius: 999px;
+      background: rgba(43, 103, 199, 0.14);
+      box-shadow: inset 0 0 0 1px rgba(43, 103, 199, 0.18);
+      color: #2b67c7;
+      padding: 0 0.22em;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -306,9 +429,125 @@ function parseAnswer(answerRaw) {
   return { word: raw, ko: "" };
 }
 
+function buildL14Chip(text, variant, extraClass = "") {
+  const variantClass = variant === "adv" ? " is-adv" : variant === "adj" ? " is-adj" : " is-verb";
+  return `<span class="l14-chip${variantClass}${extraClass ? ` ${extraClass}` : ""}">${escapeHtml(text)}</span>`;
+}
+
+function buildL14LyChip(stem) {
+  return `
+    <span class="l14-chip is-adv">
+      ${escapeHtml(stem)}<span class="l14-ly">ly</span>
+    </span>
+  `;
+}
+
+function buildL14Step1ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="l14-chip-row">
+        ${buildL14Chip("eat", "verb")}
+        ${buildL14Chip("행복하게", "adv")}
+      </div>
+      <div class="l14-chip-row">
+        ${buildL14Chip("run", "verb")}
+        ${buildL14Chip("오늘 아침에", "adv")}
+      </div>
+    </div>
+  `;
+}
+
+function buildL14Step2ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="l14-chip-row">
+        ${buildL14Chip("Do", "verb", "l14-do-chip")}
+        ${buildL14Chip("eat", "verb")}
+        ${buildL14Chip("행복하게", "adv")}
+      </div>
+      <div class="l14-chip-row">
+        ${buildL14Chip("Do", "verb", "l14-do-chip")}
+        ${buildL14Chip("run", "verb")}
+        ${buildL14Chip("오늘 아침에", "adv")}
+      </div>
+    </div>
+  `;
+}
+
+function buildL14Step3ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="l14-example-sentence">Mina is <span class="l14-focus-adj">happy</span>.</div>
+      <div class="l14-example-sentence">Mina runs <span class="l14-focus-adv">happily</span> <span class="l14-focus-adv">today</span>.</div>
+    </div>
+  `;
+}
+
+function buildL14Step4ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="l14-chip-row">
+        <span class="l14-kind-label is-adj">형용사</span>
+        ${buildL14Chip("quick", "adj")}
+        ${buildL14Chip("slow", "adj")}
+      </div>
+      <div class="l14-chip-row">
+        <span class="l14-kind-label is-adv">부사</span>
+        ${buildL14LyChip("quick")}
+        ${buildL14LyChip("slow")}
+      </div>
+    </div>
+  `;
+}
+
+function buildIntroPlayerConfig() {
+  const firstQuestion = questions[0] || null;
+
+  return {
+    pageLabel: PAGE_LABEL,
+    title: stripEmphasisMarkers(firstQuestion?.title || "Adverb"),
+    nextLabel: "다음",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "부사adv는 좀 특이합니다. 설명이 잘 안될때 씁니다.",
+        exampleHtml: buildL14Step1ExampleHtml(),
+      },
+      {
+        title: "그래서 do와 셋트로 자주 씁니다",
+        exampleHtml: buildL14Step2ExampleHtml(),
+      },
+      {
+        title: "be와 함께 쓰는 형용사와 다르다는 것 잊지마세요",
+        body: "언제, 어디서, 왜 했는지 설명합니다.",
+        exampleHtml: buildL14Step3ExampleHtml(),
+      },
+      {
+        title: "지금은 ly로 구분해볼까요!",
+        body: "지금 당장은 ly만 기억하세요.",
+        exampleHtml: buildL14Step4ExampleHtml(),
+      },
+      {
+        title: "직접 형용사와 부사를 구분해보세요!",
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;

@@ -827,17 +827,6 @@
       background: rgba(255, 183, 85, 0.55);
     }
 
-    .pdf-preview iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #101722;
-      position: absolute;
-      inset: 0;
-      touch-action: pan-y;
-      -webkit-overflow-scrolling: touch;
-    }
-
     .pdf-word-tooltip {
       position: fixed;
       z-index: 220;
@@ -2106,7 +2095,6 @@
       const examSel = document.getElementById("mock-exam-select");
       const typeSel = document.getElementById("mock-type-select");
       const previewPages = document.getElementById("mock-pdf-pages");
-      const previewFrame = document.getElementById("mock-pdf-frame");
       const previewEmpty = document.getElementById("pdf-preview-empty");
       const newTabBtn = document.getElementById("mock-pdf-open-newtab");
 
@@ -2124,11 +2112,13 @@
         const years = [];
         const startYear = 2017;
         const latestStartYear = new Date().getFullYear() - 1; // 예: 2026 -> 2025to2026
-        for (let y = startYear; y <= latestStartYear; y += 1) {
+        const inclusiveLatestStartYear = latestStartYear + 1;
+        for (let y = startYear; y <= inclusiveLatestStartYear; y += 1) {
           years.push(`${y}to${y + 1}`);
         }
         return years;
       })();
+      const MISSING_MOCK_EXAM_MESSAGE = "\uC557! \uD574\uB2F9 \uBAA8\uC758\uACE0\uC0AC\uAC00 \uC544\uC9C1 \uC5C6\uC5B4\uC694!";
 
       const EXAM_META = [
         { key: "march", label: "3평", token: "march" },
@@ -2158,6 +2148,10 @@
       const FIXED_STUDENT_ID = new URLSearchParams(window.location.search).get("id") || "";
       const LOCAL_DRAFT_STORAGE_KEY = `mock-exam-tool:draft:${FIXED_STUDENT_ID || "guest"}`;
       const PDFJS_WORKER_SRC = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js";
+      const USER_AGENT = window.navigator.userAgent || "";
+      const NAV_PLATFORM = window.navigator.platform || "";
+      const IS_IOS_WEBKIT = /iPad|iPhone|iPod/i.test(USER_AGENT)
+        || (NAV_PLATFORM === "MacIntel" && window.navigator.maxTouchPoints > 1);
       const RENDER_QUALITY_BOOST = 1.35;
       const THREE_PEN_COLOR = "#f3e8d2";
       const THREE_PEN_WIDTH_SCALE = 0.72;
@@ -2168,7 +2162,6 @@
       const DEFAULT_PAYLOAD_QNO = 0;
       const DEFAULT_PAYLOAD_LAP = "1.1";
 
-      let lastBlobUrl = "";
       let lastPdfUrl = "";
       let memoFontSize = 15;
       let overlaySide = "right";
@@ -2295,7 +2288,6 @@
         !examSel ||
         !typeSel ||
         !previewPages ||
-        !previewFrame ||
         !previewEmpty ||
         !newTabBtn
       ) return;
@@ -3714,33 +3706,29 @@
 
       function bindTouchDragScrollBridge(targetEl) {
         if (!targetEl || !previewPages) return;
+        if (IS_IOS_WEBKIT) return;
         let dragging = false;
         let moved = false;
         let startX = 0;
         let startY = 0;
         let startTop = 0;
         let startLeft = 0;
+        let pointerId = null;
 
-        targetEl.addEventListener("touchstart", function (event) {
-          if (!event.touches || event.touches.length !== 1) {
-            dragging = false;
-            moved = false;
-            return;
-          }
-          const t = event.touches[0];
+        const beginDrag = function (x, y, nextPointerId) {
           dragging = true;
           moved = false;
-          startX = t.clientX;
-          startY = t.clientY;
+          pointerId = Number.isFinite(nextPointerId) ? nextPointerId : null;
+          startX = x;
+          startY = y;
           startTop = previewPages.scrollTop;
           startLeft = previewPages.scrollLeft;
-        }, { passive: true });
+        };
 
-        targetEl.addEventListener("touchmove", function (event) {
-          if (!dragging || !event.touches || event.touches.length !== 1) return;
-          const t = event.touches[0];
-          const dx = t.clientX - startX;
-          const dy = t.clientY - startY;
+        const moveDrag = function (x, y, eventLike) {
+          if (!dragging) return;
+          const dx = x - startX;
+          const dy = y - startY;
           if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
             moved = true;
           }
@@ -3749,27 +3737,60 @@
           if (moved) {
             lastPreviewScrollAt = Date.now();
             hideWordTooltip();
-            event.preventDefault();
+            if (eventLike && typeof eventLike.preventDefault === "function") {
+              eventLike.preventDefault();
+            }
           }
-        }, { passive: false });
+        };
 
         const stopDrag = function () {
           dragging = false;
+          pointerId = null;
           if (moved) {
             lastPreviewScrollAt = Date.now();
           }
           moved = false;
         };
+
+        targetEl.addEventListener("touchstart", function (event) {
+          if (!event.touches || event.touches.length !== 1) {
+            stopDrag();
+            return;
+          }
+          const t = event.touches[0];
+          beginDrag(t.clientX, t.clientY, null);
+        }, { passive: true });
+
+        targetEl.addEventListener("touchmove", function (event) {
+          if (!dragging || !event.touches || event.touches.length !== 1) return;
+          const t = event.touches[0];
+          moveDrag(t.clientX, t.clientY, event);
+        }, { passive: false });
+
         targetEl.addEventListener("touchend", stopDrag, { passive: true });
         targetEl.addEventListener("touchcancel", stopDrag, { passive: true });
-      }
 
-      function clearBlobUrl() {
-        if (!lastBlobUrl) return;
-        try {
-          URL.revokeObjectURL(lastBlobUrl);
-        } catch (_err) {}
-        lastBlobUrl = "";
+        targetEl.addEventListener("pointerdown", function (event) {
+          if (event.pointerType !== "touch") return;
+          beginDrag(event.clientX, event.clientY, event.pointerId);
+        }, { passive: true });
+
+        targetEl.addEventListener("pointermove", function (event) {
+          if (event.pointerType !== "touch") return;
+          if (!dragging) return;
+          if (pointerId !== null && event.pointerId !== pointerId) return;
+          moveDrag(event.clientX, event.clientY, event);
+        }, { passive: false });
+
+        targetEl.addEventListener("pointerup", function (event) {
+          if (pointerId !== null && event.pointerId !== pointerId) return;
+          stopDrag();
+        }, { passive: true });
+
+        targetEl.addEventListener("pointercancel", function (event) {
+          if (pointerId !== null && event.pointerId !== pointerId) return;
+          stopDrag();
+        }, { passive: true });
       }
 
       function getSupabaseKey() {
@@ -3994,11 +4015,6 @@
             }
             return page;
           }
-        }
-        if (!previewFrame.hidden) {
-          const src = String(previewFrame.getAttribute("src") || previewFrame.src || "");
-          const match = src.match(/[?#&]page=(\d+)/i);
-          return parsePositivePage(match ? match[1] : null);
         }
         return null;
       }
@@ -4892,33 +4908,13 @@
       function resetPdfPreviewToEmpty(message) {
         pdfRenderToken += 1;
         hideWordTooltip();
-        clearBlobUrl();
         if (message) {
           previewEmpty.textContent = message;
         }
         previewPages.innerHTML = "";
         hidePanel(previewPages);
-        hidePanel(previewFrame);
-        previewFrame.removeAttribute("src");
         showPanel(previewEmpty);
         newTabBtn.hidden = true;
-      }
-
-      function buildIframeBlobSrc(blobUrl, pageNumber) {
-        const p = parsePositivePage(pageNumber);
-        const pagePart = p ? `page=${p}&` : "";
-        return `${blobUrl}#${pagePart}toolbar=0&navpanes=0&statusbar=0&messages=0&view=FitH`;
-      }
-
-      function showPdfWithIframeBlob(blob, pageNumber) {
-        hideWordTooltip();
-        clearBlobUrl();
-        lastBlobUrl = URL.createObjectURL(blob);
-        previewFrame.src = buildIframeBlobSrc(lastBlobUrl, pageNumber);
-        showPanel(previewFrame);
-        hidePanel(previewPages);
-        hidePanel(previewEmpty);
-        lockPreviewViewportHeight("iframe");
       }
 
       function normalizeCapturedWord(raw) {
@@ -5206,8 +5202,6 @@
         previewPages.innerHTML = "";
         previewPages.style.minHeight = "0";
         previewPages.style.height = "100%";
-        hidePanel(previewFrame);
-        previewFrame.removeAttribute("src");
         showPanel(previewPages);
         hidePanel(previewEmpty);
         lockPreviewViewportHeight("before-render");
@@ -5219,10 +5213,13 @@
           const baseViewport = page.getViewport({ scale: 1 });
           const hostWidth = (previewPages.parentElement && previewPages.parentElement.clientWidth) || previewPages.clientWidth;
           const usableWidth = Math.max(320, hostWidth - 24);
-          const scale = Math.max(1, Math.min(2.7, usableWidth / baseViewport.width));
+          const maxViewportScale = IS_IOS_WEBKIT ? 2.2 : 2.7;
+          const scale = Math.max(1, Math.min(maxViewportScale, usableWidth / baseViewport.width));
           const viewport = page.getViewport({ scale });
           const deviceScale = Math.max(1, window.devicePixelRatio || 1);
-          const outputScale = Math.min(4, Math.max(1, deviceScale * RENDER_QUALITY_BOOST));
+          const renderBoost = IS_IOS_WEBKIT ? 1 : RENDER_QUALITY_BOOST;
+          const maxOutputScale = IS_IOS_WEBKIT ? 2.5 : 4;
+          const outputScale = Math.min(maxOutputScale, Math.max(1, deviceScale * renderBoost));
 
           const pageWrap = document.createElement("div");
           pageWrap.className = "pdf-page";
@@ -5235,7 +5232,11 @@
           canvas.height = Math.floor(viewport.height * outputScale);
           canvas.style.width = `${viewport.width}px`;
           canvas.style.height = `${viewport.height}px`;
-          bindTouchDragScrollBridge(canvas);
+          if (IS_IOS_WEBKIT) {
+            canvas.style.touchAction = "auto";
+          } else {
+            bindTouchDragScrollBridge(canvas);
+          }
 
           pageWrap.appendChild(canvas);
           previewPages.appendChild(pageWrap);
@@ -6442,13 +6443,6 @@
           return true;
         }
 
-        if (!previewFrame.hidden && lastBlobUrl) {
-          const nextSrc = buildIframeBlobSrc(lastBlobUrl, page);
-          if (previewFrame.src !== nextSrc) {
-            previewFrame.src = nextSrc;
-          }
-          return true;
-        }
         return false;
       }
 
@@ -7129,73 +7123,39 @@
         const stem = pdfFilename.replace(/\.pdf$/i, "");
         if (!stem || stem === pdfFilename) return null;
         const indexName = `${stem}_wordsx.json`;
-        const legacyIndexName = `${stem}_words.json`;
-        const dotIndexName = `${stem}.wordsx.json`;
-        const legacyDotIndexName = `${stem}.words.json`;
-
-        const candidates = [];
-        const pushCandidate = function (value) {
-          const next = String(value || "").trim();
-          if (!next) return;
-          if (!candidates.includes(next)) candidates.push(next);
-        };
-
-        // 1) current origin (local server)
-        pushCandidate(indexName);
-        pushCandidate(dotIndexName);
-        pushCandidate(legacyIndexName);
-        pushCandidate(legacyDotIndexName);
-
-        // 2) same Supabase object path as the selected PDF (extension only swapped)
         const pdfUrl = String(fileInfo.url || "").trim();
-        const pushUrlIndexCandidates = function (baseUrl) {
-          const base = String(baseUrl || "").trim();
-          if (!base) return;
-          pushCandidate(`${base}_wordsx.json`);
-          pushCandidate(`${base}.wordsx.json`);
-          pushCandidate(`${base}_words.json`);
-          pushCandidate(`${base}.words.json`);
-        };
-        if (pdfUrl) {
-          if (/\.pdf($|[?#])/i.test(pdfUrl)) {
-            pushUrlIndexCandidates(pdfUrl.replace(/\.pdf(?=($|[?#]))/i, ""));
-          } else {
-            pushUrlIndexCandidates(pdfUrl);
+        const indexUrl = pdfUrl && /\.pdf($|[?#])/i.test(pdfUrl)
+          ? pdfUrl.replace(/\.pdf(?=($|[?#]))/i, "_wordsx.json")
+          : buildPublicUrl(indexName, fileInfo.grade);
+
+        try {
+          const res = await fetch(indexUrl);
+          if (!res.ok) {
+            trace("warn", `word-index request failed: ${indexUrl} (HTTP ${res.status})`);
+            return null;
           }
-        }
-
-        // 3) explicit public-url candidates
-        pushCandidate(buildPublicUrl(indexName, fileInfo.grade));
-        pushCandidate(buildPublicUrl(dotIndexName, fileInfo.grade));
-        pushCandidate(buildPublicUrl(legacyIndexName, fileInfo.grade));
-        pushCandidate(buildPublicUrl(legacyDotIndexName, fileInfo.grade));
-
-        for (let i = 0; i < candidates.length; i += 1) {
-          const url = candidates[i];
-          try {
-            const res = await fetch(url);
-            if (!res.ok) continue;
-            const data = await res.json();
-            const normalized = normalizeWordIndexData(data);
-            const normalizedPages = normalized && normalized.pages && typeof normalized.pages === "object"
-              ? normalized.pages
-              : {};
-            const pageCount = Object.keys(normalizedPages).length;
-            if (!pageCount) continue;
-            const rowCount = Object.keys(normalizedPages).reduce(function (acc, key) {
-              const rows = Array.isArray(normalizedPages[key]) ? normalizedPages[key].length : 0;
-              return acc + rows;
-            }, 0);
-            activeWordIndex = normalized;
-            trace("info", `word-index loaded: ${url} (${pageCount}p / ${rowCount} rows)`);
-            return normalized;
-          } catch (_err) {
-            // try next candidate
+          const data = await res.json();
+          const normalized = normalizeWordIndexData(data);
+          const normalizedPages = normalized && normalized.pages && typeof normalized.pages === "object"
+            ? normalized.pages
+            : {};
+          const pageCount = Object.keys(normalizedPages).length;
+          if (!pageCount) {
+            trace("warn", `word-index empty: ${indexUrl}`);
+            return null;
           }
+          const rowCount = Object.keys(normalizedPages).reduce(function (acc, key) {
+            const rows = Array.isArray(normalizedPages[key]) ? normalizedPages[key].length : 0;
+            return acc + rows;
+          }, 0);
+          activeWordIndex = normalized;
+          trace("info", `word-index loaded: ${indexUrl} (${pageCount}p / ${rowCount} rows)`);
+          return normalized;
+        } catch (err) {
+          const message = err && err.message ? err.message : "unknown error";
+          trace("warn", `word-index load failed: ${indexUrl} (${message})`);
+          return null;
         }
-
-        trace("warn", `word-index not found: ${indexName} (fallback: ${dotIndexName}, ${legacyIndexName}, ${legacyDotIndexName})`);
-        return null;
       }
 
       function buildFilename(grade, year, examKey, typeLabel) {
@@ -7286,23 +7246,12 @@
         try {
           const pdfBlob = await fetchPdfBlob(fileInfo.url);
           trace("info", `download ok: ${fileInfo.filename} (${Math.round(pdfBlob.size / 1024)}KB)`);
-          const wordIndex = await loadWordIndexForFile(fileInfo);
-          let renderResult = null;
-          if (wordIndex && window.pdfjsLib) {
-            try {
-              renderResult = await renderPdfPagesWithTextLayer(pdfBlob, {
-                preferredPage: selectedSessionTargetPage
-              });
-            } catch (renderErr) {
-              trace("warn", `word-index renderer failed -> iframe fallback: ${fileInfo.filename}`, renderErr);
-              showPdfWithIframeBlob(pdfBlob, selectedSessionTargetPage);
-            }
-          } else {
-            showPdfWithIframeBlob(pdfBlob, selectedSessionTargetPage);
-          }
+          await loadWordIndexForFile(fileInfo);
+          const renderResult = await renderPdfPagesWithTextLayer(pdfBlob, {
+            preferredPage: selectedSessionTargetPage
+          });
           if (DEBUG_SCROLL_DIAG) {
             trace("info", "diag/post-load", {
-              frameHidden: previewFrame.hidden,
               pagesHidden: previewPages.hidden,
               emptyHidden: previewEmpty.hidden,
               host: getScrollHostMetrics(previewPages)
@@ -7323,7 +7272,7 @@
         } catch (err) {
           const code = Number(err && err.httpStatus);
           if (code === 400 || code === 404) {
-            resetPdfPreviewToEmpty("해당 조합의 PDF가 아직 없습니다.");
+            resetPdfPreviewToEmpty(MISSING_MOCK_EXAM_MESSAGE);
             updateTopbarStatus();
             trace("warn", `missing file: ${fileInfo.filename}`);
             return false;
@@ -7478,7 +7427,7 @@
       });
 
       newTabBtn.addEventListener("click", function () {
-        const target = lastBlobUrl || lastPdfUrl;
+        const target = lastPdfUrl;
         if (!target) return;
         window.open(target, "_blank", "noopener,noreferrer");
       });
@@ -7579,6 +7528,26 @@
       switchMemoTab(activeMemoTabIndex);
       renderMemoTabbar();
       updateTopbarStatus();
+    })();
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+  <script>
+    eruda.init();
+    (function keepErudaBottomRight() {
+      const margin = 16;
+      const buttonSize = 56;
+      function placeEruda() {
+        eruda.position({
+          x: Math.max(0, window.innerWidth - buttonSize - margin),
+          y: Math.max(0, window.innerHeight - buttonSize - margin)
+        });
+      }
+      placeEruda();
+      requestAnimationFrame(placeEruda);
+      window.addEventListener("resize", placeEruda);
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", placeEruda);
+      }
     })();
   </script>
 </body>

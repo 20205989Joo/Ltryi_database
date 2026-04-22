@@ -295,9 +295,99 @@ function buildQuestionsFromRows() {
   });
 }
 
+function buildL12Chip(text, variant) {
+  const variantClass = variant === "ko" ? " is-ko" : " is-en";
+  return `<span class="lip-word-chip-demo${variantClass}">${escapeHtml(text)}</span>`;
+}
+
+function buildL12Step1ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        ${buildL12Chip("Mina", "en")}
+        ${buildL12Chip("dog", "en")}
+        ${buildL12Chip("chair", "en")}
+        ${buildL12Chip("idea", "en")}
+      </div>
+    </div>
+  `;
+}
+
+function buildL12Step2ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        ${buildL12Chip("happy", "en")}
+        ${buildL12Chip("kind", "en")}
+        ${buildL12Chip("cold", "en")}
+        ${buildL12Chip("sleepy", "en")}
+      </div>
+      <div class="lip-example-line">
+        <span class="lip-sentence-link">'~~한 상태'</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildL12Step3ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        ${buildL12Chip("be", "en")}
+        <span class="lip-example-symbol">+</span>
+        ${buildL12Chip("Mina", "en")}
+      </div>
+      <div class="lip-example-line">
+        ${buildL12Chip("be", "en")}
+        <span class="lip-example-symbol">+</span>
+        ${buildL12Chip("happy", "en")}
+      </div>
+    </div>
+  `;
+}
+
+function buildIntroPlayerConfig() {
+  const firstQuestion = questions[0] || null;
+
+  return {
+    pageLabel: PAGE_LABEL,
+    title: firstQuestion?.title || "명사 vs 형용사",
+    nextLabel: "다음",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "명사(noun)는 이름입니다. 이거, 저거로 가리킬 수 있어요",
+        exampleHtml: buildL12Step1ExampleHtml(),
+      },
+      {
+        title: "형용사(adj)는 상태입니다. '~~한 상태'에요. 명사를 설명합니다.",
+        exampleHtml: buildL12Step2ExampleHtml(),
+      },
+      {
+        title: "명사, 형용사는 be와 셋트라는 것, 잊지 마세요",
+        exampleHtml: buildL12Step3ExampleHtml(),
+      },
+      {
+        title: "이제 명사와 형용사를 직접 골라보세요",
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;

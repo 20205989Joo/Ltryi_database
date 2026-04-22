@@ -26,10 +26,38 @@ function getLevelVisual(subcategory, level) {
   if (canonicalSub !== '문법') return null;
 
   const normalized = String(level || '').trim().toLowerCase();
-  if (normalized === 'basic') return { variant: 'basic', rank: '1' };
-  if (normalized === 'herma') return { variant: 'herma', rank: '2' };
-  if (normalized === 'pleks') return { variant: 'pleks', rank: '3' };
+  if (normalized === 'aisth' || normalized === 'basic') return { variant: 'basic', rank: '1', order: 1 };
+  if (normalized === 'herma') return { variant: 'herma', rank: '2', order: 2 };
+  if (normalized === 'pleks') return { variant: 'pleks', rank: '3', order: 3 };
   return null;
+}
+
+function getLevelDisplayName(level) {
+  const normalized = String(level || '').trim().toLowerCase();
+  if (normalized === 'aisth' || normalized === 'basic') return 'AISTH';
+  if (normalized === 'herma') return 'HERMA';
+  if (normalized === 'pleks') return 'PLEKS';
+  return String(level || '');
+}
+function sortLevelsForDisplay(subcategory, levels) {
+  if (!Array.isArray(levels)) return [];
+
+  const canonicalSub = resolveSubcategoryName(subcategory);
+  if (canonicalSub !== '문법') return [...levels];
+
+  return [...levels].sort((a, b) => {
+    const aVisual = getLevelVisual(canonicalSub, a);
+    const bVisual = getLevelVisual(canonicalSub, b);
+
+    const aOrder = aVisual?.order ?? Number.MAX_SAFE_INTEGER;
+    const bOrder = bVisual?.order ?? Number.MAX_SAFE_INTEGER;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+
+    return String(a).localeCompare(String(b), undefined, {
+      numeric: true,
+      sensitivity: 'base'
+    });
+  });
 }
 
 function setAddButtonEnabled(enabled) {
@@ -270,10 +298,11 @@ function renderLevelOptions(temp) {
 
   const dm = getDayManager();
   const sub = resolveSubcategoryName(temp.Subcategory);
-  const levels =
+  const levelsRaw =
     dm && typeof dm.listLevels === 'function'
       ? dm.listLevels(sub)
       : [];
+  const levels = sortLevelsForDisplay(sub, levelsRaw);
 
   if (!levels || levels.length === 0) {
     temp.Level = null;
@@ -315,7 +344,7 @@ function renderLevelOptions(temp) {
 
     const levelName = document.createElement('span');
     levelName.className = 'level-name';
-    levelName.textContent = level;
+    levelName.textContent = getLevelDisplayName(level);
     btn.appendChild(levelName);
 
     btn.onclick = () => {
@@ -696,6 +725,41 @@ function renderSubPopup(label) {
       <div style="position: relative; min-height: 220px; padding-bottom: 70px;">
         <div style="margin: 18px 0 14px; font-size: 14px; text-align:center;">
           모의고사 전용 도구를 상차림에 담습니다.
+        </div>
+        <div style="font-size:12px; color:#666; text-align:center;">
+          담은 뒤 테이블에서 바로 사용할 수 있어요.
+        </div>
+        <div class="sub-footer" style="position:absolute; bottom:16px; width:100%; text-align:center;">
+          <button class="order-btn confirm-btn" id="subPopupAddBtn">🛒 담기</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('subPopupCloseBtn').onclick = () => {
+      subPopup.classList.add('hidden');
+    };
+
+    document.getElementById('subPopupAddBtn').onclick = () => {
+      const duplicate = selectedItems.some(item => item.label === label);
+      if (!duplicate) {
+        selectedItems.push({ label });
+        updateSelectedDisplay();
+      }
+      subPopup.classList.add('hidden');
+    };
+    return;
+  }
+
+  if (label === 'EBS 전용도구') {
+    const container = document.querySelector('.sub-popup-inner');
+    const subPopup = document.getElementById('sub-popup');
+    if (!container || !subPopup) return;
+
+    subPopup.classList.remove('hidden');
+    container.innerHTML = `
+      <div style="position: relative; min-height: 220px; padding-bottom: 70px;">
+        <div style="margin: 18px 0 14px; font-size: 14px; text-align:center;">
+          EBS 전용 도구를 상차림에 담습니다.
         </div>
         <div style="font-size:12px; color:#666; text-align:center;">
           담은 뒤 테이블에서 바로 사용할 수 있어요.

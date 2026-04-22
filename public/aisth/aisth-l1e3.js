@@ -351,9 +351,93 @@ function detectType(question) {
   return String(question || "").includes("___") ? "blank" : "rewrite";
 }
 
+function buildL13Chip(text, variant) {
+  const variantClass = variant === "ko" ? " is-ko" : " is-en";
+  return `<span class="lip-word-chip-demo${variantClass}">${escapeHtml(text)}</span>`;
+}
+
+function buildL13Step1ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        ${buildL13Chip("Do", "en")}
+        <span class="lip-example-symbol">=</span>
+        ${buildL13Chip("\uD55C\uB2E4", "ko")}
+      </div>
+    </div>
+  `;
+}
+
+function buildL13Step2ExampleHtml() {
+  const items = ["drink", "walk", "study", "smile"];
+  const chips = items
+    .map((item, index) => (
+      `
+        <div class="lip-morph-chip" style="--lip-delay:${(index * 0.22).toFixed(2)}s;">
+          <span class="lip-morph-word is-from">Do</span>
+          <span class="lip-morph-word is-to">${escapeHtml(item)}</span>
+        </div>
+      `
+    ))
+    .join("");
+
+  return `
+    <div class="lip-morph-grid">
+      ${chips}
+    </div>
+  `;
+}
+
+function buildL13Step3ExampleHtml() {
+  return `
+    <div class="lip-fill-demo">
+      <span class="lip-sentence-link">\uB098\uB294 \uC74C\uB8CC\uC218\uB97C</span>
+      <span class="lip-fill-slot">
+        <span class="lip-fill-word">drink</span>
+      </span>
+    </div>
+  `;
+}
+
+function buildIntroPlayerConfig() {
+  const firstQuestion = questions[0] || null;
+
+  return {
+    pageLabel: PAGE_LABEL,
+    title: stripEmphasisMarkers(firstQuestion?.title || "Do = '~\uB97C \uD55C\uB2E4'"),
+    nextLabel: "\uB2E4\uC74C",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "Do\uB294 '~\uB97C \uD55C\uB2E4' \uC5D0\uC694. \uBCF4\uD1B5 '\uB3D9\uC0ACverb'\uB77C\uACE0 \uBD80\uB985\uB2C8\uB2E4",
+        exampleHtml: buildL13Step1ExampleHtml(),
+      },
+      {
+        title: "Do\uB3C4 Be\uCC98\uB7FC, \uBCC0\uD615\uC2DC\uCF1C\uC11C \uC501\uB2C8\uB2E4",
+        exampleHtml: buildL13Step2ExampleHtml(),
+      },
+      {
+        title: "\uC6B0\uB9AC\uAC00 \uC678\uC6CC\uC628 \uB2E8\uC5B4, \uADF8\uB300\uB85C \uC368\uBCF4\uC544\uC694!",
+        exampleHtml: buildL13Step3ExampleHtml(),
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dish Quiz 2</title>
+  <link rel="stylesheet" href="styles-frame.css" />
+  <link rel="stylesheet" href="styles-room.css" />
+  <style>
+    #cafe_int {
+      position: absolute;
+      width: 340px;
+      height: 626px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 20px;
+      overflow: hidden;
+      background-color: #fffaf2;
+      z-index: 1;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #quiz-area {
+      width: 90%;
+      height: 470px;
+      margin: 0 auto;
+      overflow-y: auto;
+      background: #ffffff;
+      border: 2px dashed #ccc;
+      padding: 12px;
+      border-radius: 12px;
+      box-sizing: border-box;
+    }
+
+    #back-btn {
+      margin-top: 10px;
+      width: 90%;
+      height: 40px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      background: #7e3106;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 12px;
+      box-sizing: border-box;
+    }
+
+    .popup-content {
+      background: white;
+      width: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .quiz-btn {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 8px 16px;
+      font-size: 14px;
+      background: #f17b2a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    .quiz-btn.secondary {
+      background: #d9d2cc;
+      color: #513728;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .setup-field {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      color: #5a4132;
+    }
+
+    .setup-field select {
+      width: 100%;
+      margin-top: 6px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid #d7b79c;
+      background: #fff;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+
+    .setup-status {
+      min-height: 34px;
+      margin-bottom: 10px;
+      padding: 9px 10px;
+      border-radius: 10px;
+      background: #fffaf3;
+      color: #7e5b45;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.4;
+      box-sizing: border-box;
+    }
+
+    .question-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #5a4132;
+      font-size: 13px;
+    }
+
+    .question-wording {
+      font-weight: bold;
+      font-size: 19px;
+      line-height: 1.35;
+      color: #2f241f;
+      margin-bottom: 6px;
+      word-break: keep-all;
+    }
+
+    .question-note {
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #6a5b52;
+      font-weight: bold;
+    }
+
+    .timer-track {
+      width: 100%;
+      height: 8px;
+      background: #efd7bf;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+
+    .timer-bar {
+      width: 100%;
+      height: 100%;
+      background: green;
+    }
+
+    .scramble-help {
+      margin-bottom: 10px;
+      font-size: 12px;
+      color: #7b665a;
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .scramble-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      min-height: 94px;
+      padding: 12px 8px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      background: #fff7ef;
+      border: 1px solid #f1dbc5;
+      box-sizing: border-box;
+    }
+
+    .slot-chip {
+      width: 42px;
+      height: 52px;
+      border: 2px solid #d9b99c;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #7e3106;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 25px;
+      font-weight: 800;
+      line-height: 1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      cursor: pointer;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    .slot-chip.fixed {
+      background: #7e3106;
+      border-color: #7e3106;
+      color: #fff;
+      cursor: default;
+    }
+
+    .slot-chip.empty {
+      background: #fffdfb;
+      color: transparent;
+    }
+
+    .slot-chip.active {
+      border-color: #f17b2a;
+      box-shadow: 0 0 0 3px rgba(241, 123, 42, 0.18);
+      transform: translateY(-1px);
+    }
+
+    .slot-chip.separator {
+      width: auto;
+      min-width: 14px;
+      height: 52px;
+      padding: 0 1px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: #7e3106;
+      cursor: default;
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .bank-label {
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #6f5645;
+      text-align: center;
+    }
+
+    .bank-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      min-height: 52px;
+    }
+
+    .bank-letter {
+      min-width: 42px;
+      height: 42px;
+      padding: 0 12px;
+      border: none;
+      border-radius: 10px;
+      background: #f17b2a;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(126, 49, 6, 0.16);
+    }
+
+    .bank-letter.used {
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .action-row .quiz-btn {
+      flex: 1;
+      margin-top: 0;
+    }
+
+    #feedback {
+      min-height: 22px;
+      margin-top: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    @media (max-width: 390px) {
+      .setup-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .slot-chip {
+        width: 38px;
+        height: 48px;
+        font-size: 22px;
+      }
+
+      .slot-chip.separator {
+        height: 48px;
+      }
+
+      .bank-letter {
+        min-width: 38px;
+        height: 40px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-page">
+    <div id="cafe_int">
+      <div id="quiz-area"></div>
+      <button id="back-btn" type="button">Back</button>
+    </div>
+  </div>
+
+  <div class="popup-overlay" id="result-popup"></div>
+
+  <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+  <script src="dish-quiz2.js"></script>
+</body>
+</html>

@@ -351,9 +351,132 @@ function detectType(question) {
   return String(question || "").includes("___") ? "blank" : "rewrite";
 }
 
+function buildL1IntroChip(text, variant) {
+  const variantClass = variant === "ko" ? " is-ko" : " is-en";
+  return `<span class="lip-word-chip-demo${variantClass}">${escapeHtml(text)}</span>`;
+}
+
+function buildL1PurpleHighlight(text) {
+  return `<span class="lip-inline-s">${escapeHtml(text)}</span>`;
+}
+
+function buildL1Step1ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        ${buildL1IntroChip("be", "en")}
+        <span class="lip-example-symbol">=</span>
+        ${buildL1IntroChip("\uC774\uB2E4", "ko")}
+      </div>
+    </div>
+  `;
+}
+
+function buildL1Step2ExampleHtml() {
+  const items = [
+    "Mina",
+    "happy",
+    "\uC606\uC9D1 \uAC15\uC544\uC9C0",
+    "\uD589\uBCF5\uD574\uC11C\uC8FD\uB294\uC0C1\uD0DC",
+  ];
+  const rotatingItems = items
+    .map((item, index) => (
+      `<span class="lip-rotator-item" style="--lip-delay:${(index * 1.4).toFixed(1)}s;">${buildL1IntroChip(item, "en")}</span>`
+    ))
+    .join("");
+
+  return `
+    <div class="lip-rotator-demo">
+      <div class="lip-rotator-prefix">
+        ${buildL1IntroChip("be", "en")}
+        <span class="lip-example-symbol">+</span>
+      </div>
+      <div class="lip-rotator-window">
+        ${rotatingItems}
+      </div>
+    </div>
+  `;
+}
+
+function buildL1Step3ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        <span class="lip-sentence-link">\uB098\uB294 \uC2AC\uD514\uC774\uB2E4</span>
+      </div>
+      <div class="lip-example-line">
+        <span class="lip-example-symbol">\u2192</span>
+        <span class="lip-sentence-chip">\uB098\uB294 \uC2AC\uD504\uB2E4</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildL1Step4ExampleHtml() {
+  return `
+    <div class="lip-example-stack">
+      <div class="lip-example-line">
+        <span class="lip-sentence-link">I\uB294</span>
+        ${buildL1IntroChip("am", "en")}
+      </div>
+      <div class="lip-example-line">
+        <span class="lip-sentence-link">\uB2E8\uC218\uB294</span>
+        <span class="lip-word-chip-demo is-en">i${buildL1PurpleHighlight("s")}</span>
+      </div>
+      <div class="lip-example-line">
+        <span class="lip-sentence-link">${buildL1PurpleHighlight("\uBCF5\uC218")}\uB294</span>
+        ${buildL1IntroChip("are", "en")}
+      </div>
+    </div>
+  `;
+}
+
+function buildIntroPlayerConfig() {
+  const firstQuestion = questions[0] || null;
+
+  return {
+    pageLabel: PAGE_LABEL,
+    title: stripEmphasisMarkers(firstQuestion?.title || "Be = '\uC774\uB2E4', \uADFC\uB370..."),
+    nextLabel: "\uB2E4\uC74C",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "be\uB294 '\uC774\uB2E4'\uC785\uB2C8\uB2E4.",
+        exampleHtml: buildL1Step1ExampleHtml(),
+      },
+      {
+        title: "'\uC774\uB2E4'\uB4A4\uC5D0\uB294 \uC774\uB984, \uB610\uB294 \uC0C1\uD0DC\uAC00 \uC635\uB2C8\uB2E4.",
+        exampleHtml: buildL1Step2ExampleHtml(),
+      },
+      {
+        title: "\uADF8\uB798\uC11C \uD55C\uAD6D\uB9D0\uB85C \uC4F0\uBA74, \uC774\uB7F0 \uB290\uB08C\uC774\uC5D0\uC694.",
+        exampleHtml: buildL1Step3ExampleHtml(),
+      },
+      {
+        title: "be\uB294 am, is, are\uB85C \uBC14\uAFD4\uC11C \uC501\uB2C8\uB2E4.",
+        exampleHtml: buildL1Step4ExampleHtml(),
+      },
+      {
+        title: "\uC774\uC81C \uC9C1\uC811 be\uB97C \uBC88\uC5ED\uD574\uBCF4\uC138\uC694!",
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;

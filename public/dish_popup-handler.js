@@ -90,6 +90,11 @@ function getSelfCheckToolConfig(subcategory) {
       path: "mock-exam-tool.html",
       icon: "🧰",
       desc: "제출 없이 바로 전용 도구를 사용할 수 있어요."
+    },
+    "EBS 전용도구": {
+      path: "ebs-tool.html",
+      icon: "📚",
+      desc: "제출 없이 바로 EBS 전용 도구를 사용할 수 있어요."
     }
   };
   return map[key] || null;

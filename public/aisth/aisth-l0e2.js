@@ -393,9 +393,83 @@ function buildQuestionsFromRows() {
   });
 }
 
+function buildIntroWordChip(text, variant) {
+  const variantClass = variant === "ko" ? " is-ko" : " is-en";
+  return `<span class="lip-word-chip-demo${variantClass}">${escapeHtml(text)}</span>`;
+}
+
+function buildStep1ExampleHtml() {
+  const chips = [
+    buildIntroWordChip("rain", "en"),
+    buildIntroWordChip("stop", "en"),
+    buildIntroWordChip("child", "en"),
+    buildIntroWordChip("smile", "en"),
+  ].join("");
+  return `<div class="lip-word-flow">${chips}</div>`;
+}
+
+function buildStep2ExampleHtml() {
+  const chips = [
+    buildIntroWordChip("\uBE44", "ko"),
+    buildIntroWordChip("\uADF8\uCE68", "ko"),
+    buildIntroWordChip("\uC544\uC774", "ko"),
+    buildIntroWordChip("\uC6C3\uC74C", "ko"),
+  ].join("");
+  return `<div class="lip-word-flow">${chips}</div>`;
+}
+
+function buildStep3ExampleHtml() {
+  return `
+    <div class="lip-sentence-build">
+      <span class="lip-sentence-chip">\uBE44</span>
+      <span class="lip-sentence-link">\uAC00 </span>
+      <span class="lip-sentence-chip">\uADF8\uCE58</span>
+      <span class="lip-sentence-link">\uC790 </span>
+      <span class="lip-sentence-chip">\uC544\uC774</span>
+      <span class="lip-sentence-link">\uAC00 </span>
+      <span class="lip-sentence-chip">\uC6C3</span>
+      <span class="lip-sentence-link">\uB294\uB2E4</span>
+    </div>
+  `;
+}
+
+function buildIntroPlayerConfig() {
+  return {
+    pageLabel: PAGE_LABEL,
+    title: "키워드로 문장 만들기",
+    nextLabel: "다음",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "영어는 단어만 나열합니다.",
+        exampleHtml: buildStep1ExampleHtml(),
+      },
+      {
+        title: "한국어로 바꾸려면, 말을 더 넣어줘야해요",
+        exampleHtml: buildStep2ExampleHtml(),
+      },
+      {
+        title: "적절한 말을 넣어보세요!",
+        exampleHtml: buildStep3ExampleHtml(),
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;

@@ -46,11 +46,24 @@
 
   <script>
     (function () {
-      // 매번 여기 주소만 바꾸면 됩니다.
-      const REDIRECT_TARGET = "pleks/pleks-l1e1.html";
+      const DEFAULT_REDIRECT_TARGET = "pleks/pleks-l1e1.html";
+      const IMSI_REDIRECT_TARGET = "imsi_user_custom_hw_2_softpath.html";
+      const BITNALEE_REDIRECT_TARGET = "imsi_bitnalee_hw_1.html";
+      const YS_USERPAGE_TARGET = "YS_userpage1.html";
 
       const currentUrl = new URL(window.location.href);
-      const targetUrl = new URL(REDIRECT_TARGET, window.location.href);
+      const userId = (currentUrl.searchParams.get("id") || "").trim().toLowerCase();
+      let redirectTarget = DEFAULT_REDIRECT_TARGET;
+
+      if (userId === "bitnalee") {
+        redirectTarget = BITNALEE_REDIRECT_TARGET;
+      } else if (userId === "kil030328") {
+        redirectTarget = YS_USERPAGE_TARGET;
+      } else if (userId === "080530hn" || userId === "tester") {
+        redirectTarget = IMSI_REDIRECT_TARGET;
+      }
+
+      const targetUrl = new URL(redirectTarget, window.location.href);
 
       // alpha_test.html로 들어온 쿼리 파라미터를 타겟으로 전달
       for (const [key, value] of currentUrl.searchParams.entries()) {

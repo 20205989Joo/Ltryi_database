@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pattern Skeleton Workbook</title>
+  <style>
+    :root {
+      --bg: #efe3d2;
+      --bg-2: #f7f0e5;
+      --panel: rgba(255, 250, 242, 0.94);
+      --panel-strong: #fffdf8;
+      --ink: #31261d;
+      --muted: #736252;
+      --line: #dcc7b1;
+      --accent: #8a5336;
+      --accent-2: #c89557;
+      --accent-soft: #f2dcc0;
+      --ok: #2c6a48;
+      --shadow: 0 20px 44px rgba(79, 51, 27, 0.12);
+      --radius: 24px;
+      --body-font: "Trebuchet MS", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      --display-font: "Georgia", "Times New Roman", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--body-font);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(255, 245, 225, 0.9), transparent 34%),
+        radial-gradient(circle at top right, rgba(210, 165, 112, 0.18), transparent 28%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    }
+
+    .page {
+      width: min(1180px, calc(100vw - 28px));
+      margin: 0 auto;
+      padding: 28px 0 40px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.9fr);
+      gap: 18px;
+      padding: 22px 24px;
+      background: linear-gradient(135deg, rgba(255, 251, 245, 0.96), rgba(248, 238, 223, 0.94));
+      border: 1px solid rgba(201, 171, 141, 0.7);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    h1,
+    h2 {
+      margin: 0;
+      font-family: var(--display-font);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    h1 {
+      font-size: clamp(32px, 4vw, 48px);
+      line-height: 1.04;
+      margin-bottom: 10px;
+    }
+
+    .hero-note,
+    .panel-copy,
+    .progress-text,
+    .status {
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .hero-note {
+      max-width: 42ch;
+      font-size: 15px;
+      margin: 0;
+    }
+
+    .hero-side {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .progress-shell {
+      padding: 16px 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 12px;
+      background: #ebdcc7;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(183, 149, 116, 0.32);
+    }
+
+    .progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.24s ease;
+    }
+
+    .progress-text {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .stage-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .stage-pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 246, 0.7);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .stage-pill.done {
+      color: var(--ok);
+      border-color: rgba(44, 106, 72, 0.25);
+      background: rgba(227, 245, 233, 0.9);
+    }
+
+    .stage-pill.current {
+      color: #fff;
+      border-color: transparent;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 12px 24px rgba(138, 83, 54, 0.2);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(204, 177, 151, 0.76);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+
+    .bank-panel {
+      position: sticky;
+      top: 16px;
+      padding: 20px;
+    }
+
+    .work-panel {
+      padding: 22px;
+    }
+
+    .panel-head {
+      margin-bottom: 18px;
+    }
+
+    .panel-head h2 {
+      font-size: clamp(24px, 2.8vw, 34px);
+      margin-bottom: 8px;
+    }
+
+    .panel-copy {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .bank-list,
+    .fragment-board {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bank-button,
+    .bank-card {
+      width: 100%;
+      text-align: left;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fffdf9;
+      padding: 14px 15px;
+      box-shadow: 0 8px 20px rgba(94, 65, 36, 0.05);
+    }
+
+    .bank-button {
+      cursor: pointer;
+      transition: transform 0.08s ease, border-color 0.16s ease, background 0.16s ease;
+    }
+
+    .bank-button:hover {
+      transform: translateY(-1px);
+      border-color: #c69161;
+      background: #fff7ed;
+    }
+
+    .bank-button.active {
+      border-color: rgba(138, 83, 54, 0.9);
+      background: linear-gradient(180deg, #fff1df 0%, #fff7ed 100%);
+      box-shadow: 0 14px 24px rgba(138, 83, 54, 0.12);
+    }
+
+    .term-index {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      margin-right: 10px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      vertical-align: top;
+    }
+
+    .term-en {
+      display: block;
+      color: var(--ink);
+      font-weight: 700;
+      line-height: 1.45;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .term-ko {
+      display: block;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .sentence-card,
+    .fragment-card,
+    .answer-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel-strong);
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .sentence-box {
+      font-family: var(--display-font);
+      font-size: clamp(24px, 2.6vw, 34px);
+      line-height: 1.52;
+      color: #251d17;
+      word-break: keep-all;
+    }
+
+    .sentence-piece {
+      border-radius: 0.28em;
+      transition: background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .sentence-piece.active {
+      background: linear-gradient(180deg, rgba(255, 238, 185, 0.3), rgba(255, 217, 123, 0.82));
+      box-shadow: 0 0 0 0.14em rgba(255, 222, 165, 0.5);
+    }
+
+    .plain-sentence {
+      white-space: normal;
+    }
+
+    .fragment-row {
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffcf7;
+    }
+
+    .fragment-en {
+      font-family: var(--display-font);
+      font-size: 22px;
+      line-height: 1.35;
+      margin-bottom: 10px;
+      color: #2d2119;
+    }
+
+    .fragment-ko-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .blank-input,
+    .fragment-open-input,
+    textarea {
+      width: 100%;
+      border: 1px solid #cdb193;
+      background: #fffefb;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .blank-input {
+      width: 108px;
+      min-width: 72px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+    }
+
+    .fragment-open-input {
+      font-size: 15px;
+    }
+
+    textarea {
+      min-height: 190px;
+      resize: vertical;
+      line-height: 1.6;
+      font-size: 15px;
+    }
+
+    .blank-input:focus,
+    .fragment-open-input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #b57340;
+      box-shadow: 0 0 0 4px rgba(198, 147, 87, 0.16);
+    }
+
+    .action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 8px;
+    }
+
+    .status {
+      font-size: 13px;
+    }
+
+    button {
+      border: 1px solid rgba(145, 87, 54, 0.18);
+      background: linear-gradient(135deg, var(--accent), #75472d);
+      color: #fff8ef;
+      border-radius: 16px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 22px rgba(117, 71, 45, 0.18);
+      transition: transform 0.08s ease, opacity 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .done-panel {
+      display: none;
+      margin-bottom: 18px;
+    }
+
+    .done-panel.active {
+      display: block;
+    }
+
+    .done-card {
+      padding: 26px 28px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, #fffaf2, #f2eadc);
+      border: 1px solid rgba(191, 165, 134, 0.72);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+
+    .done-card h2 {
+      margin: 6px 0 10px;
+      font-size: clamp(28px, 3vw, 40px);
+    }
+
+    .done-card p {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .done-eyebrow {
+      color: var(--ok);
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .bank-panel {
+        position: static;
+      }
+
+      .action-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        width: min(100vw - 16px, 100%);
+        padding-top: 16px;
+      }
+
+      .hero,
+      .bank-panel,
+      .work-panel {
+        padding: 16px;
+      }
+
+      .sentence-box {
+        font-size: 23px;
+      }
+
+      .fragment-en {
+        font-size: 19px;
+      }
+
+      .blank-input {
+        width: 100%;
+      }
+    }
+
+    :root {
+      --bg: #f6f1e8;
+      --paper: #fbf8f2;
+      --ink: #2f2923;
+      --muted: #7b6f62;
+      --line: #ddd2c5;
+      --accent: #8b6b4a;
+      --accent-2: #b08c66;
+      --mark: #efe3b7;
+      --ok: #496b48;
+      --shadow: 0 10px 30px rgba(60, 43, 24, 0.08);
+      --radius: 18px;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: linear-gradient(180deg, #f8f3ea 0%, #f2ece1 100%);
+      color: var(--ink);
+      min-height: auto;
+    }
+
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 28px 16px 48px;
+      position: relative;
+    }
+
+    .top {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow);
+      margin-bottom: 12px;
+    }
+
+    .top > h1,
+    .top > .sub {
+      display: none;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.2;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0;
+    }
+
+    .meta-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-left: 6px;
+    }
+
+    .counter {
+      font-weight: 700;
+      font-size: 13px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #f7efe4;
+      border: 1px solid #decebc;
+      color: var(--ink);
+    }
+
+    .progress-wrap {
+      width: 180px;
+      max-width: 100%;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #ece4d8;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #e2d7c8;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width 0.25s ease;
+    }
+
+    button {
+      border: 1px solid #ccbda9;
+      background: #fffaf3;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 400;
+      cursor: pointer;
+      box-shadow: none;
+      transition: transform 0.08s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover {
+      background: #fff4e7;
+      border-color: #c4a886;
+      transform: none;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .mode-btn {
+      border: 1px solid #ccbda9;
+      background: #fffaf3;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .mode-btn.active {
+      background: #e8d7c4;
+      border-color: #ba976f;
+      font-weight: 800;
+    }
+
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .study-layout {
+      display: grid;
+      grid-template-columns: 190px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .study-layout.fragment-bank {
+      grid-template-columns: 323px minmax(0, 1fr);
+    }
+
+    .study-main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .word-panel {
+      border: 1px solid #e0d2c1;
+      background: #fffdfa;
+      border-radius: 22px;
+      padding: 14px;
+      position: static;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .word-panel-title,
+    .order-title {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      margin-bottom: 10px;
+    }
+
+    .word-bank {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .word-card {
+      border: 1px solid #ddd0bf;
+      border-radius: 16px;
+      background: #fff;
+      padding: 10px 12px;
+    }
+
+    .word-bank-btn {
+      width: 100%;
+      text-align: left;
+    }
+
+    .word-bank-btn.active.s1_1,
+    .sentence-piece.active.s1_1 { background: #efe3b7; }
+    .word-bank-btn.active.s1_2,
+    .sentence-piece.active.s1_2 { background: #dfead6; }
+    .word-bank-btn.active.s1_3,
+    .sentence-piece.active.s1_3 { background: #dce9f7; }
+    .word-bank-btn.active.s1_4,
+    .sentence-piece.active.s1_4 { background: #f3dfd4; }
+    .word-bank-btn.active.s1_5,
+    .sentence-piece.active.s1_5 { background: #ece2f5; }
+
+    .word-bank-btn.active.s1_1 { border-color: #c9b063; }
+    .word-bank-btn.active.s1_2 { border-color: #a8c18c; }
+    .word-bank-btn.active.s1_3 { border-color: #9fb7d6; }
+    .word-bank-btn.active.s1_4 { border-color: #d4ad99; }
+    .word-bank-btn.active.s1_5 { border-color: #bea8d6; }
+
+    .word-en {
+      font-size: 13px;
+      line-height: 1.45;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .word-ko {
+      margin-top: 5px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre-line;
+    }
+
+    .sentence {
+      font-size: 26px;
+      line-height: 1.7;
+      letter-spacing: -0.01em;
+      background: #fffdf9;
+      border: 1px solid #e7ddd1;
+      border-radius: 22px;
+      padding: 22px;
+      margin-bottom: 0;
+      word-break: keep-all;
+      display: block;
+    }
+
+    .sentence-piece {
+      border-radius: 8px;
+      padding: 0 0.08em;
+      transition: background 0.18s ease;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    .order-panel {
+      border: 1px solid #e0d2c1;
+      background: #fffdfa;
+      border-radius: 22px;
+      padding: 14px;
+      display: block;
+    }
+
+    .order-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .fragment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 420px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .fragment-row {
+      border: 1px solid #dfcfbd;
+      border-radius: 16px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+
+    .fragment-en {
+      font-size: 15px;
+      line-height: 1.55;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 8px;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+
+    .fragment-ko-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .blank-input,
+    .fragment-open-input,
+    textarea {
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid #d9cbb9;
+      background: #fffdf9;
+      padding: 14px;
+      font: inherit;
+      font-size: 15px;
+      color: var(--ink);
+      resize: vertical;
+      outline: none;
+    }
+
+    .blank-input {
+      width: 9ch;
+      min-width: 72px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      resize: none;
+    }
+
+    .fragment-open-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      resize: none;
+    }
+
+    textarea:focus,
+    .blank-input:focus,
+    .fragment-open-input:focus {
+      border-color: #b48c63;
+      box-shadow: 0 0 0 3px rgba(180, 140, 99, 0.12);
+    }
+
+    .note-panel {
+      border: 1px solid #e4d8ca;
+      background: #fffaf4;
+      border-radius: 20px;
+      padding: 16px;
+      display: block;
+    }
+
+    .label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .bottom-row {
+      margin-top: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .done-panel {
+      display: none;
+    }
+
+    .done-panel.active {
+      display: block;
+    }
+
+    .done-card {
+      border: 1px solid #dfcfbd;
+      border-radius: 22px;
+      background: #fffdfa;
+      padding: 42px 20px;
+      text-align: center;
+      font-size: 30px;
+      line-height: 1.4;
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    @media (max-width: 760px) {
+      .sentence {
+        font-size: 21px;
+        padding: 18px;
+      }
+
+      .study-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .meta-row {
+        align-items: stretch;
+      }
+
+      .meta-left {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .progress-wrap {
+        width: 100%;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="cafe_int">
+    <section class="top">
+      <h1>Pattern Skeleton Workbook</h1>
+      <div class="sub">
+        문장의 뼈대를 잡는 pattern만 간단히 모아둔 카드형 HTML입니다.
+        각 카드에는 <strong>대표 pattern 1개 + 뜻 + 원문 문장 + 추가 메모칸</strong>이 들어 있습니다.
+      </div>
+      <div class="meta-row">
+        <div class="meta-left">
+          <div class="counter" id="counter">1-1단계 1 / 5</div>
+          <div class="meta-nav">
+            <div class="mode-switch">
+              <div id="stage21Btn" class="mode-btn active">1-1단계</div>
+              <div id="stage22Btn" class="mode-btn">1-2단계</div>
+              <div id="stage31Btn" class="mode-btn">2-1단계</div>
+              <div id="stage32Btn" class="mode-btn">2-2단계</div>
+              <div id="stage1Btn" class="mode-btn">3단계</div>
+            </div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          <div class="sub" id="progressText" style="margin-top:6px; font-size:12px;">1 / 5</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="study-layout" id="studyLayout">
+        <aside class="word-panel">
+          <div class="word-panel-title" id="wordPanelTitle">Fragment Bank</div>
+          <div class="word-bank" id="wordBank"></div>
+        </aside>
+
+        <div class="study-main">
+          <div class="sentence" id="sentenceBox"></div>
+
+          <div class="order-panel" id="fragmentPanel">
+            <div class="order-head">
+              <div class="order-title" id="fragmentTitle">Fragments</div>
+            </div>
+            <div class="fragment-list" id="fragmentBoard"></div>
+          </div>
+
+          <div class="panel note-panel" id="notePanel">
+            <div class="label" id="noteLabel">답안 입력</div>
+            <textarea id="noteBox" spellcheck="false"></textarea>
+            <div class="bottom-row" id="saveRow">
+              <div class="status" id="saveStatus">메모는 브라우저에 저장됩니다.</div>
+              <button id="saveBtn" type="button">저장하고 다음</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="done-panel" id="donePanel">
+        <div class="done-card">오늘 숙제 끝!</div>
+      </div>
+    </section>
+  </div>
+
+  <script src="toast_imsi.js"></script>
+  <script>
+    const HWPLUS_API_URL = "https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveHWPlus";
+    const STORAGE_KEY = "imsi_user_custom_hw_2_state_v2";
+    const CURRENT_STEP_KEY = "imsi_user_custom_hw_2_step_v2";
+    const SUBMIT_MARKER_KEY = "imsi_user_custom_hw_2_submit_marker_v2";
+    const STEP_SEQUENCE_VERSION_KEY = "imsi_user_custom_hw_2_step_sequence_version_v1";
+    const STEP_SEQUENCE_VERSION = "reordered_stage_flow_2026_04_12_v1";
+    const DIRECT_SUBCATEGORY = "공사중";
+    const DIRECT_HWTYPE = "doneinweb";
+    const DIRECT_COMMENT = "imsi_user_custom_hw_2 layered translation answers";
+    const STEP_IDS = ["stage2_1", "stage2_2", "stage3_1", "stage3_2", "stage1"];
+    const LEGACY_STEP_IDS = ["stage1", "stage2_1", "stage2_2", "stage3_1", "stage3_2"];
+
+    const stage1Sentence = [
+      { text: "These words, ", ids: ["s1_1"] },
+      { text: "spoken", ids: ["s1_2", "s1_3"] },
+      { text: " with much authority", ids: ["s1_2"] },
+      { text: " to senior fine arts majors", ids: ["s1_3"] },
+      { text: ", are the kind that ", ids: ["s1_1", "s1_4"] },
+      { text: "those who create art", ids: ["s1_5"] },
+      { text: " are unable to ignore.", ids: ["s1_4", "s1_5"] }
+    ];
+
+    const stage1Bank = [
+      {
+        id: "s1_1",
+        en: "These words, (       ), are the kind",
+        ko: "(        )한 이런 말들은, ~~한 종류의 뭔가이다"
+      },
+      {
+        id: "s1_2",
+        en: "spoken with much authority",
+        ko: "큰 권위를 가지고 전달된"
+      },
+      {
+        id: "s1_3",
+        en: "spoken to senior fine arts majors",
+        ko: "순수 미술 전공 졸업생들에게 전달된"
+      },
+      {
+        id: "s1_4",
+        en: "the kind that is unable to ignore",
+        ko: "무시할 수 없는 종류의 뭔가"
+      },
+      {
+        id: "s1_5",
+        en: "those who create art are unable to ignore",
+        ko: "예술가라면 무시할 수 없는 종류의 무언가"
+      }
+    ];
+
+    const vocabBank = [
+      { en: "culture", ko: "문화" },
+      { en: "impossible", ko: "불가능하다" },
+      { en: "separate", ko: "분리하다" },
+      { en: "professional", ko: "전문성" },
+      { en: "commercial", ko: "상업성" },
+      { en: "legitimize", ko: "합법화" },
+      { en: "ability", ko: "능력" },
+      { en: "earn", ko: "벌다" }
+    ];
+
+    const stage23Sentence = "In Western culture, it is almost impossible to separate professional from commercial, and so the artist is legitimized by their ability to earn money.";
+
+    const fragmentBlueprints = [
+      {
+        id: "f1",
+        en: "In Western culture,",
+        guided: [
+          { type: "text", value: "서양 문화에서" }
+        ]
+      },
+      {
+        id: "f2",
+        en: "it is almost impossible",
+        guided: [
+          { type: "text", value: "그것은 거의 " },
+          { type: "input", key: "f2_1" },
+          { type: "text", value: "하다" }
+        ]
+      },
+      {
+        id: "f3",
+        en: "impossible to separate",
+        guided: [
+          { type: "input", key: "f3_1" },
+          { type: "text", value: " 하는 것이 " },
+          { type: "input", key: "f3_2" },
+          { type: "text", value: "하다" }
+        ]
+      },
+      {
+        id: "f4",
+        en: "separate professional from commercial",
+        guided: [
+          { type: "input", key: "f4_1" },
+          { type: "text", value: "를 " },
+          { type: "input", key: "f4_2" },
+          { type: "text", value: "로부터 " },
+          { type: "input", key: "f4_3" },
+          { type: "text", value: "하다" }
+        ]
+      },
+      {
+        id: "f5",
+        en: "and so",
+        guided: [
+          { type: "text", value: "그리고" }
+        ]
+      },
+      {
+        id: "f6",
+        en: "the artist is legitimized",
+        guided: [
+          { type: "text", value: "예술가는 " },
+          { type: "input", key: "f6_1" },
+          { type: "text", value: "된다" }
+        ]
+      },
+      {
+        id: "f7",
+        en: "legitimized by their ability",
+        guided: [
+          { type: "text", value: "그들의 " },
+          { type: "input", key: "f7_1" },
+          { type: "text", value: "에 의해 " },
+          { type: "input", key: "f7_2" },
+          { type: "text", value: "된다" }
+        ]
+      },
+      {
+        id: "f8",
+        en: "ability to earn money",
+        guided: [
+          { type: "text", value: "돈을 " },
+          { type: "input", key: "f8_1" },
+          { type: "text", value: " 수 있는 능력에 의해" }
+        ]
+      }
+    ];
+
+    const STAGE1_ANSWER_PLACEHOLDER = "\uBB38\uC7A5 \uC804\uCCB4 \uBC88\uC5ED\uC744 \uC801\uC5B4\uBCF4\uC138\uC694";
+
+    const stepMeta = {
+      stage1: {
+        label: "3단계",
+        title: "문장 전체 번역",
+        copy: "좌측 bank를 누르면 문장 안 대응 부분이 하이라이트됩니다. 아래 textarea에는 문장 전체 번역을 적습니다.",
+        bankTitle: "Fragment Bank",
+        bankCopy: "영어 조각과 뜻을 함께 보고 문장을 해체합니다.",
+        sentenceLabel: "Sentence",
+        answerLabel: "답안 입력",
+        answerPlaceholder: "문장 전체 번역을 적어두세요.",
+        buttonLabel: "저장하고 제출",
+        sentenceType: "stage1",
+        bankType: "stage1",
+        fragmentType: "none",
+        answerKey: "stage1Translation"
+      },
+      stage2_1: {
+        label: "1-1단계",
+        title: "Fragments 채우기",
+        copy: "문장과 textarea는 잠시 빼고, word bank만 보고 fragments의 빈칸을 채웁니다. 채점은 하지 않습니다.",
+        bankTitle: "Word Bank",
+        bankCopy: "단어와 뜻만 남겨두고 fragments를 완성합니다.",
+        sentenceLabel: "",
+        answerLabel: "",
+        answerPlaceholder: "",
+        buttonLabel: "저장하고 다음",
+        sentenceType: "none",
+        bankType: "vocab",
+        fragmentType: "guided",
+        answerKey: ""
+      },
+      stage2_2: {
+        label: "1-2단계",
+        title: "Fragments 보고 문장 번역",
+        copy: "2-1단계에서 직접 채운 fragments를 좌측 bank로 다시 보고 문장 전체를 번역합니다.",
+        bankTitle: "Fragment Bank",
+        bankCopy: "방금 채운 fragments가 그대로 좌측 bank에 들어갑니다.",
+        sentenceLabel: "Sentence",
+        answerLabel: "답안 입력",
+        answerPlaceholder: "좌측 fragments를 참고해서 문장 전체 번역을 적으세요.",
+        buttonLabel: "저장하고 다음",
+        sentenceType: "stage23",
+        bankType: "stage2Fragments",
+        fragmentType: "none",
+        answerKey: "stage2Translation"
+      },
+      stage3_1: {
+        label: "2-1단계",
+        title: "힌트 없이 Fragments 만들기",
+        copy: "이번에는 뜻 도움 없이 fragments를 직접 적습니다. 좌측에는 단어 bank만 둡니다.",
+        bankTitle: "Word Bank",
+        bankCopy: "단어와 뜻만 보고 각 fragment의 뜻을 직접 써봅니다.",
+        sentenceLabel: "",
+        answerLabel: "",
+        answerPlaceholder: "",
+        buttonLabel: "저장하고 다음",
+        sentenceType: "none",
+        bankType: "vocab",
+        fragmentType: "open",
+        answerKey: ""
+      },
+      stage3_2: {
+        label: "2-2단계",
+        title: "마지막 번역과 제출",
+        copy: "3-1단계에서 직접 만든 fragments를 좌측에 두고, 마지막으로 문장 전체 번역을 적은 뒤 제출합니다.",
+        bankTitle: "Fragment Bank",
+        bankCopy: "직접 적어둔 fragments를 마지막 보조 bank로 사용합니다.",
+        sentenceLabel: "Sentence",
+        answerLabel: "답안 입력",
+        answerPlaceholder: "최종 문장 번역을 적고 제출하세요.",
+        buttonLabel: "저장하고 다음",
+        sentenceType: "stage23",
+        bankType: "stage3Fragments",
+        fragmentType: "none",
+        answerKey: "stage3Translation"
+      }
+    };
+
+    const el = {
+      counter: document.getElementById("counter"),
+      progressFill: document.getElementById("progressFill"),
+      progressText: document.getElementById("progressText"),
+      stage1Btn: document.getElementById("stage1Btn"),
+      stage21Btn: document.getElementById("stage21Btn"),
+      stage22Btn: document.getElementById("stage22Btn"),
+      stage31Btn: document.getElementById("stage31Btn"),
+      stage32Btn: document.getElementById("stage32Btn"),
+      donePanel: document.getElementById("donePanel"),
+      studyLayout: document.getElementById("studyLayout"),
+      wordPanelTitle: document.getElementById("wordPanelTitle"),
+      wordBank: document.getElementById("wordBank"),
+      sentenceBox: document.getElementById("sentenceBox"),
+      fragmentPanel: document.getElementById("fragmentPanel"),
+      fragmentTitle: document.getElementById("fragmentTitle"),
+      fragmentBoard: document.getElementById("fragmentBoard"),
+      notePanel: document.getElementById("notePanel"),
+      noteLabel: document.getElementById("noteLabel"),
+      noteBox: document.getElementById("noteBox"),
+      saveRow: document.getElementById("saveRow"),
+      saveStatus: document.getElementById("saveStatus"),
+      saveBtn: document.getElementById("saveBtn")
+    };
+
+    function createDefaultState() {
+      return {
+        stage1Translation: "",
+        stage2GuidedInputs: {},
+        stage2Translation: "",
+        stage3Fragments: {},
+        stage3Translation: ""
+      };
+    }
+
+    function loadSavedState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!parsed || typeof parsed !== "object") return createDefaultState();
+        return {
+          stage1Translation: typeof parsed.stage1Translation === "string" ? parsed.stage1Translation : "",
+          stage2GuidedInputs: parsed.stage2GuidedInputs && typeof parsed.stage2GuidedInputs === "object" ? parsed.stage2GuidedInputs : {},
+          stage2Translation: typeof parsed.stage2Translation === "string" ? parsed.stage2Translation : "",
+          stage3Fragments: parsed.stage3Fragments && typeof parsed.stage3Fragments === "object" ? parsed.stage3Fragments : {},
+          stage3Translation: typeof parsed.stage3Translation === "string" ? parsed.stage3Translation : ""
+        };
+      } catch (_) {
+        return createDefaultState();
+      }
+    }
+
+    function readCurrentStepIndex() {
+      const raw = String(localStorage.getItem(CURRENT_STEP_KEY) || "").trim();
+      const directIndex = STEP_IDS.indexOf(raw);
+      if (directIndex >= 0) return directIndex;
+
+      const legacyIndex = Number(raw);
+      if (Number.isInteger(legacyIndex) && legacyIndex >= 0 && legacyIndex < LEGACY_STEP_IDS.length) {
+        return STEP_IDS.indexOf(LEGACY_STEP_IDS[legacyIndex]);
+      }
+
+      return 0;
+    }
+
+    function normalizeCurrentStepForSequenceVersion(index) {
+      const savedVersion = String(localStorage.getItem(STEP_SEQUENCE_VERSION_KEY) || "").trim();
+      if (savedVersion === STEP_SEQUENCE_VERSION) return index;
+
+      localStorage.setItem(STEP_SEQUENCE_VERSION_KEY, STEP_SEQUENCE_VERSION);
+      localStorage.setItem(CURRENT_STEP_KEY, STEP_IDS[0]);
+      return 0;
+    }
+
+    let savedState = loadSavedState();
+    let currentStepIndex = normalizeCurrentStepForSequenceVersion(readCurrentStepIndex());
+
+    let activeStage1BankId = "";
+    let submittedToday = false;
+    let debugOverride = false;
+    let isSubmitting = false;
+    let advanceTimer = null;
+
+    function saveAll() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+      localStorage.setItem(CURRENT_STEP_KEY, getCurrentStepId());
+      localStorage.setItem(STEP_SEQUENCE_VERSION_KEY, STEP_SEQUENCE_VERSION);
+    }
+
+    function resetSavedState() {
+      savedState = createDefaultState();
+      currentStepIndex = 0;
+      activeStage1BankId = "";
+      debugOverride = false;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function trimText(value) {
+      return String(value || "").trim();
+    }
+
+    function normalizeFragmentText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function initToast() {
+      if (!window.ImsiToastFX || typeof window.ImsiToastFX.init !== "function") return;
+      if (initToast.ready) return;
+      window.ImsiToastFX.init({ hostId: "cafe_int", top: 10 });
+      initToast.ready = true;
+    }
+
+    function showToast(kind, message, options) {
+      if (window.ImsiToastFX && typeof window.ImsiToastFX.show === "function") {
+        window.ImsiToastFX.show(kind, message, options);
+      }
+    }
+
+    function scheduleAdvance(callback, delay) {
+      clearTimeout(advanceTimer);
+      advanceTimer = setTimeout(() => {
+        advanceTimer = null;
+        callback();
+      }, delay);
+    }
+
+    function getCurrentUserId() {
+      try {
+        return String(new URLSearchParams(window.location.search || "").get("id") || "").trim();
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function getKstTodayString() {
+      const now = new Date(Date.now() + (9 * 60 * 60 * 1000));
+      return now.toISOString().slice(0, 10);
+    }
+
+    function readSubmitMarker() {
+      try {
+        const raw = localStorage.getItem(SUBMIT_MARKER_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function writeSubmitMarker(userId, dateStr) {
+      localStorage.setItem(SUBMIT_MARKER_KEY, JSON.stringify({
+        userId: String(userId || ""),
+        date: String(dateStr || "")
+      }));
+    }
+
+    function clearSubmitMarker() {
+      localStorage.removeItem(SUBMIT_MARKER_KEY);
+    }
+
+    function hasLocalSubmittedToday(userId) {
+      const marker = readSubmitMarker();
+      if (!marker) return false;
+      return String(marker.userId || "") === String(userId || "") && String(marker.date || "") === getKstTodayString();
+    }
+
+    async function fetchSubmittedTodayFromServer(userId) {
+      const res = await fetch(`${HWPLUS_API_URL.replace("/saveHWPlus", "/getHWPlus")}?userId=${encodeURIComponent(userId)}`);
+      if (!res.ok) throw new Error(String(res.status));
+
+      const data = await res.json();
+      if (!Array.isArray(data)) return false;
+
+      const todayStr = getKstTodayString();
+      return data.some((item) => {
+        const timestamp = String(item.Timestamp || item.timestamp || "");
+        const subcategory = String(item.Subcategory || item.subcategory || "").trim();
+        const hwType = String(item.HWType || item.hwtype || "").trim();
+        const comment = String(item.Comment || item.comment || "").trim();
+        return (
+          timestamp.startsWith(todayStr) &&
+          subcategory === DIRECT_SUBCATEGORY &&
+          hwType === DIRECT_HWTYPE &&
+          comment === DIRECT_COMMENT
+        );
+      });
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function waitForServerSubmission(userId, attempts = 4, delayMs = 450) {
+      for (let i = 0; i < attempts; i += 1) {
+        try {
+          if (await fetchSubmittedTodayFromServer(userId)) return true;
+        } catch (_) {
+        }
+
+        if (i < attempts - 1) {
+          await wait(delayMs);
+        }
+      }
+      return false;
+    }
+
+    async function checkSubmittedToday() {
+      const userId = getCurrentUserId();
+      if (!userId) return false;
+      const hasLocalMarker = hasLocalSubmittedToday(userId);
+
+      try {
+        const hasServerRecord = await fetchSubmittedTodayFromServer(userId);
+        if (hasServerRecord) {
+          if (!hasLocalMarker) writeSubmitMarker(userId, getKstTodayString());
+          return true;
+        }
+        if (hasLocalMarker) clearSubmitMarker();
+        return false;
+      } catch (_) {
+        return hasLocalMarker;
+      }
+    }
+
+    function buildTrayUrl() {
+      const userId = getCurrentUserId();
+      const target = new URL("homework-tray_v1.html", window.location.href);
+      if (userId) target.searchParams.set("id", userId);
+      return target.toString();
+    }
+
+    function getCurrentStepId() {
+      return STEP_IDS[currentStepIndex] || STEP_IDS[0];
+    }
+
+    function getStepConfig(stepId) {
+      return stepMeta[stepId] || stepMeta.stage1;
+    }
+
+    function buildStage2FragmentText(fragment) {
+      return normalizeFragmentText(
+        fragment.guided
+          .map((part) => {
+            if (part.type === "text") return part.value;
+            return trimText(savedState.stage2GuidedInputs[part.key]);
+          })
+          .join("")
+      );
+    }
+
+    function getStage2FragmentsBank() {
+      return fragmentBlueprints.map((fragment) => ({
+        en: fragment.en,
+        ko: buildStage2FragmentText(fragment)
+      }));
+    }
+
+    function getStage3FragmentsBank() {
+      return fragmentBlueprints.map((fragment) => ({
+        en: fragment.en,
+        ko: trimText(savedState.stage3Fragments[fragment.id])
+      }));
+    }
+
+    function renderStageButtons() {
+      const activeStepId = getCurrentStepId();
+      [
+        ["stage1", el.stage1Btn],
+        ["stage2_1", el.stage21Btn],
+        ["stage2_2", el.stage22Btn],
+        ["stage3_1", el.stage31Btn],
+        ["stage3_2", el.stage32Btn]
+      ].forEach(([stepId, button]) => {
+        if (!button) return;
+        button.classList.toggle("active", stepId === activeStepId);
+      });
+    }
+
+    function updateProgress(allDone) {
+      const ratio = allDone ? 1 : (currentStepIndex + 1) / STEP_IDS.length;
+      el.progressFill.style.width = `${ratio * 100}%`;
+      el.progressText.textContent = allDone ? `${STEP_IDS.length} / ${STEP_IDS.length}` : `${currentStepIndex + 1} / ${STEP_IDS.length}`;
+      if (el.counter) {
+        el.counter.textContent = allDone ? "오늘 숙제 끝!" : `${stepMeta[getCurrentStepId()].label} ${currentStepIndex + 1} / ${STEP_IDS.length}`;
+      }
+    }
+
+    function renderBank(stepId) {
+      const config = getStepConfig(stepId);
+      el.wordPanelTitle.textContent = config.bankTitle;
+      el.studyLayout.classList.toggle("fragment-bank", config.bankTitle === "Fragment Bank");
+
+      if (config.bankType === "stage1") {
+        el.wordBank.innerHTML = stage1Bank.map((item) => {
+          const active = item.id === activeStage1BankId ? " active" : "";
+          return `
+            <button class="word-card word-bank-btn ${escapeHtml(item.id)}${active}" type="button" data-bank-id="${escapeHtml(item.id)}">
+              <div class="word-en">${escapeHtml(item.en)}</div>
+              <div class="word-ko">${escapeHtml(item.ko)}</div>
+            </button>
+          `;
+        }).join("");
+        return;
+      }
+
+      let items = [];
+      if (config.bankType === "vocab") items = vocabBank;
+      if (config.bankType === "stage2Fragments") items = getStage2FragmentsBank();
+      if (config.bankType === "stage3Fragments") items = getStage3FragmentsBank();
+
+      el.wordBank.innerHTML = items.map((item) => `
+        <div class="word-card">
+          <div class="word-en">${escapeHtml(item.en)}</div>
+          <div class="word-ko">${escapeHtml(item.ko || "")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderSentence(stepId) {
+      const config = getStepConfig(stepId);
+      if (config.sentenceType === "none") {
+        el.sentenceBox.style.display = "none";
+        el.sentenceBox.innerHTML = "";
+        return;
+      }
+
+      el.sentenceBox.style.display = "block";
+
+      if (config.sentenceType === "stage1") {
+        el.sentenceBox.classList.remove("plain-sentence");
+        el.sentenceBox.innerHTML = stage1Sentence.map((piece) => {
+          const active = activeStage1BankId && piece.ids.includes(activeStage1BankId);
+          if (!active) return `<span class="sentence-piece">${escapeHtml(piece.text)}</span>`;
+          return `<span class="sentence-piece active ${escapeHtml(activeStage1BankId)}">${escapeHtml(piece.text)}</span>`;
+        }).join("");
+        return;
+      }
+
+      el.sentenceBox.classList.add("plain-sentence");
+      el.sentenceBox.textContent = stage23Sentence;
+    }
+
+    function renderGuidedFragments() {
+      el.fragmentBoard.innerHTML = fragmentBlueprints.map((fragment) => `
+        <div class="fragment-row">
+          <div class="fragment-en">${escapeHtml(fragment.en)}</div>
+          <div class="fragment-ko-line">
+            ${fragment.guided.map((part) => {
+              if (part.type === "text") {
+                return `<span>${escapeHtml(part.value)}</span>`;
+              }
+              const value = trimText(savedState.stage2GuidedInputs[part.key]);
+              return `<input class="blank-input" type="text" data-guided-key="${escapeHtml(part.key)}" value="${escapeHtml(value)}" />`;
+            }).join("")}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderOpenFragments() {
+      el.fragmentBoard.innerHTML = fragmentBlueprints.map((fragment) => {
+        const value = trimText(savedState.stage3Fragments[fragment.id]);
+        return `
+          <div class="fragment-row">
+            <div class="fragment-en">${escapeHtml(fragment.en)}</div>
+            <input class="fragment-open-input" type="text" data-open-fragment="${escapeHtml(fragment.id)}" value="${escapeHtml(value)}" />
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderFragments(stepId) {
+      const config = getStepConfig(stepId);
+      if (config.fragmentType === "none") {
+        el.fragmentPanel.style.display = "none";
+        el.fragmentBoard.innerHTML = "";
+        return;
+      }
+
+      el.fragmentPanel.style.display = "block";
+      el.fragmentTitle.textContent = "Fragments";
+      if (config.fragmentType === "guided") {
+        renderGuidedFragments();
+        return;
+      }
+
+      renderOpenFragments();
+    }
+
+    function renderAnswer(stepId) {
+      const config = getStepConfig(stepId);
+      if (!config.answerKey) {
+        el.notePanel.style.display = "block";
+        el.noteLabel.style.display = "none";
+        el.noteBox.style.display = "none";
+        el.saveRow.style.display = "flex";
+        el.saveRow.style.marginTop = "0";
+        el.noteBox.value = "";
+        return;
+      }
+
+      el.notePanel.style.display = "block";
+      el.noteLabel.style.display = "";
+      el.noteBox.style.display = "";
+      el.saveRow.style.display = "flex";
+      el.saveRow.style.marginTop = "";
+      el.noteLabel.textContent = config.answerLabel || "답안 입력";
+      el.noteBox.placeholder = stepId === "stage1" ? STAGE1_ANSWER_PLACEHOLDER : config.answerPlaceholder;
+      el.noteBox.value = savedState[config.answerKey] || "";
+    }
+
+    function renderDoneState() {
+      renderStageButtons();
+      updateProgress(true);
+      el.studyLayout.style.display = "none";
+      el.donePanel.classList.add("active");
+    }
+
+    function clearDoneState() {
+      el.studyLayout.style.display = "";
+      el.donePanel.classList.remove("active");
+    }
+
+    function render() {
+      initToast();
+
+      if (submittedToday && !debugOverride) {
+        renderDoneState();
+        return;
+      }
+
+      clearDoneState();
+      const stepId = getCurrentStepId();
+      const config = getStepConfig(stepId);
+
+      renderStageButtons();
+      updateProgress(false);
+      renderBank(stepId);
+      renderSentence(stepId);
+      renderFragments(stepId);
+      renderAnswer(stepId);
+
+      el.saveBtn.textContent = config.buttonLabel;
+      el.saveStatus.textContent = "";
+      el.saveStatus.style.display = "none";
+      el.saveRow.style.justifyContent = "flex-end";
+      saveAll();
+    }
+
+    function focusAnswerBox() {
+      if (el.notePanel.style.display === "none" || el.noteBox.style.display === "none") return;
+      el.noteBox.focus();
+    }
+
+    function validateGuidedFragments() {
+      return fragmentBlueprints.every((fragment) =>
+        fragment.guided.every((part) => part.type !== "input" || !!trimText(savedState.stage2GuidedInputs[part.key]))
+      );
+    }
+
+    function validateOpenFragments() {
+      return fragmentBlueprints.every((fragment) => !!trimText(savedState.stage3Fragments[fragment.id]));
+    }
+
+    function validateCurrentStep(stepId) {
+      if (stepId === "stage2_1") {
+        if (!validateGuidedFragments()) {
+          showToast("no", "빈칸을 다 채워주세요.");
+          return false;
+        }
+        return true;
+      }
+
+      if (stepId === "stage3_1") {
+        if (!validateOpenFragments()) {
+          showToast("no", "fragments를 전부 적어주세요.");
+          return false;
+        }
+        return true;
+      }
+
+      const config = getStepConfig(stepId);
+      if (config.answerKey && !trimText(savedState[config.answerKey])) {
+        showToast("no", "전체 번역을 적어주세요.");
+        focusAnswerBox();
+        return false;
+      }
+
+      return true;
+    }
+
+    function buildSubmissionText(userId) {
+      const stage2Bank = getStage2FragmentsBank();
+      const stage3Bank = getStage3FragmentsBank();
+
+      return [
+        `userId: ${userId}`,
+        `date: ${getKstTodayString()}`,
+        "",
+        "[stage1-1 fragments]",
+        ...stage2Bank.map((item, index) => `${index + 1}. ${item.en}\n${item.ko}`),
+        "",
+        "[stage1-2]",
+        `sentence: ${stage23Sentence}`,
+        `answer: ${trimText(savedState.stage2Translation)}`,
+        "",
+        "[stage2-1 fragments]",
+        ...stage3Bank.map((item, index) => `${index + 1}. ${item.en}\n${item.ko}`),
+        "",
+        "[stage2-2]",
+        `sentence: ${stage23Sentence}`,
+        `answer: ${trimText(savedState.stage3Translation)}`,
+        "",
+        "[stage3]",
+        `sentence: ${stage1Sentence.map((piece) => piece.text).join("")}`,
+        `answer: ${trimText(savedState.stage1Translation)}`
+      ].join("\n");
+    }
+
+    async function submitAllAnswers() {
+      if (isSubmitting) return;
+      if (submittedToday) {
+        showToast("no", "오늘은 이미 제출했습니다.");
+        return;
+      }
+
+      const userId = getCurrentUserId();
+      if (!userId) {
+        showToast("no", "id가 없습니다.");
+        return;
+      }
+
+      isSubmitting = true;
+      el.saveBtn.disabled = true;
+
+      try {
+        const txtContent = buildSubmissionText(userId);
+        const file = new File(
+          [txtContent],
+          `imsi_user_custom_hw_2_${userId}.txt`,
+          { type: "text/plain" }
+        );
+
+        const formData = new FormData();
+        formData.append("UserId", userId);
+        formData.append("Subcategory", DIRECT_SUBCATEGORY);
+        formData.append("HWType", DIRECT_HWTYPE);
+        formData.append("LessonNo", 0);
+        formData.append("Comment", DIRECT_COMMENT);
+        formData.append("HWImage", file);
+
+        const res = await fetch(HWPLUS_API_URL, {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(result && result.message ? String(result.message) : String(res.status));
+        }
+
+        const confirmed = await waitForServerSubmission(userId);
+        if (!confirmed) {
+          clearSubmitMarker();
+          submittedToday = false;
+          render();
+          showToast("no", "제출 실패");
+          return;
+        }
+
+        writeSubmitMarker(userId, getKstTodayString());
+        resetSavedState();
+        saveAll();
+        submittedToday = true;
+        debugOverride = false;
+        render();
+        showToast("ok", "제출 완료!");
+        scheduleAdvance(() => {
+          window.location.replace(buildTrayUrl());
+        }, 620);
+      } catch (err) {
+        console.error(err);
+        showToast("no", "제출 실패");
+      } finally {
+        isSubmitting = false;
+        el.saveBtn.disabled = false;
+      }
+    }
+
+    function handleSave() {
+      if (advanceTimer || isSubmitting) return;
+
+      const stepId = getCurrentStepId();
+      if (!validateCurrentStep(stepId)) return;
+
+      saveAll();
+
+      if (stepId === "stage1") {
+        submitAllAnswers();
+        return;
+      }
+
+      showToast("ok", "저장 완료!");
+      scheduleAdvance(() => {
+        currentStepIndex = Math.min(currentStepIndex + 1, STEP_IDS.length - 1);
+        activeStage1BankId = "";
+        render();
+      }, 260);
+    }
+
+    el.wordBank.addEventListener("click", (event) => {
+      const stepId = getCurrentStepId();
+      if (stepId !== "stage1") return;
+
+      const button = event.target.closest("[data-bank-id]");
+      if (!button) return;
+
+      const bankId = button.dataset.bankId;
+      activeStage1BankId = activeStage1BankId === bankId ? "" : bankId;
+      renderBank(stepId);
+      renderSentence(stepId);
+    });
+
+    el.fragmentBoard.addEventListener("input", (event) => {
+      const guidedKey = event.target.dataset.guidedKey;
+      if (guidedKey) {
+        savedState.stage2GuidedInputs[guidedKey] = event.target.value;
+        saveAll();
+        return;
+      }
+
+      const openFragment = event.target.dataset.openFragment;
+      if (openFragment) {
+        savedState.stage3Fragments[openFragment] = event.target.value;
+        saveAll();
+      }
+    });
+
+    el.noteBox.addEventListener("input", () => {
+      const stepId = getCurrentStepId();
+      const config = getStepConfig(stepId);
+      if (!config.answerKey) return;
+      savedState[config.answerKey] = el.noteBox.value;
+      saveAll();
+    });
+
+    el.saveBtn.addEventListener("click", handleSave);
+
+    (async function boot() {
+      submittedToday = await checkSubmittedToday();
+      render();
+    })();
+  </script>
+</body>
+</html>

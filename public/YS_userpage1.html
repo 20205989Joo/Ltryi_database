@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YS User Page 1</title>
+  <style>
+    :root {
+      --shell-width: min(1120px, 96vw);
+      --shell-height: min(840px, 92vh);
+      --font-ui: "Aptos Display", "Trebuchet MS", "Segoe UI Variable Text", sans-serif;
+      --bg-0: #f2efe9;
+      --bg-1: #dce8df;
+      --bg-2: #9fb7a2;
+      --ink: #18231a;
+      --muted: #435445;
+      --line: rgba(18, 30, 18, 0.12);
+      --glass: rgba(251, 250, 246, 0.7);
+      --brand-1: #24443d;
+      --brand-2: #3e6a59;
+      --shadow-1: 0 24px 60px rgba(28, 42, 31, 0.18);
+      --shadow-2: 0 18px 34px rgba(29, 48, 36, 0.11);
+      --tile-a: linear-gradient(135deg, #4d8070, #82baa6);
+      --tile-b: linear-gradient(135deg, #6a76b8, #8e98db);
+      --tile-c: linear-gradient(135deg, #c97b46, #ebb07d);
+      --modal-bg: rgba(12, 18, 13, 0.36);
+      --danger: #a74633;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+    }
+
+    body {
+      position: relative;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow-x: hidden;
+      color: var(--ink);
+      font-family: var(--font-ui);
+      background:
+        radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.95), transparent 24%),
+        radial-gradient(circle at 88% 18%, rgba(255, 241, 204, 0.82), transparent 22%),
+        linear-gradient(145deg, var(--bg-0), var(--bg-1) 58%, var(--bg-2));
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+      background-size: 26px 26px;
+      opacity: 0.24;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.66), transparent 95%);
+    }
+
+    body.modal-open {
+      overflow: hidden;
+    }
+
+    .desktop-shell {
+      width: var(--shell-width);
+      height: var(--shell-height);
+      min-height: 740px;
+      position: relative;
+    }
+
+    .desktop-frame {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 30px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(247, 245, 240, 0.62)),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      box-shadow: var(--shadow-1);
+      backdrop-filter: blur(14px);
+    }
+
+    .desktop-frame::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.66), transparent 22%),
+        radial-gradient(circle at bottom left, rgba(139, 179, 155, 0.18), transparent 28%);
+    }
+
+    .wallpaper {
+      position: absolute;
+      inset: 12px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background:
+        radial-gradient(circle at 12% 14%, rgba(255, 255, 255, 0.38), transparent 18%),
+        radial-gradient(circle at 82% 18%, rgba(255, 240, 191, 0.28), transparent 20%),
+        linear-gradient(135deg, #35594f 0%, #5f8975 34%, #9ec0a8 72%, #e8efde 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), var(--shadow-2);
+    }
+
+    .wallpaper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.2), transparent 22%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 42%);
+    }
+
+    .app-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 132px));
+      gap: 18px;
+      align-content: start;
+      padding: 28px;
+      min-height: 100%;
+    }
+
+    .app-tile {
+      border: none;
+      padding: 0;
+      background: transparent;
+      color: #fff;
+      font: inherit;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .app-tile-card {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+      padding: 14px 10px;
+      border-radius: 24px;
+      transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .app-tile:hover .app-tile-card,
+    .app-tile:focus-visible .app-tile-card {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 16px 30px rgba(16, 24, 18, 0.16);
+    }
+
+    .app-tile:focus-visible {
+      outline: none;
+    }
+
+    .app-icon {
+      width: 78px;
+      height: 78px;
+      display: grid;
+      place-items: center;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 12px 22px rgba(22, 34, 25, 0.18);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+
+    .app-icon--a {
+      background: var(--tile-a);
+    }
+
+    .app-icon--b {
+      background: var(--tile-b);
+    }
+
+    .app-icon--c {
+      background: var(--tile-c);
+    }
+
+    .app-name {
+      font-size: 14px;
+      font-weight: 800;
+      letter-spacing: 0.01em;
+      line-height: 1.25;
+      min-height: 18px;
+    }
+
+    .app-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--modal-bg);
+      backdrop-filter: blur(10px);
+    }
+
+    .app-modal[hidden] {
+      display: none;
+    }
+
+    .app-window {
+      width: min(1120px, calc(100vw - 24px));
+      height: min(780px, calc(100vh - 24px));
+      display: grid;
+      grid-template-rows: 72px minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.52);
+      border-radius: 28px;
+      background: rgba(251, 248, 241, 0.96);
+      box-shadow: 0 24px 60px rgba(10, 16, 11, 0.28);
+    }
+
+    .app-window-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px 14px 22px;
+      border-bottom: 1px solid rgba(22, 32, 24, 0.1);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(245, 240, 230, 0.92));
+    }
+
+    .app-window-title {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .app-window-title strong {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.05;
+    }
+
+    .app-window-title span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .app-window-close {
+      width: 42px;
+      height: 42px;
+      border: none;
+      border-radius: 14px;
+      background: rgba(24, 35, 26, 0.08);
+      color: var(--ink);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .app-window-body {
+      overflow: auto;
+      padding: 24px;
+    }
+
+    .app-pane {
+      display: grid;
+      gap: 18px;
+    }
+
+    .app-hero {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid rgba(24, 35, 26, 0.08);
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(241, 235, 220, 0.9));
+    }
+
+    .app-hero-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+    }
+
+    .app-hero h2 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.02;
+    }
+
+    .app-hero p,
+    .app-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric-card,
+    .app-card {
+      border: 1px solid rgba(24, 35, 26, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 8px 18px rgba(26, 40, 28, 0.05);
+    }
+
+    .metric-card span {
+      display: block;
+      margin-bottom: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .metric-card strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .app-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .app-card h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .app-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .app-list-item {
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(244, 241, 232, 0.92);
+      border: 1px solid rgba(24, 35, 26, 0.06);
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .app-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .app-btn {
+      min-height: 44px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--brand-1), var(--brand-2));
+      color: #fff;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(36, 68, 61, 0.14);
+    }
+
+    .app-btn--ghost {
+      background: rgba(24, 35, 26, 0.08);
+      color: var(--ink);
+      box-shadow: none;
+    }
+
+    .app-btn--danger {
+      background: linear-gradient(135deg, #804236, var(--danger));
+    }
+
+    .app-kv {
+      display: grid;
+      gap: 10px;
+    }
+
+    .app-kv-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(244, 241, 232, 0.92);
+      border: 1px solid rgba(24, 35, 26, 0.06);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .app-kv-row span {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .app-kv-row strong {
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .app-textarea {
+      width: 100%;
+      min-height: 260px;
+      resize: vertical;
+      padding: 16px;
+      border: 1px solid rgba(24, 35, 26, 0.12);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      font: inherit;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .app-status {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .timer-face {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      padding: 26px 18px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(243, 237, 223, 0.88));
+      border: 1px solid rgba(24, 35, 26, 0.08);
+    }
+
+    .timer-ring {
+      width: min(220px, 70vw);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(255, 255, 255, 0.98) 58%, transparent 59%),
+        conic-gradient(var(--brand-2) calc(var(--timer-progress, 0) * 1%), rgba(24, 35, 26, 0.08) 0);
+      box-shadow: inset 0 0 0 14px rgba(255, 255, 255, 0.68);
+    }
+
+    .timer-display {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+    }
+
+    .timer-display strong {
+      font-size: clamp(38px, 6vw, 56px);
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .timer-display span {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .timer-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .loading-card {
+      min-height: 220px;
+      display: grid;
+      place-items: center;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      color: var(--muted);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding: 10px;
+      }
+
+      .desktop-shell {
+        width: min(100%, 980px);
+        height: auto;
+        min-height: 0;
+      }
+
+      .desktop-frame {
+        min-height: 720px;
+      }
+
+      .wallpaper {
+        inset: 8px;
+      }
+
+      .app-grid {
+        grid-template-columns: repeat(2, minmax(0, 132px));
+        padding: 18px;
+      }
+
+      .metric-grid,
+      .app-grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .app-window {
+        width: min(100vw - 14px, 860px);
+        height: min(100vh - 14px, 640px);
+      }
+
+      .app-window-body {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="desktop-shell">
+    <div class="desktop-frame">
+      <main class="wallpaper" aria-label="YS app screen">
+        <div class="app-grid">
+          <button class="app-tile" type="button" data-app-id="randtrsl-1-1" aria-label="랜덤번역" title="랜덤번역">
+            <span class="app-tile-card">
+              <span class="app-icon app-icon--a">RT</span>
+              <span class="app-name">랜덤번역</span>
+            </span>
+          </button>
+          <button class="app-tile" type="button" data-app-id="wordtest-1-1" aria-label="단어 테스트" title="단어 테스트">
+            <span class="app-tile-card">
+              <span class="app-icon app-icon--b">WT</span>
+              <span class="app-name">단어 테스트</span>
+            </span>
+          </button>
+          <button class="app-tile" type="button" data-app-id="fragments" aria-label="fragments" title="fragments">
+            <span class="app-tile-card">
+              <span class="app-icon app-icon--c">FR</span>
+              <span class="app-name">fragments</span>
+            </span>
+          </button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="app-modal" id="app-modal" hidden>
+    <div class="app-window" role="dialog" aria-modal="true" aria-labelledby="app-modal-title">
+      <div class="app-window-head">
+        <div class="app-window-title">
+          <strong id="app-modal-title">App</strong>
+          <span id="app-modal-subtitle">Popup window</span>
+        </div>
+        <button class="app-window-close" id="app-modal-close" type="button" aria-label="Close popup">X</button>
+      </div>
+      <div class="app-window-body" id="app-modal-body"></div>
+    </div>
+  </div>
+
+  <script defer src="ys_userpage_apps/ys-userpage-main.js"></script>
+</body>
+</html>

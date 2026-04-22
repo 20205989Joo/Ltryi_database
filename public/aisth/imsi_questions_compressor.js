@@ -7,7 +7,7 @@
 
   var state = {
     enabled: true,
-    limit: 4,
+    limit: 20,
     wrappedBuild: false,
     wrappedStart: false,
     timerId: null,

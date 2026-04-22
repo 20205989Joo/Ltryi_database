@@ -50,7 +50,8 @@ window.addEventListener('DOMContentLoaded', () => {
     return (
       subcategory === '베이스 체커' ||
       subcategory === '셀프 단어시험' ||
-      subcategory === '모의고사 전용도구'
+      subcategory === '모의고사 전용도구' ||
+      subcategory === 'EBS 전용도구'
     );
   }
 

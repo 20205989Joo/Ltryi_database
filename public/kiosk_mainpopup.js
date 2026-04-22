@@ -65,6 +65,7 @@ function injectKioskPopupHTML() {
           <button class="menu-btn square" data-menu-type="etc">오늘 내 숙제</button>
           <button class="menu-btn square" data-menu-type="etc">셀프 체크</button>
           <button class="menu-btn square" data-menu-type="etc">모의고사 전용도구</button>
+          <button class="menu-btn square" data-menu-type="etc">EBS 전용도구</button>
         </div>
 
         <div id="sub-popup" class="sub-popup hidden">

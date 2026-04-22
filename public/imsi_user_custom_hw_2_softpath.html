@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Soft-path Fragments Homework</title>
+  <style>
+    :root{
+      --bg:#fff8ea; --ink:#2b261f; --muted:#6d6155; --card:#fffbf1;
+      --chip:#f3ead7; --border:#eadfc8; --accent:#a76b2c; --deep:#6b4f3a;
+      --c0:#f8c7c3; --c0b:#e38b84;
+      --c1:#ffd8b5; --c1b:#f1a451;
+      --c2:#fff3b0; --c2b:#e0c34a;
+      --c3:#cde8c5; --c3b:#7fb58a;
+      --c4:#cfe4ff; --c4b:#7aa7d9;
+      --c5:#d5d0ff; --c5b:#8b85e0;
+      --c6:#f0d0ff; --c6b:#bf8fdc;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:ui-sans-serif, system-ui, "Segoe UI", "Malgun Gothic", AppleSDGothicNeo, sans-serif;
+      line-height:1.55;
+    }
+    .topbar{
+      position:sticky; top:0; z-index:10;
+      padding:10px 14px;
+      display:flex; gap:12px; align-items:center;
+      background:linear-gradient(180deg, rgba(255,248,234,.96), rgba(255,248,234,.88));
+      border-bottom:1px solid var(--border);
+      backdrop-filter:saturate(1.15) blur(6px);
+    }
+    .brand{ font-weight:800 }
+    .count{
+      margin-left:auto;
+      color:var(--muted);
+      font-variant-numeric:tabular-nums;
+    }
+
+    .wrap{
+      max-width:1260px;
+      margin:12px auto 18px;
+      padding:0 14px;
+      display:grid;
+      grid-template-columns:360px 1fr;
+      gap:16px;
+    }
+    @media (max-width:900px){
+      .wrap{ grid-template-columns:1fr }
+    }
+
+    .panel, .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:18px;
+      box-shadow:0 6px 18px rgba(0,0,0,.05);
+    }
+    .panel{ padding:12px }
+    .panel-head,
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:2px 4px 10px;
+    }
+    .panel-title{
+      font-size:13px;
+      color:var(--muted);
+      letter-spacing:.4px;
+      font-weight:700;
+    }
+    .sub-count{
+      color:var(--muted);
+      font-size:12px;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .frags{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      max-height:74vh;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .fragCard{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:8px;
+      background:#fffaf0;
+    }
+    .frag{
+      appearance:none;
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:10px 12px;
+      text-align:left;
+      cursor:pointer;
+      font-size:15px;
+      font-weight:800;
+      color:var(--ink);
+      transition:transform .04s ease, box-shadow .08s ease;
+      background:var(--chip);
+    }
+    .frag:hover{ transform:translateY(-1px) }
+    .frag.hit{ box-shadow:0 2px 0 var(--deep) inset }
+    .frag.c0{ background:var(--c0); border-color:var(--c0b) }
+    .frag.c1{ background:var(--c1); border-color:var(--c1b) }
+    .frag.c2{ background:var(--c2); border-color:var(--c2b) }
+    .frag.c3{ background:var(--c3); border-color:var(--c3b) }
+    .frag.c4{ background:var(--c4); border-color:var(--c4b) }
+    .frag.c5{ background:var(--c5); border-color:var(--c5b) }
+    .frag.c6{ background:var(--c6); border-color:var(--c6b) }
+
+    .fragNote{
+      width:100%;
+      margin-top:7px;
+      min-height:58px;
+      resize:vertical;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:8px 10px;
+      background:#fffdf7;
+      color:var(--ink);
+      font:inherit;
+      font-size:13px;
+      line-height:1.45;
+      outline:none;
+    }
+    .fragNote:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(167,107,44,.10);
+    }
+
+    .card{
+      padding:18px 18px 14px;
+      min-height:280px;
+    }
+    .sentence{
+      font-size:26px;
+      line-height:1.7;
+      letter-spacing:-0.01em;
+      background:#fffdf9;
+      border:1px solid #e7ddd1;
+      border-radius:22px;
+      padding:22px;
+      margin-bottom:16px;
+      word-break:keep-all;
+      display:block;
+    }
+    .word{
+      display:inline-block;
+      vertical-align:baseline;
+      margin:0 1px;
+      padding:2px 4px 3px;
+      border-radius:10px;
+      transition:background .08s ease, box-shadow .08s ease;
+    }
+    .word[data-color="c0"]{ background:var(--c0); box-shadow:0 0 0 1px var(--c0b) inset }
+    .word[data-color="c1"]{ background:var(--c1); box-shadow:0 0 0 1px var(--c1b) inset }
+    .word[data-color="c2"]{ background:var(--c2); box-shadow:0 0 0 1px var(--c2b) inset }
+    .word[data-color="c3"]{ background:var(--c3); box-shadow:0 0 0 1px var(--c3b) inset }
+    .word[data-color="c4"]{ background:var(--c4); box-shadow:0 0 0 1px var(--c4b) inset }
+    .word[data-color="c5"]{ background:var(--c5); box-shadow:0 0 0 1px var(--c5b) inset }
+    .word[data-color="c6"]{ background:var(--c6); box-shadow:0 0 0 1px var(--c6b) inset }
+
+    .note-panel{
+      border:1px solid #e4d8ca;
+      background:#fffaf4;
+      border-radius:20px;
+      padding:16px;
+      display:block;
+    }
+    .vocab-panel{
+      margin-top:16px;
+      border:1px solid #e4d8ca;
+      background:#fffaf4;
+      border-radius:20px;
+      padding:16px;
+      display:block;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:700;
+      letter-spacing:.04em;
+    }
+    .vocab-grid{
+      display:grid;
+      grid-template-columns:repeat(4, minmax(0, 1fr));
+      gap:8px;
+    }
+    .vocab-card{
+      border:1px solid #dfcfbd;
+      border-radius:12px;
+      background:#fffdf9;
+      padding:9px 10px;
+      min-width:0;
+    }
+    .vocab-en{
+      font-size:13px;
+      line-height:1.25;
+      font-weight:800;
+      color:var(--ink);
+      word-break:break-word;
+    }
+    .vocab-ko{
+      margin-top:4px;
+      font-size:12px;
+      line-height:1.3;
+      color:var(--muted);
+      word-break:keep-all;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    textarea{
+      width:100%;
+      border-radius:18px;
+      border:1px solid #d9cbb9;
+      background:#fffdf9;
+      padding:14px;
+      font:inherit;
+      font-size:15px;
+      color:var(--ink);
+      resize:vertical;
+      outline:none;
+    }
+    textarea:focus{
+      border-color:#b48c63;
+      box-shadow:0 0 0 3px rgba(180,140,99,.12);
+    }
+    #translationBox{
+      min-height:148px;
+    }
+
+    .bottom-row{
+      margin-top:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .status{
+      font-size:13px;
+      color:var(--muted);
+    }
+    .action-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      justify-content:flex-end;
+    }
+    .btn,
+    .submitBtn{
+      appearance:none;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn{
+      border:1px solid var(--border);
+      background:#fff;
+      color:var(--deep);
+      padding:8px 14px;
+    }
+    .btn:hover{
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+    .submitBtn{
+      border:1px solid #3e8b49;
+      background:linear-gradient(180deg, #59a063, #3d8748);
+      color:#fff;
+      padding:8px 16px;
+      min-width:154px;
+    }
+    .submitBtn:disabled,
+    .btn:disabled{
+      opacity:.55;
+      cursor:default;
+    }
+    .done-panel{
+      display:none;
+    }
+    .done-panel.active{
+      display:block;
+    }
+    .done-card{
+      border:1px solid #dfcfbd;
+      border-radius:22px;
+      background:#fffdfa;
+      padding:42px 20px;
+      text-align:center;
+      font-size:30px;
+      line-height:1.4;
+      font-weight:900;
+      color:var(--ink);
+    }
+    @media (max-width:760px){
+      .sentence{
+        font-size:21px;
+        padding:18px;
+      }
+      .vocab-grid{
+        grid-template-columns:repeat(2, minmax(0, 1fr));
+      }
+      .action-row{
+        width:100%;
+        justify-content:stretch;
+      }
+      .btn,
+      .submitBtn{
+        flex:1 1 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Soft-path Fragments</div>
+    <span class="count" id="count">1 / 10</span>
+  </header>
+
+  <main class="wrap" id="cafe_int">
+    <section class="panel">
+      <div class="panel-head">
+        <div class="panel-title">FRAGMENTS</div>
+        <div class="sub-count" id="noteProgress">0 / 45</div>
+      </div>
+      <div id="frags" class="frags"></div>
+    </section>
+
+    <section class="card">
+      <div id="studyBody">
+        <div class="card-head">
+          <div class="panel-title">SENTENCE</div>
+          <div class="sub-count" id="translationProgress">0 / 10</div>
+        </div>
+        <div id="sentence" class="sentence" aria-live="polite"></div>
+
+        <div class="note-panel">
+          <div class="label">&#47928;&#51109; &#51204;&#52404; &#48264;&#50669;</div>
+          <textarea id="translationBox" spellcheck="false" placeholder="&#51204;&#52404; &#47928;&#51109; &#48264;&#50669;&#51012; &#51201;&#50612; &#48372;&#49464;&#50836;."></textarea>
+          <div class="bottom-row">
+            <div class="status" id="saveStatus">&#48652;&#46972;&#50864;&#51200;&#50640; &#51088;&#46041; &#51200;&#51109;&#46121;&#45768;&#45796;.</div>
+            <div class="action-row">
+              <button class="btn" id="prevBtn" type="button">← &#51060;&#51204;</button>
+              <button class="btn" id="nextBtn" type="button">&#45796;&#51020; →</button>
+              <button class="submitBtn" id="submitBtn" type="button">&#51228;&#52636;&#54616;&#44592;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="vocab-panel" id="vocabPanel">
+          <div class="label">WORD BANK</div>
+          <div class="vocab-grid" id="vocabBank"></div>
+        </div>
+      </div>
+
+      <div class="done-panel" id="donePanel">
+        <div class="done-card">&#50724;&#45720; &#49689;&#51228; &#45149;!</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="toast_imsi.js"></script>
+  <script>
+    const HWPLUS_API_URL = "https://port-0-ltryi-database-1ru12mlw3glz2u.sel5.cloudtype.app/api/saveHWPlus";
+    const STORAGE_KEY = "imsi_user_custom_hw_2_softpath_state_v2";
+    const SUBMIT_MARKER_KEY = "imsi_user_custom_hw_2_submit_marker_v2";
+    const DIRECT_SUBCATEGORY = "\uACF5\uC0AC\uC911";
+    const DIRECT_HWTYPE = "doneinweb";
+    const DIRECT_COMMENT = "imsi_user_custom_hw_2 layered translation answers";
+    const WORD_SPLIT_RE = /([A-Za-z]+(?:[-'][A-Za-z]+)*)/g;
+    const WORD_ONLY_RE = /^[A-Za-z]+(?:[-'][A-Za-z]+)*$/;
+    const DATA = [
+      {
+        vocab: [],
+        sentence: "What is soft-path river engineering?",
+        frags: [
+          { text: "What is soft-path river engineering?", idx: [0, 1, 2, 3, 4] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "visualize", ko: "\uC2DC\uAC01\uD654\uD558\uB2E4" },
+          { en: "footpath", ko: "\uC624\uC194\uAE38" }
+        ],
+        sentence: "One way to visualize its spirit is to liken it to a footpath in the forest.",
+        frags: [
+          { text: "One way to visualize", idx: [0, 1, 2, 3] },
+          { text: "visualize its spirit", idx: [3, 4, 5] },
+          { text: "one way is to liken it", idx: [0, 1, 6, 7, 8, 9] },
+          { text: "liken it to a footpath", idx: [8, 9, 10, 11, 12] },
+          { text: "footpath in the forest", idx: [12, 13, 14, 15] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "footpath", ko: "\uC624\uC194\uAE38" }
+        ],
+        sentence: "Suppose a tree falls across a footpath.",
+        frags: [
+          { text: "Suppose a tree", idx: [0, 1, 2] },
+          { text: "tree falls across a footpath", idx: [2, 3, 4, 5, 6] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "response", ko: "\uC751\uB2F5, \uBC18\uC751" },
+          { en: "redirect", ko: "\uC6B0\uD68C\uD558\uB2E4, \uC6B0\uD68C\uC2DC\uD0A4\uB2E4" }
+        ],
+        sentence: "A soft-path response would be simply to redirect the trail around the fallen tree.",
+        frags: [
+          { text: "A softpath response would be to redirect", idx: [0, 1, 2, 3, 4, 6, 7] },
+          { text: "simply redirect", idx: [5, 7] },
+          { text: "redirect the trail", idx: [7, 8, 9] },
+          { text: "redirect around the fallen tree", idx: [7, 10, 11, 12, 13] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "interventionist", ko: "\uAC1C\uC785\uC8FC\uC758\uC790" },
+          { en: "response", ko: "\uC751\uB2F5, \uBC18\uC751" },
+          { en: "restore", ko: "\uBCF5\uAD6C\uD558\uB2E4" }
+        ],
+        sentence: "A more interventionist response would be to remove the tree and restore the original route.",
+        frags: [
+          { text: "A more interventionist response would be to remove", idx: [0, 1, 2, 3, 4, 5, 6, 7] },
+          { text: "remove the tree", idx: [7, 8, 9] },
+          { text: "to restore the route", idx: [6, 11, 12, 14] },
+          { text: "the original route", idx: [12, 13, 14] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "interventionist", ko: "\uAC1C\uC785\uC8FC\uC758\uC790" },
+          { en: "pave", ko: "\uD3EC\uC7A5\uD558\uB2E4(\uB3C4\uB85C)" },
+          { en: "permanently", ko: "\uC601\uAD6C\uC801\uC774\uAC8C" },
+          { en: "landscape.", ko: "\uD48D\uACBD, \uC870\uACBD" }
+        ],
+        sentence: "A still more interventionist response might be to straighten and pave the path to insert it more permanently in the landscape.",
+        frags: [
+          { text: "A still more interventionist response might be to straighten", idx: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+          { text: "straighten and pave", idx: [8, 9, 10] },
+          { text: "pave the path", idx: [10, 11, 12] },
+          { text: "pave to insert it", idx: [10, 13, 14, 15] },
+          { text: "insert it more permanently", idx: [14, 15, 16, 17] },
+          { text: "insert it in the landscape", idx: [14, 15, 18, 19, 20] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "high-modernist", ko: "\uACE0\uB3C4\uC758 \uD604\uB300\uC8FC\uC758\uC790??" },
+          { en: "superhighway", ko: "\uCD08\uACE0\uC18D\uB3C4\uB85C" },
+          { en: "landscape.", ko: "\uD48D\uACBD, \uC870\uACBD" }
+        ],
+        sentence: "The true high-modernist step would, of course, be to create a superhighway that removes the landscape and bulldozes straight through all obstacles in the topography.",
+        frags: [
+          { text: "The true high-modernist step would be to create", idx: [0, 1, 2, 3, 4, 7, 8, 9] },
+          { text: "of course", idx: [5, 6] },
+          { text: "create a superhighway", idx: [9, 10, 11] },
+          { text: "a superhighway that removes and bulldozes", idx: [10, 11, 12, 13, 16, 17] },
+          { text: "removes the landscape", idx: [13, 14, 15] },
+          { text: "bulldozes straight through obstacles", idx: [17, 18, 19, 21] },
+          { text: "all obstacles in the topography", idx: [20, 21, 22, 23, 24] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "intellectual", ko: "\uC9C0\uC801\uC778" },
+          { en: "environmental", ko: "\uD658\uACBD\uC801\uC778" }
+        ],
+        sentence: "Soft-path engineering has the unique advantage of intellectual modesty with respect to what we actually know about river movement and its environmental effects.",
+        frags: [
+          { text: "Soft-path engineering has the unique advantage", idx: [0, 1, 2, 3, 4, 5] },
+          { text: "advantage of intellectual modesty", idx: [5, 6, 7, 8] },
+          { text: "advantage with respect to what we know", idx: [5, 9, 10, 11, 12, 13, 15] },
+          { text: "what we actually know", idx: [12, 13, 14, 15] },
+          { text: "know about the river movements", idx: [15, 16, 17, 18] },
+          { text: "river movements and its envorinmental effects", idx: [17, 18, 19, 20, 21, 22] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "variability", ko: "\uBCC0\uB3D9\uAC00\uB2A5\uC131" },
+          { en: "insignificant", ko: "\uD558\uCC2E\uC740" },
+          { en: "otherwise.", ko: "\uADF8\uB807\uC9C0 \uC54A\uB2E4\uBA74, \uC544\uB2CC \uACBD\uC6B0" }
+        ],
+        sentence: "In contrast to hard-path engineering, soft-path engineering accepts variability in the river's movement as insignificant until proven otherwise.",
+        frags: [
+          { text: "In constrast to hard-path engineering", idx: [0, 1, 2, 3, 4] },
+          { text: "soft-path engineering accepts variability", idx: [5, 6, 7, 8] },
+          { text: "variability in the river's movement", idx: [8, 9, 10, 11, 12] },
+          { text: "accepts variability as insignificant", idx: [7, 8, 13, 14] },
+          { text: "insignificant until proven otherwise", idx: [14, 15, 16, 17] }
+        ]
+      },
+      {
+        vocab: [
+          { en: "channels,", ko: "\uC218\uB85C(\uBB3C\uC758 \uAE38)" },
+          { en: "swamps", ko: "\uB2AA" },
+          { en: "undesirable", ko: "\uBC14\uB78C\uC9C1\uD558\uC9C0\uC54A\uC740" },
+          { en: "presumed", ko: "\uAC04\uC8FC\uB418\uB2E4" }
+        ],
+        sentence: "Backwaters, short-lived wetlands, braids and channels, swamps — all undesirable to hard-path engineering — are presumed by soft-path engineers to be ecologically important.",
+        frags: [
+          { text: "Backwater, short-lived wetland, braids and channels, swamps (...) are presumed", idx: [0, 1, 2, 3, 4, 5, 6, 12, 13] },
+          { text: "all undesirable to hard-path engineering", idx: [7, 8, 9, 10, 11] },
+          { text: "presumed by soft-path engineers", idx: [13, 14, 15, 16] },
+          { text: "presumed to be important", idx: [13, 17, 18, 20] },
+          { text: "ecologically important", idx: [19, 20] }
+        ]
+      }
+    ];
+
+    const TOTAL_FRAGMENT_COUNT = DATA.reduce((sum, item) => sum + item.frags.length, 0);
+    const colorStacks = new Map();
+
+    const el = {
+      count: document.getElementById("count"),
+      fragmentsPanel: document.querySelector(".panel"),
+      studyBody: document.getElementById("studyBody"),
+      donePanel: document.getElementById("donePanel"),
+      noteProgress: document.getElementById("noteProgress"),
+      translationProgress: document.getElementById("translationProgress"),
+      sentence: document.getElementById("sentence"),
+      frags: document.getElementById("frags"),
+      translationBox: document.getElementById("translationBox"),
+      vocabPanel: document.getElementById("vocabPanel"),
+      vocabBank: document.getElementById("vocabBank"),
+      saveStatus: document.getElementById("saveStatus"),
+      prevBtn: document.getElementById("prevBtn"),
+      nextBtn: document.getElementById("nextBtn"),
+      submitBtn: document.getElementById("submitBtn")
+    };
+
+    function createDefaultState() {
+      return {
+        current: 0,
+        notes: DATA.map((item) => item.frags.map(() => "")),
+        translations: DATA.map(() => "")
+      };
+    }
+
+    function normalizeNotes(rawNotes) {
+      return DATA.map((item, sentenceIndex) => {
+        const row = Array.isArray(rawNotes && rawNotes[sentenceIndex]) ? rawNotes[sentenceIndex] : [];
+        return item.frags.map((_, fragmentIndex) => {
+          return typeof row[fragmentIndex] === "string" ? row[fragmentIndex] : "";
+        });
+      });
+    }
+
+    function normalizeTranslations(rawTranslations) {
+      return DATA.map((_, sentenceIndex) => {
+        return typeof (rawTranslations && rawTranslations[sentenceIndex]) === "string"
+          ? rawTranslations[sentenceIndex]
+          : "";
+      });
+    }
+
+    function loadSavedState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (!parsed || typeof parsed !== "object") return createDefaultState();
+        const current = Number.isInteger(parsed.current) ? parsed.current : 0;
+        return {
+          current: Math.min(Math.max(current, 0), DATA.length - 1),
+          notes: normalizeNotes(parsed.notes),
+          translations: normalizeTranslations(parsed.translations)
+        };
+      } catch (_) {
+        return createDefaultState();
+      }
+    }
+
+    let savedState = loadSavedState();
+    let submittedToday = false;
+    let isSubmitting = false;
+    let advanceTimer = null;
+
+    function saveAll() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedState));
+    }
+
+    function resetSavedState() {
+      savedState = createDefaultState();
+      saveAll();
+    }
+
+    function trimText(value) {
+      return String(value || "").trim();
+    }
+
+    function filledNoteCount() {
+      return savedState.notes.reduce((sum, row) => {
+        return sum + row.reduce((innerSum, note) => innerSum + (trimText(note) ? 1 : 0), 0);
+      }, 0);
+    }
+
+    function filledTranslationCount() {
+      return savedState.translations.reduce((sum, text) => sum + (trimText(text) ? 1 : 0), 0);
+    }
+
+    function hasCompleteNotes() {
+      return filledNoteCount() === TOTAL_FRAGMENT_COUNT;
+    }
+
+    function hasCompleteTranslations() {
+      return filledTranslationCount() === DATA.length;
+    }
+
+    function initToast() {
+      if (!window.ImsiToastFX || typeof window.ImsiToastFX.init !== "function") return;
+      if (initToast.ready) return;
+      window.ImsiToastFX.init({ hostId: "cafe_int", top: 10 });
+      initToast.ready = true;
+    }
+
+    function showToast(kind, message, options) {
+      if (window.ImsiToastFX && typeof window.ImsiToastFX.show === "function") {
+        window.ImsiToastFX.show(kind, message, options);
+      }
+    }
+
+    function scheduleAdvance(callback, delay) {
+      clearTimeout(advanceTimer);
+      advanceTimer = setTimeout(() => {
+        advanceTimer = null;
+        callback();
+      }, delay);
+    }
+
+    function getCurrentUserId() {
+      try {
+        return String(new URLSearchParams(window.location.search || "").get("id") || "").trim();
+      } catch (_) {
+        return "";
+      }
+    }
+
+    function getKstTodayString() {
+      const now = new Date(Date.now() + (9 * 60 * 60 * 1000));
+      return now.toISOString().slice(0, 10);
+    }
+
+    function readSubmitMarker() {
+      try {
+        const raw = localStorage.getItem(SUBMIT_MARKER_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch (_) {
+        return null;
+      }
+    }
+
+    function writeSubmitMarker(userId, dateStr) {
+      localStorage.setItem(SUBMIT_MARKER_KEY, JSON.stringify({
+        userId: String(userId || ""),
+        date: String(dateStr || "")
+      }));
+    }
+
+    function clearSubmitMarker() {
+      localStorage.removeItem(SUBMIT_MARKER_KEY);
+    }
+
+    function hasLocalSubmittedToday(userId) {
+      const marker = readSubmitMarker();
+      if (!marker) return false;
+      return String(marker.userId || "") === String(userId || "") && String(marker.date || "") === getKstTodayString();
+    }
+
+    async function fetchSubmittedTodayFromServer(userId) {
+      const res = await fetch(`${HWPLUS_API_URL.replace("/saveHWPlus", "/getHWPlus")}?userId=${encodeURIComponent(userId)}`);
+      if (!res.ok) throw new Error(String(res.status));
+
+      const data = await res.json();
+      if (!Array.isArray(data)) return false;
+
+      const todayStr = getKstTodayString();
+      return data.some((item) => {
+        const timestamp = String(item.Timestamp || item.timestamp || "");
+        const subcategory = String(item.Subcategory || item.subcategory || "").trim();
+        const hwType = String(item.HWType || item.hwtype || "").trim();
+        const comment = String(item.Comment || item.comment || "").trim();
+        return (
+          timestamp.startsWith(todayStr) &&
+          subcategory === DIRECT_SUBCATEGORY &&
+          hwType === DIRECT_HWTYPE &&
+          comment === DIRECT_COMMENT
+        );
+      });
+    }
+
+    function wait(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function waitForServerSubmission(userId, attempts = 4, delayMs = 450) {
+      for (let i = 0; i < attempts; i += 1) {
+        try {
+          if (await fetchSubmittedTodayFromServer(userId)) return true;
+        } catch (_) {
+        }
+
+        if (i < attempts - 1) {
+          await wait(delayMs);
+        }
+      }
+      return false;
+    }
+
+    async function checkSubmittedToday() {
+      const userId = getCurrentUserId();
+      if (!userId) return false;
+
+      try {
+        const hasServerRecord = await fetchSubmittedTodayFromServer(userId);
+        if (hasServerRecord) {
+          writeSubmitMarker(userId, getKstTodayString());
+          return true;
+        }
+        clearSubmitMarker();
+        return false;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    function buildTrayUrl() {
+      const userId = getCurrentUserId();
+      const target = new URL("homework-tray_v1.html", window.location.href);
+      if (userId) target.searchParams.set("id", userId);
+      return target.toString();
+    }
+
+    function stackFor(index) {
+      if (!colorStacks.has(index)) colorStacks.set(index, []);
+      return colorStacks.get(index);
+    }
+
+    function wordEl(index) {
+      return el.sentence.querySelector(`.word[data-i="${index}"]`);
+    }
+
+    function applyTopColor(index) {
+      const word = wordEl(index);
+      if (!word) return;
+      const stack = stackFor(index);
+      if (stack.length === 0) {
+        word.removeAttribute("data-color");
+      } else {
+        word.setAttribute("data-color", stack[stack.length - 1]);
+      }
+    }
+
+    function renderSentence(sentence) {
+      el.sentence.innerHTML = "";
+      let wordIndex = 0;
+      const parts = sentence.split(WORD_SPLIT_RE);
+
+      parts.forEach((part) => {
+        if (!part) return;
+        if (WORD_ONLY_RE.test(part)) {
+          const span = document.createElement("span");
+          span.className = "word";
+          span.dataset.i = String(wordIndex);
+          span.textContent = part;
+          el.sentence.appendChild(span);
+          wordIndex += 1;
+        } else {
+          el.sentence.appendChild(document.createTextNode(part));
+        }
+      });
+    }
+
+    function renderVocabBank(items) {
+      const vocabItems = Array.isArray(items) ? items : [];
+      el.vocabPanel.hidden = vocabItems.length === 0;
+      if (vocabItems.length === 0) {
+        el.vocabBank.innerHTML = "";
+        return;
+      }
+
+      el.vocabBank.innerHTML = vocabItems.map((item) => `
+        <div class="vocab-card">
+          <div class="vocab-en">${escapeHtml(item.en)}</div>
+          <div class="vocab-ko">- ${escapeHtml(item.ko)}</div>
+        </div>
+      `).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function renderDoneState() {
+      el.count.textContent = "\uC624\uB298 \uC219\uC81C \uB05D!";
+      el.fragmentsPanel.style.display = "none";
+      el.studyBody.style.display = "none";
+      el.donePanel.classList.add("active");
+    }
+
+    function clearDoneState() {
+      el.fragmentsPanel.style.display = "";
+      el.studyBody.style.display = "";
+      el.donePanel.classList.remove("active");
+    }
+
+    function updateStatusUi() {
+      const noteCount = filledNoteCount();
+      const translationCount = filledTranslationCount();
+      const isLastSentence = savedState.current === DATA.length - 1;
+      const allFilled = hasCompleteNotes() && hasCompleteTranslations();
+      el.noteProgress.textContent = `${noteCount} / ${TOTAL_FRAGMENT_COUNT}`;
+      el.translationProgress.textContent = `${translationCount} / ${DATA.length}`;
+      el.submitBtn.hidden = !isLastSentence;
+
+      if (submittedToday) {
+        el.saveStatus.textContent = "\uC624\uB298 \uC81C\uCD9C \uC644\uB8CC";
+        el.submitBtn.disabled = true;
+        el.submitBtn.textContent = "\uC81C\uCD9C \uC644\uB8CC";
+        return;
+      }
+
+      if (isSubmitting) {
+        el.saveStatus.textContent = "\uACFC\uC81C\uD568\uC73C\uB85C \uC81C\uCD9C \uC911...";
+        el.submitBtn.disabled = true;
+        el.submitBtn.textContent = "\uC81C\uCD9C \uC911...";
+        return;
+      }
+
+      el.saveStatus.textContent = "\uBE0C\uB77C\uC6B0\uC800\uC5D0 \uC790\uB3D9 \uC800\uC7A5\uB429\uB2C8\uB2E4.";
+      el.submitBtn.disabled = !allFilled;
+      el.submitBtn.textContent = "\uC81C\uCD9C\uD558\uAE30";
+    }
+
+    function renderFrags(list) {
+      el.frags.innerHTML = "";
+
+      list.forEach((frag, fragmentIndex) => {
+        const color = `c${fragmentIndex % 7}`;
+
+        const card = document.createElement("div");
+        card.className = "fragCard";
+
+        const button = document.createElement("button");
+        button.className = `frag ${color}`;
+        button.type = "button";
+        button.dataset.color = color;
+        button.dataset.idx = JSON.stringify(frag.idx);
+        button.textContent = frag.text;
+        button.addEventListener("click", () => toggleFrag(button));
+
+        const note = document.createElement("textarea");
+        note.className = "fragNote";
+        note.placeholder = "\uC870\uAC01 \uD574\uC11D\uC744 \uC801\uC5B4 \uBCF4\uC138\uC694.";
+        note.value = savedState.notes[savedState.current][fragmentIndex];
+        note.addEventListener("input", () => {
+          savedState.notes[savedState.current][fragmentIndex] = note.value;
+          saveAll();
+          updateStatusUi();
+        });
+        note.addEventListener("click", (event) => event.stopPropagation());
+
+        card.append(button, note);
+        el.frags.append(card);
+      });
+    }
+
+    function toggleFrag(button) {
+      const idxList = JSON.parse(button.dataset.idx || "[]");
+      const color = button.dataset.color || "c0";
+      const activating = !button.classList.contains("hit");
+      button.classList.toggle("hit");
+
+      idxList.forEach((index) => {
+        const stack = stackFor(index);
+        if (activating) {
+          stack.push(color);
+        } else {
+          const pos = stack.lastIndexOf(color);
+          if (pos >= 0) stack.splice(pos, 1);
+        }
+        applyTopColor(index);
+      });
+
+      if (idxList.length) {
+        const first = wordEl(idxList[0]);
+        if (first) first.scrollIntoView({ block: "nearest", inline: "nearest" });
+      }
+    }
+
+    function render() {
+      if (submittedToday) {
+        renderDoneState();
+        return;
+      }
+
+      clearDoneState();
+      colorStacks.clear();
+
+      const currentIndex = savedState.current;
+      const item = DATA[currentIndex];
+
+      el.count.textContent = `${currentIndex + 1} / ${DATA.length}`;
+      el.prevBtn.disabled = currentIndex === 0;
+      el.nextBtn.disabled = currentIndex === DATA.length - 1;
+      el.translationBox.value = savedState.translations[currentIndex];
+
+      renderSentence(item.sentence);
+      renderFrags(item.frags);
+      renderVocabBank(item.vocab);
+      updateStatusUi();
+    }
+
+    function setCurrent(index) {
+      savedState.current = Math.min(Math.max(index, 0), DATA.length - 1);
+      saveAll();
+      render();
+    }
+
+    function buildSubmissionText(userId) {
+      const lines = [
+        `userId: ${userId}`,
+        `date: ${getKstTodayString()}`,
+        "source: softpath_fragments.html",
+        `filledFragmentNotes: ${filledNoteCount()} / ${TOTAL_FRAGMENT_COUNT}`,
+        `filledSentenceTranslations: ${filledTranslationCount()} / ${DATA.length}`,
+        ""
+      ];
+
+      DATA.forEach((item, sentenceIndex) => {
+        lines.push(`[sentence ${sentenceIndex + 1}]`);
+        lines.push(`sentence: ${item.sentence}`);
+        lines.push(`translation: ${trimText(savedState.translations[sentenceIndex])}`);
+        item.frags.forEach((frag, fragmentIndex) => {
+          lines.push(`${fragmentIndex + 1}. fragment: ${frag.text}`);
+          lines.push(`note: ${trimText(savedState.notes[sentenceIndex][fragmentIndex])}`);
+        });
+        lines.push("");
+      });
+
+      return lines.join("\n");
+    }
+
+    async function submitAllAnswers() {
+      if (isSubmitting) return;
+      if (submittedToday) {
+        showToast("no", "\uC624\uB298\uC740 \uC774\uBBF8 \uC81C\uCD9C\uD588\uC2B5\uB2C8\uB2E4.");
+        return;
+      }
+      if (!hasCompleteNotes() || !hasCompleteTranslations()) {
+        showToast("no", "\uBAA8\uB4E0 \uC870\uAC01 \uD574\uC11D\uACFC \uC804\uCCB4 \uBB38\uC7A5 \uBC88\uC5ED\uC744 \uC785\uB825\uD558\uC138\uC694.");
+        return;
+      }
+
+      const userId = getCurrentUserId();
+      if (!userId) {
+        showToast("no", "id\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4.");
+        return;
+      }
+
+      isSubmitting = true;
+      updateStatusUi();
+
+      try {
+        const txtContent = buildSubmissionText(userId);
+        const file = new File(
+          [txtContent],
+          `imsi_user_custom_hw_2_${userId}.txt`,
+          { type: "text/plain" }
+        );
+
+        const formData = new FormData();
+        formData.append("UserId", userId);
+        formData.append("Subcategory", DIRECT_SUBCATEGORY);
+        formData.append("HWType", DIRECT_HWTYPE);
+        formData.append("LessonNo", 0);
+        formData.append("Comment", DIRECT_COMMENT);
+        formData.append("HWImage", file);
+
+        const res = await fetch(HWPLUS_API_URL, {
+          method: "POST",
+          body: formData
+        });
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          throw new Error(result && result.message ? String(result.message) : String(res.status));
+        }
+
+        const confirmed = await waitForServerSubmission(userId);
+        if (!confirmed) {
+          clearSubmitMarker();
+          submittedToday = false;
+          updateStatusUi();
+          showToast("no", "\uC81C\uCD9C \uC2E4\uD328");
+          return;
+        }
+
+        writeSubmitMarker(userId, getKstTodayString());
+        resetSavedState();
+        submittedToday = true;
+        render();
+        showToast("ok", "\uC81C\uCD9C \uC644\uB8CC!");
+        scheduleAdvance(() => {
+          window.location.replace(buildTrayUrl());
+        }, 620);
+      } catch (err) {
+        console.error(err);
+        showToast("no", "\uC81C\uCD9C \uC2E4\uD328");
+      } finally {
+        isSubmitting = false;
+        updateStatusUi();
+      }
+    }
+
+    el.translationBox.addEventListener("input", () => {
+      savedState.translations[savedState.current] = el.translationBox.value;
+      saveAll();
+      updateStatusUi();
+    });
+
+    el.prevBtn.addEventListener("click", () => {
+      setCurrent(savedState.current - 1);
+    });
+
+    el.nextBtn.addEventListener("click", () => {
+      setCurrent(savedState.current + 1);
+    });
+
+    el.submitBtn.addEventListener("click", submitAllAnswers);
+
+    (async function boot() {
+      initToast();
+      submittedToday = await checkSubmittedToday();
+      render();
+    })();
+  </script>
+</body>
+</html>

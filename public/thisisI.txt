@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chunk Workbook</title>
+  <style>
+    :root{
+      --bg:#f6f1e7;
+      --paper:#fbf8f2;
+      --ink:#2d211b;
+      --brown:#7b3f17;
+      --brown-soft:#c98f60;
+      --line:#d9c4b0;
+      --panel:#efe6d7;
+      --chunk:#f4efe9;
+      --muted:#6b5a4d;
+      --shadow:0 10px 28px rgba(82, 56, 34, 0.08);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: linear-gradient(180deg, #f8f3eb 0%, #f3ecdf 100%);
+      color:var(--ink);
+    }
+
+    .wrap{
+      max-width: 1380px;
+      margin: 24px auto;
+      padding: 0 18px 28px;
+    }
+
+    .header{
+      background: var(--paper);
+      border: 2px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 22px 24px 18px;
+      margin-bottom: 18px;
+    }
+
+    .header-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      font-size: 34px;
+      font-weight: 900;
+      color: var(--brown);
+      letter-spacing: -0.4px;
+    }
+
+    .subtitle{
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .progress-chip{
+      padding: 12px 18px;
+      border: 2px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--brown);
+      font-size: 18px;
+      font-weight: 800;
+      min-width: 140px;
+      text-align:center;
+    }
+
+    .main-card{
+      background: var(--panel);
+      border: 2px solid #dcb897;
+      border-radius: 34px;
+      padding: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .top-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom: 18px;
+    }
+
+    .q-badge{
+      background:#fff;
+      color:var(--brown);
+      border:2px solid #d9b28b;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .q-title{
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--brown);
+      letter-spacing: -0.2px;
+    }
+
+    .level-chip{
+      margin-left:auto;
+      background:#fff7ef;
+      color:#8a4d22;
+      border:1px solid #dfb892;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+      font-weight:800;
+    }
+
+    .content{
+      display:grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.8fr);
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .left-panel{
+      background:#f4f4f4;
+      border:2px solid #d7d3cf;
+      border-radius: 30px;
+      padding: 28px 34px;
+      min-height: 430px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .passage-label{
+      font-size: 14px;
+      font-weight: 800;
+      color: #7f6e60;
+      margin-bottom: 12px;
+      letter-spacing: 0.2px;
+    }
+
+    .passage{
+      font-size: 32px;
+      line-height: 1.85;
+      letter-spacing: 0.1px;
+      word-break: keep-all;
+      white-space: pre-line;
+      flex:1;
+    }
+
+    .note-box{
+      margin-top: 20px;
+      border-top: 1px dashed #cbb9aa;
+      padding-top: 16px;
+    }
+
+    .note-box label{
+      display:block;
+      font-size:14px;
+      font-weight:800;
+      color:#7b6758;
+      margin-bottom:8px;
+    }
+
+    .note-box textarea{
+      width:100%;
+      min-height:100px;
+      resize:vertical;
+      border:1.5px solid #d5c4b6;
+      border-radius:16px;
+      padding:12px 14px;
+      font-size:15px;
+      line-height:1.55;
+      background:#fffdfa;
+      color:var(--ink);
+      outline:none;
+    }
+
+    .right-panel{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .chunk-controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 2px;
+    }
+
+    .btn{
+      border:none;
+      background:#fff;
+      color:var(--brown);
+      border:2px solid #d6b393;
+      border-radius: 14px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .08s ease, background .15s ease;
+    }
+
+    .btn:hover{ transform: translateY(-1px); }
+    .btn.active{
+      background:#8f4a1d;
+      color:#fff;
+      border-color:#8f4a1d;
+    }
+
+    .chunk-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      flex:1;
+    }
+
+    .chunk-card{
+      background: var(--chunk);
+      border: 2px solid #d8beaa;
+      border-radius: 24px;
+      padding: 16px 18px;
+      min-height: 90px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .chunk-en{
+      font-size: 22px;
+      font-weight: 900;
+      color: #4a2d1f;
+      line-height: 1.25;
+      letter-spacing: -0.2px;
+    }
+
+    .chunk-ko{
+      margin-top: 7px;
+      font-size: 16px;
+      color: #715b4d;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .chunk-hidden{
+      display:none;
+    }
+
+    .bottom-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px dashed #ceb39c;
+    }
+
+    .nav-group{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .nav-btn{
+      min-width: 110px;
+      background:#fff;
+      border:2px solid #d6b393;
+      color:var(--brown);
+      border-radius: 16px;
+      padding: 12px 16px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .nav-btn:disabled{
+      opacity:0.45;
+      cursor:not-allowed;
+    }
+
+    .mini-info{
+      color:#7a6657;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    @media (max-width: 1100px){
+      .content{
+        grid-template-columns: 1fr;
+      }
+      .left-panel{
+        min-height: 320px;
+      }
+      .passage{
+        font-size: 27px;
+      }
+    }
+
+    @media (max-width: 700px){
+      .title{ font-size: 28px; }
+      .q-title{ font-size: 20px; }
+      .passage{
+        font-size: 22px;
+        line-height: 1.75;
+      }
+      .left-panel{
+        padding: 20px 22px;
+      }
+      .chunk-en{ font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="header-top">
+        <div class="title">Chunk Workbook</div>
+        <div class="progress-chip" id="progressChip">1 / 10</div>
+      </div>
+      <div class="subtitle">
+        제시문을 보고 문장 안의 chunk를 먼저 스스로 찾아보신 뒤, 오른쪽의
+        <strong>chunk 보기</strong> 버튼으로 확인해보세요.
+        뜻은 필요할 때만 따로 열 수 있게 해두었습니다.
+      </div>
+    </div>
+
+    <div class="main-card">
+      <div class="top-row">
+        <div class="q-badge" id="qBadge">Q1</div>
+        <div class="q-title" id="qTitle">Chunk를 찾아보세요!</div>
+        <div class="level-chip" id="levelChip">단문 · 1 chunk</div>
+      </div>
+
+      <div class="content">
+        <div class="left-panel">
+          <div class="passage-label">제시문</div>
+          <div class="passage" id="passage"></div>
+
+          <div class="note-box">
+            <label for="memo">메모</label>
+            <textarea id="memo" placeholder="직접 찾은 chunk를 적어보거나, 헷갈린 표현을 적어두세요."></textarea>
+          </div>
+        </div>
+
+        <div class="right-panel">
+          <div class="chunk-controls">
+            <button class="btn" id="toggleChunksBtn">chunk 보기</button>
+            <button class="btn" id="toggleMeaningBtn">뜻 보기</button>
+          </div>
+          <div class="chunk-list" id="chunkList"></div>
+        </div>
+      </div>
+
+      <div class="bottom-bar">
+        <div class="nav-group">
+          <button class="nav-btn" id="prevBtn">이전</button>
+          <button class="nav-btn" id="nextBtn">다음</button>
+        </div>
+        <div class="mini-info" id="miniInfo">짧은 문장에서 시작해서 passage까지 올라갑니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        no: 1,
+        title: "Chunk를 찾아보세요!",
+        level: "단문 · 1 chunk",
+        info: "가장 기본적인 동사+전치사형 chunk입니다.",
+        passage: "I agree with your idea.",
+        chunks: [
+          { en: "agree with ~", ko: "~에 동의하다" }
+        ]
+      },
+      {
+        no: 2,
+        title: "Chunk를 찾아보세요!",
+        level: "단문 · 1~2 chunks",
+        info: "짧지만 시간 표현까지 같이 chunk로 볼 수 있습니다.",
+        passage: "She looks for her keys every morning.",
+        chunks: [
+          { en: "look for ~", ko: "~을 찾다" },
+          { en: "every morning", ko: "매일 아침" }
+        ]
+      },
+      {
+        no: 3,
+        title: "Chunk를 찾아보세요!",
+        level: "단문 · 1~2 chunks",
+        info: "be동사 계열 형용사 표현입니다.",
+        passage: "He is good at solving math problems.",
+        chunks: [
+          { en: "be good at ~", ko: "~을 잘하다" },
+          { en: "solve math problems", ko: "수학 문제를 풀다" }
+        ]
+      },
+      {
+        no: 4,
+        title: "한 문장 안에서 두 개 이상 찾아보세요!",
+        level: "중문 · 3 chunks",
+        info: "동사구와 상태표현을 함께 잡아보면 좋습니다.",
+        passage: "My brother takes care of our dog and worries about it when it looks sick.",
+        chunks: [
+          { en: "take care of ~", ko: "~을 돌보다" },
+          { en: "worry about ~", ko: "~을 걱정하다" },
+          { en: "look sick", ko: "아파 보이다" }
+        ]
+      },
+      {
+        no: 5,
+        title: "한 문장 안에서 연결되는 표현을 찾아보세요!",
+        level: "중문 · 3 chunks",
+        info: "수동태 형용사처럼 굳어진 표현과 시간 길이 표현이 들어 있습니다.",
+        passage: "We were surprised at the news and talked about it for hours.",
+        chunks: [
+          { en: "be surprised at ~", ko: "~에 놀라다" },
+          { en: "talk about ~", ko: "~에 대해 이야기하다" },
+          { en: "for hours", ko: "몇 시간 동안" }
+        ]
+      },
+      {
+        no: 6,
+        title: "동작이 이어지는 문장입니다.",
+        level: "중문 · 4 chunks",
+        info: "쉼표로 이어진 동작들 속에서 각각의 chunk를 따로 잡아보세요.",
+        passage: "She gave up her seat, smiled at the old woman, and waited for the next bus.",
+        chunks: [
+          { en: "give up ~", ko: "~을 포기하다" },
+          { en: "give up one’s seat", ko: "자리를 양보하다" },
+          { en: "smile at ~", ko: "~을 향해 미소 짓다" },
+          { en: "wait for ~", ko: "~을 기다리다" }
+        ]
+      },
+      {
+        no: 7,
+        title: "한 문장 안의 여러 chunk를 정리해보세요!",
+        level: "중문 · 5 chunks",
+        info: "전치사와 함께 굳어진 표현들이 많이 나오는 문장입니다.",
+        passage: "Many students are interested in science, take part in club activities, and learn from one another after school.",
+        chunks: [
+          { en: "be interested in ~", ko: "~에 관심이 있다" },
+          { en: "take part in ~", ko: "~에 참여하다" },
+          { en: "learn from ~", ko: "~에게서 배우다" },
+          { en: "one another", ko: "서로" },
+          { en: "after school", ko: "방과 후에" }
+        ]
+      },
+      {
+        no: 8,
+        title: "긴 문장 안에서 chunk를 묶어보세요!",
+        level: "장문 · 6 chunks",
+        info: "접속사 뒤로 이어지는 이유 부분까지 같이 보시면 좋습니다.",
+        passage: "People often depend on maps when they travel, but they sometimes get lost in new places because they pay attention to the screen more than the streets around them.",
+        chunks: [
+          { en: "depend on ~", ko: "~에 의존하다" },
+          { en: "when they travel", ko: "여행할 때" },
+          { en: "get lost in ~", ko: "~에서 길을 잃다" },
+          { en: "pay attention to ~", ko: "~에 주의를 기울이다" },
+          { en: "more than ~", ko: "~보다 더" },
+          { en: "around them", ko: "그들 주변의" }
+        ]
+      },
+      {
+        no: 9,
+        title: "원인과 결과가 이어지는 장문입니다.",
+        level: "장문 · 6 chunks",
+        info: "동사구뿐 아니라 결과 표현까지 같이 잡는 연습입니다.",
+        passage: "Some teenagers suffer from stress at school, try to deal with it alone, and end up making mistakes in important situations because they do not ask for help.",
+        chunks: [
+          { en: "suffer from ~", ko: "~로 고통받다" },
+          { en: "at school", ko: "학교에서" },
+          { en: "deal with ~", ko: "~을 다루다, 해결하다" },
+          { en: "end up -ing", ko: "결국 ~하게 되다" },
+          { en: "make mistakes in ~", ko: "~에서 실수하다" },
+          { en: "ask for help", ko: "도움을 요청하다" }
+        ]
+      },
+      {
+        no: 10,
+        title: "Passage 전체에서 chunk를 최대한 많이 찾아보세요!",
+        level: "passage · 다중 chunks",
+        info: "문장 하나가 아니라 지문 전체에서 반복적으로 chunk를 잡는 단계입니다.",
+        passage:
+`Emma had to prepare for a big presentation at school.
+At first, she was afraid of speaking in front of others, so she tried to put off her work until the last minute.
+However, her teacher told her to focus on the main ideas and practice a little every day.
+In the end, Emma gained confidence in herself and did much better than she expected.`,
+        chunks: [
+          { en: "have to do", ko: "~해야 하다" },
+          { en: "prepare for ~", ko: "~을 준비하다" },
+          { en: "at school", ko: "학교에서" },
+          { en: "at first", ko: "처음에는" },
+          { en: "be afraid of ~", ko: "~을 두려워하다" },
+          { en: "in front of ~", ko: "~ 앞에서" },
+          { en: "in front of others", ko: "다른 사람들 앞에서" },
+          { en: "try to do", ko: "~하려고 하다" },
+          { en: "put off ~", ko: "~을 미루다" },
+          { en: "until the last minute", ko: "마지막 순간까지" },
+          { en: "tell + 사람 + to do", ko: "누구에게 ~하라고 말하다" },
+          { en: "focus on ~", ko: "~에 집중하다" },
+          { en: "a little", ko: "조금" },
+          { en: "every day", ko: "매일" },
+          { en: "in the end", ko: "결국" },
+          { en: "gain confidence in ~", ko: "~에 대한 자신감을 얻다" },
+          { en: "do better than ~", ko: "~보다 더 잘하다" },
+          { en: "better than she expected", ko: "그녀가 기대했던 것보다 더 잘" }
+        ]
+      }
+    ];
+
+    let currentIndex = 0;
+    let showChunks = false;
+    let showMeaning = false;
+
+    const progressChip = document.getElementById("progressChip");
+    const qBadge = document.getElementById("qBadge");
+    const qTitle = document.getElementById("qTitle");
+    const levelChip = document.getElementById("levelChip");
+    const passage = document.getElementById("passage");
+    const chunkList = document.getElementById("chunkList");
+    const miniInfo = document.getElementById("miniInfo");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const toggleChunksBtn = document.getElementById("toggleChunksBtn");
+    const toggleMeaningBtn = document.getElementById("toggleMeaningBtn");
+
+    function renderQuestion(){
+      const q = questions[currentIndex];
+
+      progressChip.textContent = `${currentIndex + 1} / ${questions.length}`;
+      qBadge.textContent = `Q${q.no}`;
+      qTitle.textContent = q.title;
+      levelChip.textContent = q.level;
+      passage.textContent = q.passage;
+      miniInfo.textContent = q.info;
+
+      chunkList.innerHTML = "";
+
+      q.chunks.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "chunk-card" + (showChunks ? "" : " chunk-hidden");
+
+        const en = document.createElement("div");
+        en.className = "chunk-en";
+        en.textContent = item.en;
+
+        const ko = document.createElement("div");
+        ko.className = "chunk-ko" + (showMeaning ? "" : " chunk-hidden");
+        ko.textContent = "= " + item.ko;
+
+        card.appendChild(en);
+        card.appendChild(ko);
+        chunkList.appendChild(card);
+      });
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.disabled = currentIndex === questions.length - 1;
+
+      toggleChunksBtn.classList.toggle("active", showChunks);
+      toggleMeaningBtn.classList.toggle("active", showMeaning);
+
+      toggleChunksBtn.textContent = showChunks ? "chunk 숨기기" : "chunk 보기";
+      toggleMeaningBtn.textContent = showMeaning ? "뜻 숨기기" : "뜻 보기";
+    }
+
+    toggleChunksBtn.addEventListener("click", () => {
+      showChunks = !showChunks;
+      renderQuestion();
+    });
+
+    toggleMeaningBtn.addEventListener("click", () => {
+      showMeaning = !showMeaning;
+      renderQuestion();
+    });
+
+    prevBtn.addEventListener("click", () => {
+      if (currentIndex > 0){
+        currentIndex--;
+        renderQuestion();
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (currentIndex < questions.length - 1){
+        currentIndex++;
+        renderQuestion();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft" && currentIndex > 0){
+        currentIndex--;
+        renderQuestion();
+      }
+      if (e.key === "ArrowRight" && currentIndex < questions.length - 1){
+        currentIndex++;
+        renderQuestion();
+      }
+      if (e.key === " "){
+        e.preventDefault();
+        showChunks = !showChunks;
+        renderQuestion();
+      }
+    });
+
+    renderQuestion();
+  </script>
+</body>
+</html>

@@ -376,9 +376,106 @@ function resolveCorrectOptionIndex(answerRaw, options) {
   return (options || []).findIndex((o) => normalizeLoose(o.text) === normAns || normalizeLoose(o.label) === normAns);
 }
 
+function buildTutorialRuleExample(subject, verb, note) {
+  const noteHtml = note ? `<div class="lip-example-note">${escapeHtml(note)}</div>` : "";
+  return `
+    <div class="lip-grammar-demo">
+      <div class="lip-grammar-side is-subject">
+        <div class="lip-grammar-side-label">Subject</div>
+        <div class="lip-grammar-token">${subject}</div>
+      </div>
+      <div class="lip-grammar-arrow">→</div>
+      <div class="lip-grammar-side is-verb">
+        <div class="lip-grammar-side-label">Verb</div>
+        <div class="lip-grammar-token">${verb}</div>
+      </div>
+    </div>
+    ${noteHtml}
+  `;
+}
+
+function buildTutorialCircleS(char) {
+  return `<span class="lip-grammar-mark is-ring">${escapeHtml(char)}</span>`;
+}
+
+function buildTutorialMissingS() {
+  return `<span class="lip-grammar-miss" aria-hidden="true"></span>`;
+}
+
+function buildInstructionWord(text, variant) {
+  return `<span class="lip-inline-word lip-inline-word-${variant}">${escapeHtml(text)}</span>`;
+}
+
+function buildInstructionS() {
+  return `<span class="lip-inline-s">${escapeHtml("s")}</span>`;
+}
+
+function buildPlainInstructionS() {
+  return escapeHtml("s");
+}
+
+function buildStep1InstructionHtml() {
+  return `${buildInstructionWord("\uC8FC\uC5B4", "subject")}\uC5D0 ${buildInstructionS()}\uAC00 \uC788\uB2E4\uBA74, ${buildInstructionWord("\uB3D9\uC0AC", "verb")}\uC5D4 ${buildPlainInstructionS()}\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4`;
+}
+
+function buildStep2InstructionHtml() {
+  return `${buildInstructionWord("\uC8FC\uC5B4", "subject")}\uC5D0 ${buildPlainInstructionS()}\uAC00 \uC5C6\uB2E4\uBA74 ${buildInstructionWord("\uB3D9\uC0AC", "verb")}\uC5D4 ${buildInstructionS()}\uAC00 \uC788\uC2B5\uB2C8\uB2E4`;
+}
+
+function buildTutorialStep1Example() {
+  return buildTutorialRuleExample(
+    `dog${buildTutorialCircleS("s")}`,
+    `run${buildTutorialMissingS()}`
+  );
+}
+
+function buildTutorialStep2Example() {
+  return buildTutorialRuleExample(
+    `he${buildTutorialMissingS()}`,
+    `run${buildTutorialCircleS("s")}`
+  );
+}
+
+function buildIntroPlayerConfig() {
+  const firstQuestion = questions[0] || null;
+
+  return {
+    pageLabel: PAGE_LABEL,
+    title: firstQuestion?.title || "\uB2E8\uC218/\uBCF5\uC218",
+    nextLabel: "다음",
+    primaryLabel: TEXT.START,
+    onPrimary: startQuiz,
+    steps: [
+      {
+        title: "주어에 s가 있다면, 동사엔 s가 없습니다",
+        titleHtml: buildStep1InstructionHtml(),
+        exampleHtml: buildTutorialStep1Example(),
+      },
+      {
+        title: "주어에 s가 없다면 동사엔 s가 있습니다",
+        titleHtml: buildStep2InstructionHtml(),
+        exampleHtml: buildTutorialStep2Example(),
+      },
+      {
+        title: "\uC774\uC81C \uC9C1\uC811 \uD574\uBCF4\uC138\uC694!",
+      },
+    ],
+  };
+}
+
 function renderIntro() {
   const area = document.getElementById("quiz-area");
   if (!area) return;
+
+  if (window.LessonIntroPlayer && typeof window.LessonIntroPlayer.render === "function") {
+    try {
+      if (window.LessonIntroPlayer.render(area, buildIntroPlayerConfig())) {
+        return;
+      }
+    } catch (err) {
+      console.error("LessonIntroPlayer render failed:", err);
+    }
+  }
 
   const total = questions.length;
   const title = questions[0]?.title || PAGE_LABEL;
