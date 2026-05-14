@@ -1,8 +1,10 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const mariadb = require('mariadb');
 const multer = require('multer');
 const webpush = require('web-push');
+const { Server } = require('socket.io');
 
 webpush.setVapidDetails(
   'mailto:deathlyevil@gmail.com',
@@ -12,6 +14,13 @@ webpush.setVapidDetails(
 
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
 
 app.use(express.json());
 app.use(express.static('public'));
@@ -1569,7 +1578,140 @@ app.get('/api/LiveToAfterclass_receive', async (req, res) => {
 
 
 
+// ===== Live Ink / Realtime Annotation Relay =====
+const LIVE_INK_EVENTS = ['live-event', 'ink-start', 'ink-move', 'ink-end', 'star', 'clear-ink'];
+const LIVE_INK_ROLES = new Set(['teacher', 'student', 'viewer']);
+
+function normalizeLiveInkRoomId(value) {
+  const roomId = String(value || '').trim();
+  if (!roomId) return '';
+  return roomId.slice(0, 120);
+}
+
+function normalizeLiveInkRole(value) {
+  const role = String(value || 'viewer').trim().toLowerCase();
+  return LIVE_INK_ROLES.has(role) ? role : 'viewer';
+}
+
+function joinLiveInkRoom(socket, rawRoomId, shouldAnnounce = true) {
+  const roomId = normalizeLiveInkRoomId(rawRoomId);
+  if (!roomId) return '';
+
+  const previousRoomId = socket.data.liveInkRoomId;
+  if (previousRoomId && previousRoomId !== roomId) {
+    socket.leave(previousRoomId);
+    if (shouldAnnounce) {
+      socket.to(previousRoomId).emit('live-ink:presence', {
+        type: 'left',
+        roomId: previousRoomId,
+        socketId: socket.id,
+        role: socket.data.liveInkRole,
+        serverTime: Date.now()
+      });
+    }
+  }
+
+  socket.join(roomId);
+  socket.data.liveInkRoomId = roomId;
+
+  if (shouldAnnounce) {
+    socket.to(roomId).emit('live-ink:presence', {
+      type: 'joined',
+      roomId,
+      socketId: socket.id,
+      role: socket.data.liveInkRole,
+      serverTime: Date.now()
+    });
+  }
+
+  return roomId;
+}
+
+function relayLiveInkEvent(socket, eventName, payload, reply) {
+  const body = payload && typeof payload === 'object' ? payload : {};
+  const roomId = normalizeLiveInkRoomId(body.roomId || socket.data.liveInkRoomId);
+  if (!roomId) {
+    const error = { ok: false, event: eventName, error: 'roomId is required' };
+    socket.emit('live-ink:error', error);
+    if (typeof reply === 'function') reply(error);
+    return;
+  }
+
+  if (socket.data.liveInkRoomId !== roomId) {
+    joinLiveInkRoom(socket, roomId, false);
+  }
+
+  const serverTime = Date.now();
+  const outgoing = {
+    ...body,
+    roomId,
+    senderId: socket.id,
+    senderRole: socket.data.liveInkRole,
+    serverTime
+  };
+
+  socket.to(roomId).emit(eventName, outgoing);
+  if (typeof reply === 'function') {
+    reply({ ok: true, event: eventName, roomId, serverTime });
+  }
+}
+
+app.get('/api/live-ink/health', function (_req, res) {
+  res.status(200).json({
+    ok: true,
+    service: 'live-ink',
+    clients: io.engine.clientsCount,
+    serverTime: Date.now()
+  });
+});
+
+io.on('connection', function (socket) {
+  socket.data.liveInkRole = normalizeLiveInkRole(socket.handshake.query.role);
+
+  const initialRoomId = joinLiveInkRoom(socket, socket.handshake.query.roomId, false);
+  socket.emit('live-ink:ready', {
+    ok: true,
+    socketId: socket.id,
+    roomId: initialRoomId,
+    role: socket.data.liveInkRole,
+    serverTime: Date.now()
+  });
+
+  socket.on('join-room', function (payload, reply) {
+    const roomId = joinLiveInkRoom(socket, payload && payload.roomId, true);
+    const result = roomId
+      ? { ok: true, roomId, role: socket.data.liveInkRole, serverTime: Date.now() }
+      : { ok: false, error: 'roomId is required' };
+
+    socket.emit(roomId ? 'room-joined' : 'live-ink:error', result);
+    if (typeof reply === 'function') reply(result);
+  });
+
+  LIVE_INK_EVENTS.forEach(function (eventName) {
+    socket.on(eventName, function (payload, reply) {
+      relayLiveInkEvent(socket, eventName, payload, reply);
+    });
+  });
+
+  socket.on('disconnect', function () {
+    const roomId = socket.data.liveInkRoomId;
+    if (!roomId) return;
+
+    socket.to(roomId).emit('live-ink:presence', {
+      type: 'left',
+      roomId,
+      socketId: socket.id,
+      role: socket.data.liveInkRole,
+      serverTime: Date.now()
+    });
+  });
+});
+
+
+
+
 // 서버 시작
-app.listen(3000, function () {
-    console.log('Server listening on port 3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, function () {
+    console.log(`Server listening on port ${PORT}`);
 });
