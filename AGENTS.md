@@ -14,7 +14,6 @@
 - `package.json` includes `socket.io`.
 - `server.js` now creates an HTTP server with `http.createServer(app)` and attaches Socket.IO to that server.
 - Existing Express REST APIs still use the same `app`; startup is now `server.listen(process.env.PORT || 3000, ...)`.
-- Test page exists at `public/live-ink-test.html`.
 - Health endpoint exists at `/api/live-ink/health`.
 
 ## Realtime Relay Behavior
@@ -48,9 +47,10 @@
 - Suggested normalized coordinate fields remain `x` and `y` in `0..1`, but frontend code may add any extra fields it needs, such as `pageId`, `lessonId`, `tool`, `color`, `size`, `points`, `pressure`, `target`, or `action`.
 
 ## Local Test
-- Start the server:
+- Start the backend server:
   - `node server.js`
-- Open two browser tabs:
-  - `http://localhost:3000/live-ink-test.html`
-- Use the same room id in both tabs and draw/star/clear from one tab.
-- The other tab should receive the relay.
+- Open the frontend test file:
+  - `Ltryi_Frontend_moved/LTsRYI/socket-io-test.html`
+- The frontend test page should default to the Cloudtype backend URL.
+- For local backend testing, enter `http://localhost:3000` in the Server URL field or use `?server=http://localhost:3000`.
+- Use the same room id in two tabs and send `live-event`, draw, star, or clear from one tab. The other tab should receive the relay.

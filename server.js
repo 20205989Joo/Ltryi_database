@@ -22,10 +22,9 @@ const io = new Server(server, {
   }
 });
 
-app.use(express.json());
-app.use(express.static('public'));
-
 app.use(cors());
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '5mb' }));
+app.use(express.static('public'));
 
 const { createClient } = require('@supabase/supabase-js');
 
